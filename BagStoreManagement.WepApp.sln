@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36408.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BagStoreManagement.WepApp", "BagStoreManagement.WepApp\BagStoreManagement.WepApp.csproj", "{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {00A792F2-E745-4EE6-83F3-59FDCAC08387}
+	EndGlobalSection
+EndGlobal
