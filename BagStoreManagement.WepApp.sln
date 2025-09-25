@@ -3,12 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36408.4 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BagStoreManagement.WepApp", "BagStoreManagement.WepApp\BagStoreManagement.WepApp.csproj", "{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BagStore.WepApp", "BagStoreManagement.WepApp\BagStore.WepApp.csproj", "{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BagStore.Models", "BagStore.Models\BagStore.Models.csproj", "{B935E4A1-05D9-45F4-B05C-EFB9E6088C48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BagStore.Common", "BagStore.Common\BagStore.Common.csproj", "{298EE3D0-32D0-4585-9E8C-F5405505F748}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BagStore.Domain", "BagStore.Domain\BagStore.Domain.csproj", "{24975F22-DE7E-4693-B915-43E0398C2B28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +26,18 @@ Global
 		{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D7A53CF-362B-4C73-BA3E-00E6AFDE3A9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B935E4A1-05D9-45F4-B05C-EFB9E6088C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B935E4A1-05D9-45F4-B05C-EFB9E6088C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B935E4A1-05D9-45F4-B05C-EFB9E6088C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B935E4A1-05D9-45F4-B05C-EFB9E6088C48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{298EE3D0-32D0-4585-9E8C-F5405505F748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{298EE3D0-32D0-4585-9E8C-F5405505F748}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{298EE3D0-32D0-4585-9E8C-F5405505F748}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{298EE3D0-32D0-4585-9E8C-F5405505F748}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24975F22-DE7E-4693-B915-43E0398C2B28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24975F22-DE7E-4693-B915-43E0398C2B28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24975F22-DE7E-4693-B915-43E0398C2B28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24975F22-DE7E-4693-B915-43E0398C2B28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
