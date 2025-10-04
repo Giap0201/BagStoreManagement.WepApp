@@ -22,19 +22,18 @@ namespace BagStore.Domain.Configurations
             //FK den danh muc thuong hieu chat lieu
             builder.HasOne(x => x.DanhMucLoaiTui)
                 .WithMany(d => d.SanPhams)
-                .HasForeignKey(e => e.MaLoaiTui).OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.MaLoaiTui);
             builder.HasOne(x => x.ThuongHieu)
                 .WithMany(t => t.SanPhams)
-                .HasForeignKey(e => e.MaThuongHieu).OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.MaThuongHieu);
             builder.HasOne(x => x.ChatLieu)
                 .WithMany(s => s.SanPhams)
-                .HasForeignKey(e => e.MaChatLieu).OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.MaChatLieu);
 
             //FK den nhan vien
             builder.HasOne(x => x.NhanVienCapNhat)
                 .WithMany(nv => nv.SanPhamDaCapNhats)
-                .HasForeignKey(e => e.NhanVienCapNhatId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.NhanVienCapNhatId).OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

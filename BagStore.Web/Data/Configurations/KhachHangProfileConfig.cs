@@ -1,25 +1,20 @@
-﻿using BagStore.Domain.Entities.IdentityModels;
+﻿using BagStore.Domain.Entities;
+using BagStore.Domain.Entities.IdentityModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BagStore.Domain.Configurations
+public class KhachHangProfileConfig : IEntityTypeConfiguration<KhachHangProfile>
 {
-    public class KhachHangProfileConfig : IEntityTypeConfiguration<KhachHangProfile>
+    public void Configure(EntityTypeBuilder<KhachHangProfile> builder)
     {
-        public void Configure(EntityTypeBuilder<KhachHangProfile> builder)
-        {
-            builder.HasKey(x => x.UserId);
+        builder.HasKey(kh => kh.UserId);
 
-            //quan he 1-1 voi user
-            builder.HasOne(x => x.User).WithOne(x => x.KhachHangProfile)
-                .HasForeignKey<KhachHangProfile>(e => e.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // xoa user thi xoa profile
-        }
+        // Mối quan hệ 1-1 với ApplicationUser (bắt buộc)
+        // Dùng RESTRICT để ngăn chặn ApplicationUser tự động xóa KhachHangProfile, phá vỡ chu trình CASCADE.
+        builder.HasOne(e => e.User)
+               .WithOne(u => u.KhachHangProfile)
+               .HasForeignKey<KhachHangProfile>(e => e.UserId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict); // ✅ FIX LỖI 1785
     }
 }

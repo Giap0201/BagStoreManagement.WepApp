@@ -13,22 +13,20 @@ namespace BagStore.Domain.Configurations
     {
         public void Configure(EntityTypeBuilder<ChiTietSanPham> builder)
         {
-            builder.HasKey(x => new { x.MaSP, x.MaMauSac, x.MaKichThuoc });
+            builder.HasKey(x => x.MaChiTietSP);
             //quan he voi san pham
             builder.HasOne(x => x.SanPham)
                 .WithMany(s => s.ChiTietSanPhams)
-                .HasForeignKey(e => e.MaSP)
-                .OnDelete(DeleteBehavior.Cascade); //xoa san pham thi xoa chi tiet san pham
+                .HasForeignKey(e => e.MaSP);
             //quan he voi mau sac
             builder.HasOne(x => x.MauSac)
                 .WithMany(m => m.ChiTietSanPhams)
-                .HasForeignKey(e => e.MaMauSac)
-                .OnDelete(DeleteBehavior.Restrict); //khong the xoa mau sac neu con chi tiet san pham
+                .HasForeignKey(e => e.MaMauSac);
+
             //quan he voi kich thuoc
             builder.HasOne(x => x.KichThuoc)
                 .WithMany(k => k.ChiTietSanPhams)
-                .HasForeignKey(e => e.MaKichThuoc)
-                .OnDelete(DeleteBehavior.Restrict); //khong the xoa kich thuoc neu con chi tiet san pham
+                .HasForeignKey(e => e.MaKichThuoc);
         }
     }
 }
