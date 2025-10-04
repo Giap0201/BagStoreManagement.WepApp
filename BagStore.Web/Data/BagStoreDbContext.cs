@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
+public class BagStoreDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public BagStoreDbContext(DbContextOptions<BagStoreDbContext> options)
         : base(options)
     {
     }
@@ -60,7 +60,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // có trong cùng Assembly với ApplicationDbContext.
         // Điều này sẽ áp dụng các cấu hình cho ApplicationUserConfig, KhachHangProfileConfig,
         // NhanVienProfileConfig và tất cả các Entities khác mà bạn đã tạo Configuration riêng.
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(BagStoreDbContext).Assembly);
 
         // Bạn có thể thêm dữ liệu ban đầu (seeding) ở đây nếu muốn.
         // Ví dụ: SeedDefaultRoles(modelBuilder);
