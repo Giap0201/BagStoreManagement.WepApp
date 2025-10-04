@@ -16,14 +16,14 @@ public class DonHangConfig : IEntityTypeConfiguration<DonHang>
         builder.HasOne(dh => dh.KhachHangProfile)
                .WithMany(kp => kp.DonHangs)
                .HasForeignKey(dh => dh.UserId)
-               .IsRequired();
+               .IsRequired().OnDelete(DeleteBehavior.Restrict); // Ngăn chặn xóa Khách hàng nếu còn đơn hàng
 
         // Mối quan hệ Nhân viên Xử lý (Nullable)
         builder.HasOne(dh => dh.NhanVienXuLy)
                .WithMany(nv => nv.DonHangDaXuLys)
                .HasForeignKey(dh => dh.NhanVienXuLyId)
                .IsRequired(false)
-               .OnDelete(DeleteBehavior.SetNull);
+               .OnDelete(DeleteBehavior.SetNull); // Nếu nhân viên bị xóa, giữ đơn hàng nhưng đặt trường này thành null
 
         // RÀNG BUỘC CHECK cho Trạng thái
         builder.ToTable(tb => tb.HasCheckConstraint("CK_DonHang_TrangThai", "TrangThai IN ('Chờ xử lý', 'Đang giao hàng', 'Hoàn thành', 'Đã hủy')"));

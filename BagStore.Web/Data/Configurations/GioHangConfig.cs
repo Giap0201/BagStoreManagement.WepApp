@@ -13,8 +13,13 @@ public class GioHangConfig : IEntityTypeConfiguration<GioHang>
         // Unique Index: Đảm bảo 1 khách hàng chỉ có 1 mục cho 1 biến thể SP
 
         // FKs
-        builder.HasOne(e => e.KhachHangProfile).WithMany(kp => kp.GioHangs).HasForeignKey(e => e.UserId);
-        builder.HasOne(e => e.ChiTietSanPham).WithMany(ct => ct.GioHangs).HasForeignKey(e => e.MaChiTietSanPham);
+        builder.HasOne(e => e.KhachHangProfile)
+            .WithMany(kp => kp.GioHangs)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(e => e.ChiTietSanPham)
+            .WithMany(ct => ct.GioHangs)
+            .HasForeignKey(e => e.MaChiTietSanPham);
 
         // RÀNG BUỘC CHECK
         builder.ToTable(tb => tb.HasCheckConstraint("CK_GioHang_SoLuong", "SoLuong > 0"));

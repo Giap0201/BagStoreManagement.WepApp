@@ -1,29 +1,20 @@
-﻿using BagStore.Domain.Entities.IdentityModels;
+﻿using BagStore.Domain.Entities;
+using BagStore.Domain.Entities.IdentityModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BagStore.Domain.Configurations
+public class NhanVienProfileConfig : IEntityTypeConfiguration<NhanVienProfile>
 {
-    public class NhanVienProfileConfig : IEntityTypeConfiguration<NhanVienProfile>
+    public void Configure(EntityTypeBuilder<NhanVienProfile> builder)
     {
-        public void Configure(EntityTypeBuilder<NhanVienProfile> builder)
-        {
-            builder.HasKey(x => x.UserId);
+        builder.HasKey(nv => nv.UserId);
 
-            //quan he 1-1 voi application user
-            builder.HasOne(x => x.ApplicationUser)
-                .WithOne(x => x.NhanVienProfile)
-                .HasForeignKey<NhanVienProfile>(e => e.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // xoa user thi xoa profile
-
-            builder.Property(x => x.ChucVu)
-                .HasMaxLength(100);
-        }
+        // Mối quan hệ 1-1 với ApplicationUser (bắt buộc)
+        // Dùng RESTRICT để ngăn chặn ApplicationUser tự động xóa NhanVienProfile, phá vỡ chu trình CASCADE.
+        builder.HasOne(e => e.ApplicationUser)
+               .WithOne(u => u.NhanVienProfile)
+               .HasForeignKey<NhanVienProfile>(e => e.UserId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict); // ✅ FIX LỖI 1785
     }
 }
