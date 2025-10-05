@@ -9,8 +9,6 @@
   <ItemGroup>
     <Folder Include="Controllers\Admin\" />
     <Folder Include="Controllers\Api\" />
-    <Folder Include="Models\DTOs\" />
-    <Folder Include="Models\ViewModels\" />
     <Folder Include="Helpers\" />
     <Folder Include="Utilities\" />
     <Folder Include="Repositories\Interfaces\" />
