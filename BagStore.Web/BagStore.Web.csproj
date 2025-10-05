@@ -15,12 +15,9 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />
-    <Folder Include="Areas\Client\Controllers\" />
     <Folder Include="Areas\Client\Models\" />
-    <Folder Include="Areas\Client\Views\" />
     <Folder Include="Controllers\Api\" />
     <Folder Include="Helpers\" />
-    <Folder Include="Models\ViewModels\" />
     <Folder Include="Utilities\" />
   </ItemGroup>
 
