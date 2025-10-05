@@ -7,11 +7,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Admin\" />
+    <Compile Remove="Views\Admin\**" />
+    <Content Remove="Views\Admin\**" />
+    <EmbeddedResource Remove="Views\Admin\**" />
+    <None Remove="Views\Admin\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas\Client\Controllers\" />
+    <Folder Include="Areas\Client\Views\" />
     <Folder Include="Controllers\Api\" />
     <Folder Include="Helpers\" />
+    <Folder Include="Models\ViewModels\" />
     <Folder Include="Utilities\" />
-    <Folder Include="Views\Admin\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\LayoutAdmin\.DS_Store" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +37,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
   </ItemGroup>
 
 </Project>
