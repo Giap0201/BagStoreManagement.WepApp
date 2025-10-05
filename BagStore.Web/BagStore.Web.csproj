@@ -11,10 +11,6 @@
     <Folder Include="Controllers\Api\" />
     <Folder Include="Helpers\" />
     <Folder Include="Utilities\" />
-    <Folder Include="Repositories\Interfaces\" />
-    <Folder Include="Repositories\implementations\" />
-    <Folder Include="Services\Interfaces\" />
-    <Folder Include="Services\Implementations\" />
     <Folder Include="Views\Admin\" />
   </ItemGroup>
 
