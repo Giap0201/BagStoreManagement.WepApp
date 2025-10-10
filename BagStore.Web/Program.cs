@@ -1,6 +1,10 @@
 ﻿using BagStore.Data;
 using BagStore.Web.Models.Entities;
+using BagStore.Web.Repositories.implementations;
+using BagStore.Web.Repositories.Interfaces;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +20,33 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 
 var app = builder.Build();
+// Ví dụ trong Program.cs:
+app.UseExceptionHandler(appBuilder =>
+{
+    appBuilder.Run(async context =>
+    {
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var exception = exceptionHandlerPathFeature?.Error;
 
+        // Log lỗi chi tiết tại đây (chỉ ghi log, không hiển thị ra ngoài)
+        // logger.LogError(exception, "An unhandled exception occurred.");
+
+        context.Response.ContentType = "application/problem+json";
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+        // Trả về lỗi 500 chung và an toàn (Problem Details)
+        await context.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = context.Response.StatusCode,
+            Title = "Lỗi máy chủ nội bộ",
+            Detail = "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.",
+            Instance = context.Request.Path
+        });
+    });
+});
 //
 //using (var scope = app.Services.CreateScope())
 //{
