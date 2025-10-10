@@ -22,6 +22,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
+builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
 
 var app = builder.Build();
 // Ví dụ trong Program.cs:
