@@ -1,79 +1,77 @@
-﻿// Trong thư mục Data/ApplicationDbContext.cs
-
+﻿using BagStore.Data.Configurations;
 using BagStore.Domain.Entities;
-using BagStore.Domain.Entities.IdentityModels;
+using BagStore.Web.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-public class BagStoreDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
+namespace BagStore.Data
 {
-    public BagStoreDbContext(DbContextOptions<BagStoreDbContext> options)
-        : base(options)
+    // BagStoreDbContext kế thừa IdentityDbContext để tích hợp Identity
+    // ApplicationUser là user tùy chỉnh của hệ thống, quản lý Admin và Client
+    public class BagStoreDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
     {
+        public BagStoreDbContext(DbContextOptions<BagStoreDbContext> options)
+            : base(options)
+        {
+        }
+
+        public DbSet<DanhMucLoaiTui> DanhMucLoaiTuis { get; set; }
+        public DbSet<ThuongHieu> ThuongHieux { get; set; }
+        public DbSet<ChatLieu> ChatLieus { get; set; }
+        public DbSet<MauSac> MauSacs { get; set; }
+        public DbSet<KichThuoc> KichThuocs { get; set; }
+
+        public DbSet<SanPham> SanPhams { get; set; }
+        public DbSet<ChiTietSanPham> ChiTietSanPhams { get; set; }
+        public DbSet<AnhSanPham> AnhSanPhams { get; set; }
+
+        public DbSet<KhachHang> KhachHangs { get; set; }
+        public DbSet<NhanVienProfile> NhanVienProfiles { get; set; }
+
+        public DbSet<GioHang> GioHangs { get; set; }
+        public DbSet<DonHang> DonHangs { get; set; }
+        public DbSet<ChiTietDonHang> ChiTietDonHangs { get; set; }
+
+        public DbSet<NhaCungCap> NhaCungCaps { get; set; }
+        public DbSet<PhieuNhapHang> PhieuNhapHangs { get; set; }
+        public DbSet<ChiTietPhieuNhap> ChiTietPhieuNhaps { get; set; }
+
+        public DbSet<DanhGia> DanhGias { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder); // quan trọng để Identity hoạt động
+
+            // Tự động áp dụng tất cả các cấu hình trong assembly này
+            // Cách này giúp không phải khai báo từng config một
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(BagStoreDbContext).Assembly);
+
+            // ========================= Identity seed data ví dụ =========================
+            // Tạo 1 admin mặc định
+            // Password có thể hash bằng Identity khi seed hoặc để tạo sau khi chạy
+            /*
+            var adminId = "admin-id-guid";
+            modelBuilder.Entity<ApplicationUser>().HasData(new ApplicationUser
+            {
+                Id = adminId,
+                UserName = "admin",
+                NormalizedUserName = "ADMIN",
+                Email = "admin@bagstore.com",
+                NormalizedEmail = "ADMIN@BAGSTORE.COM",
+                EmailConfirmed = true,
+                SecurityStamp = string.Empty,
+                // PasswordHash có thể tạo bằng UserManager trước
+            });
+            */
+
+            // ========================= Note =========================
+            // - Nếu muốn phân quyền Admin/Client:
+            //   + Tạo Role: Admin, Client
+            //   + Gán Role cho ApplicationUser
+            //   + Trong code, check User.IsInRole("Admin") hoặc "Client"
+            // - KhachHang có thể dùng ApplicationUser.Id nếu muốn liên kết
+            // - NhanVienProfile có thể dùng ApplicationUser.Id để quản lý nhân viên
+        }
     }
-
-    // --- Định nghĩa các DbSet cho tất cả các Entities của bạn ---
-
-    // Identity & Profiles (ApplicationUser đã được xử lý bởi IdentityDbContext)
-    public DbSet<KhachHangProfile> KhachHangProfiles { get; set; } = null!;
-
-    public DbSet<NhanVienProfile> NhanVienProfiles { get; set; } = null!;
-
-    // Danh Mục
-    public DbSet<DanhMucLoaiTui> DanhMucLoaiTuis { get; set; } = null!;
-
-    public DbSet<ThuongHieu> ThuongHieus { get; set; } = null!;
-    public DbSet<ChatLieu> ChatLieus { get; set; } = null!;
-    public DbSet<MauSac> MauSacs { get; set; } = null!;
-    public DbSet<KichThuoc> KichThuocs { get; set; } = null!;
-
-    // Sản Phẩm & Liên Quan
-    public DbSet<SanPham> SanPhams { get; set; } = null!;
-
-    public DbSet<ChiTietSanPham> ChiTietSanPhams { get; set; } = null!;
-    public DbSet<AnhSanPham> AnhSanPhams { get; set; } = null!;
-    public DbSet<GioHang> GioHangs { get; set; } = null!;
-    public DbSet<DanhGia> DanhGias { get; set; } = null!;
-
-    // Đơn Hàng & Thanh Toán
-    public DbSet<DonHang> DonHangs { get; set; } = null!;
-
-    public DbSet<ChiTietDonHang> ChiTietDonHangs { get; set; } = null!;
-    public DbSet<ThanhToan> ThanhToans { get; set; } = null!;
-
-    // Quản Lý Kho
-    public DbSet<NhaCungCap> NhaCungCaps { get; set; } = null!;
-
-    public DbSet<KhoHang> KhoHangs { get; set; } = null!;
-    public DbSet<PhieuNhapHang> PhieuNhapHangs { get; set; } = null!;
-    public DbSet<ChiTietPhieuNhap> ChiTietPhieuNhaps { get; set; } = null!;
-    public DbSet<TonKho> TonKhos { get; set; } = null!;
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        // RẤT QUAN TRỌNG: Gọi phương thức OnModelCreating của lớp cơ sở (IdentityDbContext)
-        // để cấu hình các bảng Identity (User, Role, UserClaims, etc.)
-        base.OnModelCreating(modelBuilder);
-
-        // ÁP DỤNG TẤT CẢ CÁC LỚP CẤU HÌNH IEntityTypeConfiguration<T>
-        // có trong cùng Assembly với ApplicationDbContext.
-        // Điều này sẽ áp dụng các cấu hình cho ApplicationUserConfig, KhachHangProfileConfig,
-        // NhanVienProfileConfig và tất cả các Entities khác mà bạn đã tạo Configuration riêng.
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(BagStoreDbContext).Assembly);
-
-        // Bạn có thể thêm dữ liệu ban đầu (seeding) ở đây nếu muốn.
-        // Ví dụ: SeedDefaultRoles(modelBuilder);
-        //         SeedAdminUser(modelBuilder);
-    }
-
-    // // Ví dụ về phương thức Seed Roles (có thể di chuyển ra một lớp riêng nếu muốn)
-    // private void SeedDefaultRoles(ModelBuilder modelBuilder)
-    // {
-    //     modelBuilder.Entity<IdentityRole>().HasData(
-    //         new IdentityRole { Id = "admin-role-id", Name = "Admin", NormalizedName = "ADMIN" },
-    //         new IdentityRole { Id = "customer-role-id", Name = "Customer", NormalizedName = "CUSTOMER" },
-    //         new IdentityRole { Id = "employee-role-id", Name = "Employee", NormalizedName = "EMPLOYEE" }
-    //     );
-    // }
 }

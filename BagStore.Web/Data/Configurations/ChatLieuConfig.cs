@@ -2,11 +2,28 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class ChatLieuConfig : IEntityTypeConfiguration<ChatLieu>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<ChatLieu> builder)
+    public class ChatLieuConfig : IEntityTypeConfiguration<ChatLieu>
     {
-        builder.HasKey(e => e.MaChatLieu);
-        builder.Property(e => e.TenChatLieu).IsRequired().HasMaxLength(100);
+        public void Configure(EntityTypeBuilder<ChatLieu> builder)
+        {
+            builder.ToTable("ChatLieu");
+
+            builder.HasKey(x => x.MaChatLieu);
+
+            builder.Property(x => x.TenChatLieu)
+                   .IsRequired()
+                   .HasMaxLength(100);
+            builder.HasIndex(x => x.TenChatLieu).IsUnique();
+
+            builder.Property(x => x.MoTa)
+                   .HasMaxLength(500);
+
+            builder.HasMany(x => x.SanPhams)
+                   .WithOne(x => x.ChatLieu)
+                   .HasForeignKey(x => x.MaChatLieu)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

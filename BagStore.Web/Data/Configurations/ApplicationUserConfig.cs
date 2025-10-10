@@ -1,17 +1,29 @@
-﻿// Trong thư mục Data/Configurations/ApplicationUserConfig.cs
-
+﻿using BagStore.Web.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using BagStore.Domain.Entities.IdentityModels; // Đảm bảo đúng namespace cho ApplicationUser
 
-public class ApplicationUserConfig : IEntityTypeConfiguration<ApplicationUser>
+namespace BagStore.Data.Configurations.Identity
 {
-    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
+    public class ApplicationUserConfig : IEntityTypeConfiguration<ApplicationUser>
     {
-        // Cấu hình các thuộc tính tùy chỉnh của ApplicationUser
-        builder.Property(u => u.HoTen).HasMaxLength(250);
-        builder.Property(u => u.NgayTaoTaiKhoan).HasDefaultValueSql("GETDATE()");
+        public void Configure(EntityTypeBuilder<ApplicationUser> builder)
+        {
+            builder.ToTable("AspNetUsers"); // giữ nguyên table Identity
 
-        // vì các mối quan hệ này đã được chuyển sang KhachHangProfile và NhanVienProfile.
+            builder.Property(u => u.FullName).HasMaxLength(200);
+            builder.Property(u => u.NgaySinh).IsRequired(false);
+
+            // Quan hệ 1-1 với KhachHang
+            builder.HasOne(u => u.KhachHang)
+                   .WithOne(k => k.ApplicationUser)
+                   .HasForeignKey<KhachHang>(k => k.ApplicationUserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            // Quan hệ 1-1 với NhanVienProfile
+            builder.HasOne(u => u.NhanVienProfile)
+                   .WithOne(nv => nv.ApplicationUser)
+                   .HasForeignKey<NhanVienProfile>(nv => nv.ApplicationUserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

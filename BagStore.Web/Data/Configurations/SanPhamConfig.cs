@@ -1,40 +1,64 @@
 ﻿using BagStore.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BagStore.Domain.Configurations
+namespace BagStore.Data.Configurations
 {
     public class SanPhamConfig : IEntityTypeConfiguration<SanPham>
     {
         public void Configure(EntityTypeBuilder<SanPham> builder)
         {
+            builder.ToTable("SanPham");
+
             builder.HasKey(x => x.MaSP);
-            builder.Property(x => x.TenSP).IsRequired().HasMaxLength(200);
-            builder.Property(x => x.GiaBan).IsRequired().HasColumnType("decimal(18,2)");
-            builder.Property(x => x.GiaGoc).HasColumnType("decimal(18,2)");
-            builder.Property(x => x.NhanVienCapNhatId).IsRequired().HasMaxLength(450);
 
-            //FK den danh muc thuong hieu chat lieu
+            builder.Property(x => x.TenSP)
+                   .IsRequired()
+                   .HasMaxLength(200);
+
+            builder.Property(x => x.MoTaChiTiet)
+                   .HasMaxLength(500);
+
+            builder.Property(x => x.MetaTitle)
+                   .HasMaxLength(200);
+
+            builder.Property(x => x.MetaDescription)
+                   .HasMaxLength(500);
+
+            builder.Property(x => x.NgayCapNhat)
+                   .HasDefaultValueSql("GETDATE()");
+
+            // Quan hệ với bảng DanhMucLoaiTui, ThuongHieu, ChatLieu
             builder.HasOne(x => x.DanhMucLoaiTui)
-                .WithMany(d => d.SanPhams)
-                .HasForeignKey(e => e.MaLoaiTui).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne(x => x.ThuongHieu)
-                .WithMany(t => t.SanPhams)
-                .HasForeignKey(e => e.MaThuongHieu).OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne(x => x.ChatLieu)
-                .WithMany(s => s.SanPhams)
-                .HasForeignKey(e => e.MaChatLieu).OnDelete(DeleteBehavior.Restrict);
+                   .WithMany(d => d.SanPhams)
+                   .HasForeignKey(x => x.MaLoaiTui)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            //FK den nhan vien
-            builder.HasOne(x => x.NhanVienCapNhat)
-                .WithMany(nv => nv.SanPhamDaCapNhats)
-                .HasForeignKey(e => e.NhanVienCapNhatId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(x => x.ThuongHieu)
+                   .WithMany(t => t.SanPhams)
+                   .HasForeignKey(x => x.MaThuongHieu)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.ChatLieu)
+                   .WithMany(c => c.SanPhams)
+                   .HasForeignKey(x => x.MaChatLieu)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            // Quan hệ 1:N với ChiTietSanPham, AnhSanPham, DanhGia
+            builder.HasMany(x => x.ChiTietSanPhams)
+                   .WithOne(c => c.SanPham)
+                   .HasForeignKey(c => c.MaSP)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.AnhSanPhams)
+                   .WithOne(a => a.SanPham)
+                   .HasForeignKey(a => a.MaSP)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.DanhGias)
+                   .WithOne(d => d.SanPham)
+                   .HasForeignKey(d => d.MaSP)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

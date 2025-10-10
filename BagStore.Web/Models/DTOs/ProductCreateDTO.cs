@@ -1,6 +1,6 @@
 ﻿namespace BagStore.Web.Models.DTOs
 {
-    public class ProductDTO
+    public class ProductCreateDTO
     {
     }
 }

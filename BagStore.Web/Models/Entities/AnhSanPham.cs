@@ -9,14 +9,12 @@ namespace BagStore.Domain.Entities
     public class AnhSanPham
     {
         public int MaAnh { get; set; }
-        public int? MaSanPham { get; set; }
-        public int? MaChiTietSanPham { get; set; }
-
+        public int MaSP { get; set; }
         public string DuongDan { get; set; }
         public int ThuTuHienThi { get; set; }
-        public bool HinhChinh { get; set; }
+        public bool LaHinhChinh { get; set; }
 
-        public SanPham? SanPham { get; set; }
-        public ChiTietSanPham? ChiTietSanPham { get; set; }
+        // Quan hệ
+        public SanPham SanPham { get; set; }
     }
 }
