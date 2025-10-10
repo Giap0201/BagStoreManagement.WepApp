@@ -2,31 +2,56 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class DonHangConfig : IEntityTypeConfiguration<DonHang>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<DonHang> builder)
+    public class DonHangConfig : IEntityTypeConfiguration<DonHang>
     {
-        builder.HasKey(dh => dh.MaDonHang);
-        builder.Property(dh => dh.TongGiaTriHang).IsRequired().HasColumnType("decimal(18,2)");
-        builder.Property(dh => dh.GiamGiaTong).HasColumnType("decimal(18,2)").HasDefaultValue(0);
-        builder.Property(dh => dh.TongTien).IsRequired().HasColumnType("decimal(18,2)");
-        builder.Property(dh => dh.PhiGiaoHang).HasColumnType("decimal(18,2)").HasDefaultValue(0);
+        public void Configure(EntityTypeBuilder<DonHang> builder)
+        {
+            builder.ToTable("DonHang");
 
-        // Mối quan hệ Khách hàng (Bắt buộc)
-        builder.HasOne(dh => dh.KhachHangProfile)
-               .WithMany(kp => kp.DonHangs)
-               .HasForeignKey(dh => dh.UserId)
-               .IsRequired();
+            builder.HasKey(x => x.MaDonHang);
 
-        // Mối quan hệ Nhân viên Xử lý (Nullable)
-        builder.HasOne(dh => dh.NhanVienXuLy)
-               .WithMany(nv => nv.DonHangDaXuLys)
-               .HasForeignKey(dh => dh.NhanVienXuLyId)
-               .IsRequired(false)
-               .OnDelete(DeleteBehavior.SetNull);
+            builder.Property(x => x.NgayDatHang)
+                   .HasDefaultValueSql("GETDATE()");
 
-        // RÀNG BUỘC CHECK cho Trạng thái
-        builder.ToTable(tb => tb.HasCheckConstraint("CK_DonHang_TrangThai", "TrangThai IN ('Chờ xử lý', 'Đang giao hàng', 'Hoàn thành', 'Đã hủy')"));
-        builder.ToTable(tb => tb.HasCheckConstraint("CK_DonHang_PhuongThucTT", "PhuongThucThanhToan IN ('COD', 'Chuyển khoản', 'Ví điện tử')"));
+            builder.Property(x => x.TongTien)
+                   .IsRequired()
+                   .HasColumnType("decimal(18,2)");
+
+            builder.Property(x => x.TrangThai)
+                   .HasMaxLength(50)
+                   .HasDefaultValue("Chờ xử lý");
+            builder.HasCheckConstraint("CK_DonHang_TrangThai", "[TrangThai] IN ('Chờ xử lý','Hoàn thành','Hủy')");
+
+            builder.Property(x => x.DiaChiGiaoHang)
+                   .IsRequired()
+                   .HasMaxLength(500);
+
+            builder.Property(x => x.PhuongThucThanhToan)
+                   .HasMaxLength(50);
+            builder.HasCheckConstraint("CK_DonHang_PTTT", "[PhuongThucThanhToan] IN ('COD','Chuyển khoản')");
+
+            builder.Property(x => x.PhiGiaoHang)
+                   .HasDefaultValue(0)
+                   .HasColumnType("decimal(18,2)");
+
+            builder.Property(x => x.TrangThaiThanhToan)
+                   .HasMaxLength(50)
+                   .HasDefaultValue("Chưa thanh toán");
+            builder.HasCheckConstraint("CK_DonHang_ThanhToan", "[TrangThaiThanhToan] IN ('Chưa thanh toán','Thành công','Thất bại')");
+
+            // Quan hệ với KhachHang
+            builder.HasOne(x => x.KhachHang)
+                   .WithMany(k => k.DonHangs)
+                   .HasForeignKey(x => x.MaKH)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            // Quan hệ 1:N với ChiTietDonHang
+            builder.HasMany(x => x.ChiTietDonHangs)
+                   .WithOne(c => c.DonHang)
+                   .HasForeignKey(c => c.MaDonHang)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

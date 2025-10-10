@@ -2,20 +2,33 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class ChiTietDonHangConfig : IEntityTypeConfiguration<ChiTietDonHang>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<ChiTietDonHang> builder)
+    public class ChiTietDonHangConfig : IEntityTypeConfiguration<ChiTietDonHang>
     {
-        // Khóa Tổng Hợp (Đảm bảo 1 sản phẩm chỉ xuất hiện 1 lần trong 1 đơn hàng)
-        builder.HasKey(e => new { e.MaDonHang, e.MaChiTietSanPham });
+        public void Configure(EntityTypeBuilder<ChiTietDonHang> builder)
+        {
+            builder.ToTable("ChiTietDonHang");
 
-        builder.Property(e => e.GiaBan).IsRequired().HasColumnType("decimal(18,2)"); // Snapshot Price
-        builder.Property(e => e.SoLuong).IsRequired();
+            builder.HasKey(x => x.MaChiTietDH);
 
-        // FKs
-        builder.HasOne(e => e.DonHang).WithMany(dh => dh.ChiTietDonHangs).HasForeignKey(e => e.MaDonHang);
-        builder.HasOne(e => e.ChiTietSanPham).WithMany(ct => ct.ChiTietDonHangs).HasForeignKey(e => e.MaChiTietSanPham);
+            builder.Property(x => x.SoLuong)
+                   .IsRequired();
+            builder.HasCheckConstraint("CK_ChiTietDonHang_SoLuong", "[SoLuong] > 0");
 
-        builder.ToTable(tb => tb.HasCheckConstraint("CK_ChiTietDonHang_SoLuong", "SoLuong > 0"));
+            builder.Property(x => x.GiaBan)
+                   .IsRequired()
+                   .HasColumnType("decimal(18,2)");
+
+            builder.HasOne(x => x.DonHang)
+                   .WithMany(d => d.ChiTietDonHangs)
+                   .HasForeignKey(x => x.MaDonHang)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(x => x.ChiTietSanPham)
+                   .WithMany(c => c.ChiTietDonHangs)
+                   .HasForeignKey(x => x.MaChiTietSP)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

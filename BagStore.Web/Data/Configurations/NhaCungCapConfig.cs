@@ -2,12 +2,34 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class NhaCungCapConfig : IEntityTypeConfiguration<NhaCungCap>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<NhaCungCap> builder)
+    public class NhaCungCapConfig : IEntityTypeConfiguration<NhaCungCap>
     {
-        builder.HasKey(e => e.MaNhaCungCap);
-        builder.Property(e => e.TenNhaCungCap).IsRequired().HasMaxLength(255);
-        builder.Property(e => e.SoDienThoai).HasMaxLength(15);
+        public void Configure(EntityTypeBuilder<NhaCungCap> builder)
+        {
+            builder.ToTable("NhaCungCap");
+
+            builder.HasKey(x => x.MaNCC);
+
+            builder.Property(x => x.TenNCC)
+                   .IsRequired()
+                   .HasMaxLength(200);
+
+            builder.Property(x => x.DiaChi)
+                   .HasMaxLength(500);
+
+            builder.Property(x => x.SoDienThoai)
+                   .HasMaxLength(15);
+
+            builder.Property(x => x.Email)
+                   .HasMaxLength(150);
+
+            // Quan hệ 1:N với PhieuNhapHang
+            builder.HasMany(x => x.PhieuNhapHangs)
+                   .WithOne(p => p.NhaCungCap)
+                   .HasForeignKey(p => p.MaNCC)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

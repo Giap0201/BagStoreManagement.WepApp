@@ -2,11 +2,28 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class ThuongHieuConfig : IEntityTypeConfiguration<ThuongHieu>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<ThuongHieu> builder)
+    public class ThuongHieuConfig : IEntityTypeConfiguration<ThuongHieu>
     {
-        builder.HasKey(e => e.MaThuongHieu);
-        builder.Property(e => e.TenThuongHieu).IsRequired().HasMaxLength(150);
+        public void Configure(EntityTypeBuilder<ThuongHieu> builder)
+        {
+            builder.ToTable("ThuongHieu");
+
+            builder.HasKey(x => x.MaThuongHieu);
+
+            builder.Property(x => x.TenThuongHieu)
+                   .IsRequired()
+                   .HasMaxLength(100);
+            builder.HasIndex(x => x.TenThuongHieu).IsUnique();
+
+            builder.Property(x => x.QuocGia)
+                   .HasMaxLength(50);
+
+            builder.HasMany(x => x.SanPhams)
+                   .WithOne(x => x.ThuongHieu)
+                   .HasForeignKey(x => x.MaThuongHieu)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }
