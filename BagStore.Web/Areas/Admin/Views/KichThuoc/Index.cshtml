@@ -1,0 +1,41 @@
+﻿@model IEnumerable<BagStore.Web.Models.DTOs.KichThuocDto>
+@{
+    ViewBag.Title = "Danh sách kích thước";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+<h2>Danh sách kích thước</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Mã</th>
+            <th>Tên</th>
+            <th>Chiều dài</th>
+            <th>Chiều rộng</th>
+            <th>Chiều cao</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.MaKichThuoc</td>
+                    <td>@item.TenKichThuoc</td>
+                    <td>@item.ChieuDai</td>
+                    <td>@item.ChieuRong</td>
+                    <td>@item.ChieuCao</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">Chưa có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
