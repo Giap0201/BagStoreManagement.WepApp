@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@model IEnumerable<BagStore.Web.Models.DTOs.ChatLieuDto>
+
+<h2>Quản lý Chất liệu</h2>
+<a asp-action="Create" class="btn btn-success">+ Thêm chất liệu</a>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Mã</th>
+            <th>Tên chất liệu</th>
+            <th>Mô tả</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.MaChatLieu</td>
+                <td>@item.TenChatLieu</td>
+                <td>@item.MoTa</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.MaChatLieu" class="btn btn-warning btn-sm">Sửa</a>
+                    <a asp-action="Delete" asp-route-id="@item.MaChatLieu" class="btn btn-danger btn-sm">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
