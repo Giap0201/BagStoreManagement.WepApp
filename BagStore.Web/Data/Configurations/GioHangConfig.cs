@@ -2,22 +2,38 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class GioHangConfig : IEntityTypeConfiguration<GioHang>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<GioHang> builder)
+    public class GioHangConfig : IEntityTypeConfiguration<GioHang>
     {
-        builder.HasKey(e => e.MaGioHang);
-        builder.Property(e => e.SoLuong).IsRequired();
-        builder.Property(e => e.TrangThai).HasDefaultValue("Hoạt động").HasMaxLength(50);
+        public void Configure(EntityTypeBuilder<GioHang> builder)
+        {
+            builder.ToTable("GioHang");
 
-        // Unique Index: Đảm bảo 1 khách hàng chỉ có 1 mục cho 1 biến thể SP
+            builder.HasKey(x => x.MaGioHang);
 
-        // FKs
-        builder.HasOne(e => e.KhachHangProfile).WithMany(kp => kp.GioHangs).HasForeignKey(e => e.UserId);
-        builder.HasOne(e => e.ChiTietSanPham).WithMany(ct => ct.GioHangs).HasForeignKey(e => e.MaChiTietSanPham);
+            builder.Property(x => x.SoLuong)
+                   .IsRequired();
+            builder.HasCheckConstraint("CK_GioHang_SoLuong", "[SoLuong] > 0");
 
-        // RÀNG BUỘC CHECK
-        builder.ToTable(tb => tb.HasCheckConstraint("CK_GioHang_SoLuong", "SoLuong > 0"));
-        builder.ToTable(tb => tb.HasCheckConstraint("CK_GioHang_TrangThai", "TrangThai IN ('Hoạt động', 'Đã chuyển đơn', 'Đã xóa')"));
+            builder.Property(x => x.NgayThem)
+                   .HasDefaultValueSql("GETDATE()");
+
+            // Unique constraint: tránh trùng item theo KhachHang hoặc SessionID
+            builder.HasIndex(x => new { x.MaKH, x.MaChiTietSP }).IsUnique()
+                   .HasFilter("[MaKH] IS NOT NULL");
+            builder.HasIndex(x => new { x.SessionID, x.MaChiTietSP }).IsUnique()
+                   .HasFilter("[SessionID] IS NOT NULL");
+
+            builder.HasOne(x => x.KhachHang)
+                   .WithMany(k => k.GioHangs)
+                   .HasForeignKey(x => x.MaKH)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(x => x.ChiTietSanPham)
+                   .WithMany(c => c.GioHangs)
+                   .HasForeignKey(x => x.MaChiTietSP)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

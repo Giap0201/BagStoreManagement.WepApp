@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>c6071f4c-936b-4ccf-a7c0-a1cfbb5b75c2</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +17,6 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />
     <Folder Include="Areas\Client\Models\" />
-    <Folder Include="Controllers\Api\" />
     <Folder Include="Helpers\" />
     <Folder Include="Utilities\" />
   </ItemGroup>

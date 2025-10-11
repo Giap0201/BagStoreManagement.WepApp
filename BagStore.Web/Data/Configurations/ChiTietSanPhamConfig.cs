@@ -1,34 +1,47 @@
 ﻿using BagStore.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BagStore.Domain.Configurations
+namespace BagStore.Data.Configurations
 {
     public class ChiTietSanPhamConfig : IEntityTypeConfiguration<ChiTietSanPham>
     {
         public void Configure(EntityTypeBuilder<ChiTietSanPham> builder)
         {
-            builder.HasKey(x => new { x.MaSP, x.MaMauSac, x.MaKichThuoc });
-            //quan he voi san pham
+            builder.ToTable("ChiTietSanPham");
+
+            builder.HasKey(x => x.MaChiTietSP);
+
+            builder.Property(x => x.SoLuongTon)
+                   .HasDefaultValue(0);
+            builder.HasCheckConstraint("CK_ChiTietSanPham_SoLuongTon", "[SoLuongTon] >= 0"); // Check số lượng tồn ≥0
+
+            builder.Property(x => x.GiaBan)
+                   .IsRequired()
+                   .HasColumnType("decimal(18,2)");
+
+            builder.Property(x => x.NgayTao)
+                   .HasDefaultValueSql("GETDATE()");
+
+            // Unique constraint tránh trùng biến thể
+            builder.HasIndex(x => new { x.MaSP, x.MaKichThuoc, x.MaMauSac })
+                   .IsUnique();
+
+            // FK với SanPham, KichThuoc, MauSac
             builder.HasOne(x => x.SanPham)
-                .WithMany(s => s.ChiTietSanPhams)
-                .HasForeignKey(e => e.MaSP)
-                .OnDelete(DeleteBehavior.Cascade); //xoa san pham thi xoa chi tiet san pham
-            //quan he voi mau sac
-            builder.HasOne(x => x.MauSac)
-                .WithMany(m => m.ChiTietSanPhams)
-                .HasForeignKey(e => e.MaMauSac)
-                .OnDelete(DeleteBehavior.Restrict); //khong the xoa mau sac neu con chi tiet san pham
-            //quan he voi kich thuoc
+                   .WithMany(s => s.ChiTietSanPhams)
+                   .HasForeignKey(x => x.MaSP)
+                   .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasOne(x => x.KichThuoc)
-                .WithMany(k => k.ChiTietSanPhams)
-                .HasForeignKey(e => e.MaKichThuoc)
-                .OnDelete(DeleteBehavior.Restrict); //khong the xoa kich thuoc neu con chi tiet san pham
+                   .WithMany(k => k.ChiTietSanPhams)
+                   .HasForeignKey(x => x.MaKichThuoc)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.MauSac)
+                   .WithMany(m => m.ChiTietSanPhams)
+                   .HasForeignKey(x => x.MaMauSac)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

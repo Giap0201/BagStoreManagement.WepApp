@@ -2,20 +2,32 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class AnhSanPhamConfig : IEntityTypeConfiguration<AnhSanPham>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<AnhSanPham> builder)
+    public class AnhSanPhamConfig : IEntityTypeConfiguration<AnhSanPham>
     {
-        builder.HasKey(e => e.MaAnh);
-        builder.Property(e => e.DuongDan).IsRequired().HasMaxLength(500);
-        builder.Property(e => e.HinhChinh).HasDefaultValue(false);
+        public void Configure(EntityTypeBuilder<AnhSanPham> builder)
+        {
+            builder.ToTable("AnhSanPham");
 
-        // Mối quan hệ với SanPham (Nullable)
-        builder.HasOne(e => e.SanPham).WithMany(s => s.AnhSanPhams).HasForeignKey(e => e.MaSanPham).IsRequired(false);
+            builder.HasKey(x => x.MaAnh);
 
-        // Mối quan hệ với ChiTietSanPham (Nullable)
-        builder.HasOne(e => e.ChiTietSanPham).WithMany(ct => ct.AnhSanPhams).HasForeignKey(e => e.MaChiTietSanPham).IsRequired(false);
+            builder.Property(x => x.DuongDan)
+                   .IsRequired()
+                   .HasMaxLength(500);
 
-        // Cân nhắc: Nên có một ràng buộc ở tầng ứng dụng hoặc trigger để đảm bảo chỉ có 1 trong 2 FK có giá trị.
+            builder.Property(x => x.ThuTuHienThi)
+                   .HasDefaultValue(0);
+
+            builder.Property(x => x.LaHinhChinh)
+                   .HasDefaultValue(false);
+
+            builder.HasOne(x => x.SanPham)
+                   .WithMany(s => s.AnhSanPhams)
+                   .HasForeignKey(x => x.MaSP)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(x => x.MaSP); // Index để tìm kiếm nhanh
+        }
     }
 }

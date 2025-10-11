@@ -2,15 +2,32 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class PhieuNhapHangConfig : IEntityTypeConfiguration<PhieuNhapHang>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<PhieuNhapHang> builder)
+    public class PhieuNhapHangConfig : IEntityTypeConfiguration<PhieuNhapHang>
     {
-        builder.HasKey(e => e.MaPhieuNhap);
-        builder.Property(e => e.TongTien).IsRequired().HasColumnType("decimal(18,2)");
+        public void Configure(EntityTypeBuilder<PhieuNhapHang> builder)
+        {
+            builder.ToTable("PhieuNhapHang");
 
-        // FKs
-        builder.HasOne(e => e.NhaCungCap).WithMany(ncc => ncc.PhieuNhapHangs).HasForeignKey(e => e.MaNhaCungCap);
-        builder.HasOne(e => e.NhanVienTao).WithMany(nv => nv.PhieuNhapHangs).HasForeignKey(e => e.NhanVienTaoId);
+            builder.HasKey(x => x.MaPhieuNhap);
+
+            builder.Property(x => x.NgayNhap)
+                   .HasDefaultValueSql("GETDATE()");
+
+            builder.Property(x => x.TongTienNhap)
+                   .IsRequired()
+                   .HasColumnType("decimal(18,2)");
+
+            builder.HasOne(x => x.NhaCungCap)
+                   .WithMany(n => n.PhieuNhapHangs)
+                   .HasForeignKey(x => x.MaNCC)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(x => x.ChiTietPhieuNhaps)
+                   .WithOne(c => c.PhieuNhapHang)
+                   .HasForeignKey(c => c.MaPhieuNhap)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

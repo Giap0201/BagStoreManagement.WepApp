@@ -1,29 +1,32 @@
-﻿using BagStore.Domain.Entities.IdentityModels;
+﻿using BagStore.Web.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BagStore.Domain.Configurations
+namespace BagStore.Data.Configurations
 {
     public class NhanVienProfileConfig : IEntityTypeConfiguration<NhanVienProfile>
     {
         public void Configure(EntityTypeBuilder<NhanVienProfile> builder)
         {
-            builder.HasKey(x => x.UserId);
+            builder.ToTable("NhanVienProfile");
 
-            //quan he 1-1 voi application user
-            builder.HasOne(x => x.ApplicationUser)
-                .WithOne(x => x.NhanVienProfile)
-                .HasForeignKey<NhanVienProfile>(e => e.UserId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Cascade); // xoa user thi xoa profile
+            builder.HasKey(nv => nv.Id);
 
-            builder.Property(x => x.ChucVu)
-                .HasMaxLength(100);
+            builder.Property(nv => nv.MaNhanVien)
+                   .IsRequired()
+                   .HasMaxLength(20);
+            builder.HasIndex(nv => nv.MaNhanVien).IsUnique();
+
+            builder.Property(nv => nv.ChucVu)
+                   .HasMaxLength(50);
+
+            builder.Property(nv => nv.DiaChi)
+                   .HasMaxLength(500);
+
+            builder.Property(nv => nv.SoDienThoai)
+                   .HasMaxLength(15);
+
+            builder.HasIndex(nv => nv.ApplicationUserId).IsUnique();
         }
     }
 }
