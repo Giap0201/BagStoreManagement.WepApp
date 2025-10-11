@@ -11,7 +11,8 @@ namespace BagStore.Domain.Entities
     {
         public int MaChatLieu { get; set; }
         public string TenChatLieu { get; set; }
-        public string? MoTa { get; set; }
-        public ICollection<SanPham> SanPhams { get; set; } = new List<SanPham>();
+        public string MoTa { get; set; }
+
+        public ICollection<SanPham> SanPhams { get; set; }
     }
 }

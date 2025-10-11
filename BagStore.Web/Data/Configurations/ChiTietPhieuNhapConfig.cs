@@ -2,20 +2,33 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class ChiTietPhieuNhapConfig : IEntityTypeConfiguration<ChiTietPhieuNhap>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<ChiTietPhieuNhap> builder)
+    public class ChiTietPhieuNhapConfig : IEntityTypeConfiguration<ChiTietPhieuNhap>
     {
-        // Khóa Tổng Hợp
-        builder.HasKey(e => new { e.MaPhieuNhap, e.MaChiTietPhieuNhap });
+        public void Configure(EntityTypeBuilder<ChiTietPhieuNhap> builder)
+        {
+            builder.ToTable("ChiTietPhieuNhap");
 
-        builder.Property(e => e.DonGia).IsRequired().HasColumnType("decimal(18,2)");
-        builder.Property(e => e.SoLuongNhap).IsRequired();
+            builder.HasKey(x => x.MaChiTietNhap);
 
-        // FKs
-        builder.HasOne(e => e.PhieuNhapHang).WithMany(pnh => pnh.ChiTietPhieuNhaps).HasForeignKey(e => e.MaPhieuNhap);
-        builder.HasOne(e => e.ChiTietSanPham).WithMany(ct => ct.ChiTietPhieuNhaps).HasForeignKey(e => e.MaChiTietSanPham);
+            builder.Property(x => x.SoLuongNhap)
+                   .IsRequired();
+            builder.HasCheckConstraint("CK_ChiTietPhieuNhap_SoLuongNhap", "[SoLuongNhap] > 0");
 
-        builder.ToTable(tb => tb.HasCheckConstraint("CK_ChiTietPhieuNhap_SoLuongNhap", "SoLuongNhap > 0"));
+            builder.Property(x => x.DonGia)
+                   .IsRequired()
+                   .HasColumnType("decimal(18,2)");
+
+            builder.HasOne(x => x.PhieuNhapHang)
+                   .WithMany(p => p.ChiTietPhieuNhaps)
+                   .HasForeignKey(x => x.MaPhieuNhap)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(x => x.ChiTietSanPham)
+                   .WithMany(c => c.ChiTietPhieuNhaps)
+                   .HasForeignKey(x => x.MaChiTietSP)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

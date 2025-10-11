@@ -8,12 +8,15 @@ namespace BagStore.Domain.Entities
 {
     public class ChiTietDonHang
     {
-        public int MaChiTietDonHang { get; set; }
+        public int MaChiTietDH { get; set; }
         public int MaDonHang { get; set; }
-        public int MaChiTietSanPham { get; set; }
+        public int MaChiTietSP { get; set; }
         public int SoLuong { get; set; }
         public decimal GiaBan { get; set; }
+
+        // Quan hệ
         public DonHang DonHang { get; set; }
+
         public ChiTietSanPham ChiTietSanPham { get; set; }
     }
 }

@@ -12,23 +12,18 @@ namespace BagStore.Domain.Entities
         public int MaSP { get; set; }
         public int MaKichThuoc { get; set; }
         public int MaMauSac { get; set; }
-
-        // Tồn kho tổng được tính toán từ bảng TonKho.
-
+        public int SoLuongTon { get; set; }
         public decimal GiaBan { get; set; }
+        public DateTime NgayTao { get; set; }
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+        // Quan hệ
+        public SanPham SanPham { get; set; }
 
-        // Navigation properties
-        public SanPham SanPham { get; set; } = null!;
+        public KichThuoc KichThuoc { get; set; }
+        public MauSac MauSac { get; set; }
 
-        public KichThuoc KichThuoc { get; set; } = null!;
-        public MauSac MauSac { get; set; } = null!;
-
-        public ICollection<AnhSanPham> AnhSanPhams { get; set; } = new List<AnhSanPham>();
-        public ICollection<GioHang> GioHangs { get; set; } = new List<GioHang>();
-        public ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; } = new List<ChiTietDonHang>();
-        public ICollection<ChiTietPhieuNhap> ChiTietPhieuNhaps { get; set; } = new List<ChiTietPhieuNhap>();
-        public ICollection<TonKho> TonKhos { get; set; } = new List<TonKho>();
+        public ICollection<GioHang> GioHangs { get; set; }
+        public ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; }
+        public ICollection<ChiTietPhieuNhap> ChiTietPhieuNhaps { get; set; }
     }
 }

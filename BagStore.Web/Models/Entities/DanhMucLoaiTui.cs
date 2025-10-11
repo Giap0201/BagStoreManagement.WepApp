@@ -10,9 +10,10 @@ namespace BagStore.Domain.Entities
     public class DanhMucLoaiTui
     {
         public int MaLoaiTui { get; set; }
-        public string TenLoaiTui { get; set; } = null!;
-        public string? MoTa { get; set; }
-        public int ThuTuHienThi { get; set; } = 0;
-        public ICollection<SanPham> SanPhams { get; set; } = new List<SanPham>();
+        public string TenLoaiTui { get; set; }
+        public string MoTa { get; set; }
+
+        // Quan hệ 1 - N với SanPham
+        public ICollection<SanPham> SanPhams { get; set; }
     }
 }

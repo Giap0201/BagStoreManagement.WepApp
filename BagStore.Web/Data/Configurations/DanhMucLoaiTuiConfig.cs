@@ -2,12 +2,28 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-public class DanhMucLoaiTuiConfig : IEntityTypeConfiguration<DanhMucLoaiTui>
+namespace BagStore.Data.Configurations
 {
-    public void Configure(EntityTypeBuilder<DanhMucLoaiTui> builder)
+    public class DanhMucLoaiTuiConfig : IEntityTypeConfiguration<DanhMucLoaiTui>
     {
-        builder.HasKey(e => e.MaLoaiTui);
-        builder.Property(e => e.TenLoaiTui).IsRequired().HasMaxLength(150);
-        builder.Property(e => e.ThuTuHienThi).HasDefaultValue(0);
+        public void Configure(EntityTypeBuilder<DanhMucLoaiTui> builder)
+        {
+            builder.ToTable("DanhMucLoaiTui");
+
+            builder.HasKey(x => x.MaLoaiTui);
+
+            builder.Property(x => x.TenLoaiTui)
+                   .IsRequired()
+                   .HasMaxLength(100);
+            builder.HasIndex(x => x.TenLoaiTui).IsUnique();
+
+            builder.Property(x => x.MoTa)
+                   .HasMaxLength(500);
+
+            builder.HasMany(x => x.SanPhams)
+                   .WithOne(x => x.DanhMucLoaiTui)
+                   .HasForeignKey(x => x.MaLoaiTui)
+                   .OnDelete(DeleteBehavior.Restrict); // Không xóa loại túi nếu còn sản phẩm
+        }
     }
 }
