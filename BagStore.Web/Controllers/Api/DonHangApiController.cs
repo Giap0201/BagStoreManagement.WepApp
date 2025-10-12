@@ -1,19 +1,25 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Data;
+using BagStore.Web.Models.DTOs;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DonHangApiController : Controller
+    public class DonHangApiController : ControllerBase
     {
+        private readonly BagStoreDbContext _context;
         private readonly IDonHangRepository _donHangRepo;
         private readonly IChiTietDonHangRepository _chiTietRepo;
 
-        public DonHangApiController(IDonHangRepository donHangRepo,
-                                    IChiTietDonHangRepository chiTietRepo)
+        public DonHangApiController(
+            BagStoreDbContext context,
+            IDonHangRepository donHangRepo,
+            IChiTietDonHangRepository chiTietRepo)
         {
+            _context = context;                 // đây là _context
             _donHangRepo = donHangRepo;
             _chiTietRepo = chiTietRepo;
         }
@@ -70,9 +76,23 @@ namespace BagStore.Web.Controllers.Api
             await _donHangRepo.ThemAsync(donHang);
             await _donHangRepo.LuuAsync();
 
-            // Thêm chi tiết đơn hàng
             foreach (var ct in dto.ChiTietDonHangs)
             {
+                // Lấy ChiTietSanPham hiện tại
+                var chiTietSanPham = await _context.ChiTietSanPhams
+                    .FirstOrDefaultAsync(p => p.MaChiTietSP == ct.MaChiTietSP);
+
+                if (chiTietSanPham == null)
+                    return BadRequest($"Sản phẩm {ct.MaChiTietSP} không tồn tại.");
+
+                if (chiTietSanPham.SoLuongTon < ct.SoLuong)
+                    return BadRequest($"Sản phẩm {chiTietSanPham.MaChiTietSP} tồn kho không đủ.");
+
+                // Giảm tồn kho
+                chiTietSanPham.SoLuongTon -= ct.SoLuong;
+                _context.ChiTietSanPhams.Update(chiTietSanPham);
+
+                // Thêm chi tiết đơn hàng
                 var chiTiet = new BagStore.Domain.Entities.ChiTietDonHang
                 {
                     MaDonHang = donHang.MaDonHang,
@@ -84,9 +104,11 @@ namespace BagStore.Web.Controllers.Api
             }
 
             await _chiTietRepo.LuuAsync();
+            await _context.SaveChangesAsync(); // lưu thay đổi tồn kho
 
             return CreatedAtAction(nameof(LayDonHangTheoKhachHang), new { maKhachHang = dto.MaKH }, donHang.MaDonHang);
         }
+
 
         // PUT: api/DonHangApi/CapNhatTrangThai
         [HttpPut("CapNhatTrangThai")]
