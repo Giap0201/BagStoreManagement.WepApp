@@ -6,5 +6,6 @@ namespace BagStore.Web.Repositories.Interfaces
     {
         Task<IEnumerable<DonHang>> LayDonHangTheoKhachHangAsync(int maKH);
         Task<IEnumerable<DonHang>> LayDonHangTheoTrangThaiAsync(string trangThai);
+        Task<IEnumerable<DonHang>> LayTatCaDonHangAsync();
     }
 }
