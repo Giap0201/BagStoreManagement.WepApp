@@ -64,7 +64,6 @@ namespace BagStore.Web.Repositories.implementations
             if (entity == null) return false;
             entity.TenChatLieu = request.TenChatLieu;
             entity.MoTa = request.MoTa;
-            _context.ChatLieus.Update(entity);
             await _context.SaveChangesAsync();
             return true;
         }
