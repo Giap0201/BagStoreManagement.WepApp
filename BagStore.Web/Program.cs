@@ -1,6 +1,7 @@
 ﻿using BagStore.Data;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
+using BagStore.Web.Repositories.Implementations;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +24,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+
 
 //
 builder.Services.AddHttpClient();
