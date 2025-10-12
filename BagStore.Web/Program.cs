@@ -23,6 +23,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
+builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
 
 //
 builder.Services.AddHttpClient();
