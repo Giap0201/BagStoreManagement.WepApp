@@ -28,5 +28,15 @@ namespace BagStore.Web.Repositories.implementations
                 .Where(d => d.TrangThai == trangThai)
                 .ToListAsync();
         }
+
+        // Triển khai lấy tất cả đơn hàng
+        public async Task<IEnumerable<DonHang>> LayTatCaDonHangAsync()
+        {
+            return await _dbSet
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                .Include(d => d.KhachHang)  // để Admin xem tên khách hàng
+                .ToListAsync();
+        }
     }
 }
