@@ -72,7 +72,6 @@ namespace BagStore.Web.Repositories.implementations
             entity.ChieuDai = request.ChieuDai;
             entity.ChieuRong = request.ChieuRong;
             entity.ChieuCao = request.ChieuCao;
-            _context.KichThuocs.Update(entity);
             await _context.SaveChangesAsync();
             return true;
         }
