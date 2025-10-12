@@ -60,7 +60,6 @@ namespace BagStore.Web.Repositories.implementations
             var entity = await _context.MauSacs.FindAsync(request.MaMauSac);
             if (entity == null) return false;
             entity.TenMauSac = request.TenMauSac;
-            _context.MauSacs.Update(entity);
             await _context.SaveChangesAsync();
             return true;
         }
