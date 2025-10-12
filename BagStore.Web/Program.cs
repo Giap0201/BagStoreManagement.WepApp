@@ -6,8 +6,18 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Cấu hình HttpClient để gọi API
+builder.Services.AddHttpClient("BagStoreApi", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7013/"); // Base URL của API
+    client.DefaultRequestHeaders.Accept.Clear();
+    client.DefaultRequestHeaders.Accept.Add(
+        new MediaTypeWithQualityHeaderValue("application/json"));
+});
 
 //Add DbContext
 builder.Services.AddDbContext<BagStoreDbContext>(options =>
@@ -23,6 +33,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
+builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
 
 //
 builder.Services.AddHttpClient();
