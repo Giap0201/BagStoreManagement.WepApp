@@ -1,0 +1,73 @@
+﻿@model IEnumerable<BagStore.Domain.Entities.DonHang>
+
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-bordered table-striped" id="ordersTable">
+    <thead>
+        <tr>
+            <th>Mã đơn</th>
+            <th>Ngày đặt</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Chi tiết</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var dh in Model)
+        {
+            <tr>
+                <td>@dh.MaDonHang</td>
+                <td>@dh.NgayDatHang.ToString("dd/MM/yyyy")</td>
+                <td>@dh.TongTien.ToString("C0")</td>
+                <td>@dh.TrangThai</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#details-@dh.MaDonHang">Xem</button>
+                </td>
+            </tr>
+            <tr id="details-@dh.MaDonHang" class="collapse">
+                <td colspan="5">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Giá bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ct in dh.ChiTietDonHangs)
+                            {
+                                <tr>
+                                    <td>@ct.ChiTietSanPham.SanPham.TenSP</td>
+                                    <td>@ct.SoLuong</td>
+                                    <td>@ct.GiaBan.ToString("C0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#ordersTable').DataTable();
+        });
+    </script>
+}

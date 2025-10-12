@@ -1,0 +1,74 @@
+﻿@model BagStore.Web.Models.DTOs.DonHangTaoDTO
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form id="checkoutForm" asp-action="Checkout" method="post">
+    <div class="mb-3">
+        <label for="DiaChiGiaoHang" class="form-label">Địa chỉ giao hàng</label>
+        <input asp-for="DiaChiGiaoHang" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="PhuongThucThanhToan" class="form-label">Phương thức thanh toán</label>
+        <select asp-for="PhuongThucThanhToan" class="form-select" required>
+            <option value="COD">COD</option>
+            <option value="Chuyển khoản">Chuyển khoản</option>
+        </select>
+    </div>
+
+    <h4>Chi tiết giỏ hàng</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Giá bán</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.ChiTietDonHangs.Count; i++)
+            {
+                <tr>
+                    <td>@Model.ChiTietDonHangs[i].TenSP</td>
+                    <td>
+                        <input type="number" name="ChiTietDonHangs[@i].SoLuong" value="@Model.ChiTietDonHangs[i].SoLuong" class="form-control" min="1" />
+                        <input type="hidden" name="ChiTietDonHangs[@i].MaChiTietSanPham" value="@Model.ChiTietDonHangs[i].MaChiTietSP" />
+                        <input type="hidden" name="ChiTietDonHangs[@i].GiaBan" value="@Model.ChiTietDonHangs[i].GiaBan" />
+                    </td>
+                    <td>@Model.ChiTietDonHangs[i].GiaBan.ToString("C0")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Đặt hàng</button>
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $('#checkoutForm').submit(function (e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Xác nhận đặt hàng?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    </script>
+}
