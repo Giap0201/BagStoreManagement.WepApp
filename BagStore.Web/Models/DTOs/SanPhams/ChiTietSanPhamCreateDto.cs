@@ -2,7 +2,7 @@
 
 namespace BagStore.Web.Models.DTOs.SanPhams
 {
-    public class ChiTietSanPhamInputDto
+    public class ChiTietSanPhamCreateDto
     {
         //public int MaChiTietSP { get; set; } // 0 cho create
 

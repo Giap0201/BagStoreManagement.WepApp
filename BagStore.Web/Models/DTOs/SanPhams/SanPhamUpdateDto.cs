@@ -30,18 +30,5 @@ namespace BagStore.Web.Models.DTOs.SanPhams
         [Required(ErrorMessage = "Vui lòng chọn chất liệu.")]
         [Range(1, int.MaxValue, ErrorMessage = "Chất liệu không hợp lệ.")]
         public int MaChatLieu { get; set; }
-
-        [MinLength(1, ErrorMessage = "Vui lòng giữ ít nhất một biến thể sản phẩm.")]
-        public List<ChiTietSanPhamInputDto> ChiTietSanPhams { get; set; } = new List<ChiTietSanPhamInputDto>();
-
-        // Ảnh cũ (có thể update/xóa)
-        public List<AnhSanPhamInputDto> ExistingAnhSanPhams { get; set; } = new List<AnhSanPhamInputDto>();
-
-        // Ảnh mới (upload thêm)
-        public List<IFormFile> NewAnhFiles { get; set; } = new List<IFormFile>();
-
-        public List<int> ThuTuHienThi { get; set; } = new List<int>();
-
-        public int HinhChinhIndex { get; set; } = 0;
     }
 }
