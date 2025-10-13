@@ -30,7 +30,7 @@ namespace BagStore.Web.Models.DTOs.SanPhams
         public int MaChatLieu { get; set; }
 
         [Required(ErrorMessage = "Vui lòng thêm biến thể sản phẩm.")]
-        public ChiTietSanPhamInputDto BienThe { get; set; }
+        public ChiTietSanPhamCreateDto BienThe { get; set; }
 
         [Required(ErrorMessage = "Vui lòng thêm ảnh sản phẩm.")]
         public IFormFile AnhChinh { get; set; }
