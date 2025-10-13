@@ -22,8 +22,6 @@ namespace BagStore.Data.Configurations
             // Unique constraint: tránh trùng item theo KhachHang hoặc SessionID
             builder.HasIndex(x => new { x.MaKH, x.MaChiTietSP }).IsUnique()
                    .HasFilter("[MaKH] IS NOT NULL");
-            builder.HasIndex(x => new { x.SessionID, x.MaChiTietSP }).IsUnique()
-                   .HasFilter("[SessionID] IS NOT NULL");
 
             builder.HasOne(x => x.KhachHang)
                    .WithMany(k => k.GioHangs)
