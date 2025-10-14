@@ -14,7 +14,6 @@ namespace BagStore.Domain.Entities
         public int MaChiTietSP { get; set; }
         public int SoLuong { get; set; }
         public DateTime NgayThem { get; set; }
-        public string SessionID { get; set; }
 
         // Quan hệ
         public KhachHang KhachHang { get; set; }
