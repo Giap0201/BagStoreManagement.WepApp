@@ -1,16 +1,17 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Domain.Entities;
+using BagStore.Web.Models.DTOs;
 
 namespace BagStore.Web.Repositories.Interfaces
 {
     public interface IChatLieuRepository
     {
-        Task<List<ChatLieuDto>> GetAllAsync();
+        Task<List<ChatLieu>> GetAllAsync();
 
-        Task<ChatLieuDto> GetByIdAsync(int maChatLieu);
+        Task<ChatLieu> GetByIdAsync(int maChatLieu);
 
-        Task<int> CreateAsync(ChatLieuDto request);
+        Task<ChatLieu> AddAsync(ChatLieu entity);
 
-        Task<bool> UpdateAsync(ChatLieuDto request);
+        Task<ChatLieu> UpdateAsync(ChatLieu entity);
 
         Task<bool> DeleteAsync(int maChatLieu);
     }

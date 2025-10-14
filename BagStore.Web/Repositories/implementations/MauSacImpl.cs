@@ -1,6 +1,5 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,15 +14,11 @@ namespace BagStore.Web.Repositories.implementations
             _context = context;
         }
 
-        public async Task<int> CreateAsync(MauSacDto request)
+        public async Task<MauSac> AddAsync(MauSac entity)
         {
-            var entity = new MauSac
-            {
-                TenMauSac = request.TenMauSac
-            };
             _context.MauSacs.Add(entity);
             await _context.SaveChangesAsync();
-            return entity.MaMauSac;
+            return entity;
         }
 
         public async Task<bool> DeleteAsync(int maMauSac)
@@ -35,33 +30,15 @@ namespace BagStore.Web.Repositories.implementations
             return true;
         }
 
-        public async Task<List<MauSacDto>> GetAllAsync()
-        {
-            return await _context.MauSacs.Select(x => new MauSacDto
-            {
-                MaMauSac = x.MaMauSac,
-                TenMauSac = x.TenMauSac
-            }).ToListAsync();
-        }
+        public async Task<List<MauSac>> GetAllAsync() => await _context.MauSacs.ToListAsync();
 
-        public async Task<MauSacDto> GetByIdAsync(int maMauSac)
-        {
-            var entity = await _context.MauSacs.FindAsync(maMauSac);
-            if (entity == null) return null;
-            return new MauSacDto
-            {
-                MaMauSac = entity.MaMauSac,
-                TenMauSac = entity.TenMauSac
-            };
-        }
+        public async Task<MauSac> GetByIdAsync(int maMauSac) => await _context.MauSacs.FindAsync(maMauSac);
 
-        public async Task<bool> UpdateAsync(MauSacDto request)
+        public async Task<MauSac> UpdateAsync(MauSac entity)
         {
-            var entity = await _context.MauSacs.FindAsync(request.MaMauSac);
-            if (entity == null) return false;
-            entity.TenMauSac = request.TenMauSac;
+            _context.MauSacs.Update(entity);
             await _context.SaveChangesAsync();
-            return true;
+            return entity;
         }
     }
 }

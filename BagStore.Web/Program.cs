@@ -33,10 +33,15 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // 3️⃣ Đăng ký Repositories (Scoped)
 // ----------------------------
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
+builder.Services.AddScoped<IDanhMucLoaiTuiService, DanhMucLoaiTuiService>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
+builder.Services.AddScoped<IThuongHieuService, ThuongHieuService>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+builder.Services.AddScoped<IChatLieuService, ChatLieuService>();
 builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
+builder.Services.AddScoped<IMauSacService, MauSacService>();
 builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
+builder.Services.AddScoped<IKichThuocService, KichThuocService>();
 builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
 builder.Services.AddScoped<ISanPhamService, SanPhamService>();
 builder.Services.AddScoped<IChiTietSanPhamRepository, ChiTietSanPhamImpl>();

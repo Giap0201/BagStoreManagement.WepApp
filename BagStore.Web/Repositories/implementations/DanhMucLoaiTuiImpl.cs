@@ -1,10 +1,9 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace BagStore.Web.Repositories.implementations
+namespace BagStore.Web.Repositories.Implementations
 {
     public class DanhMucLoaiTuiImpl : IDanhMucLoaiTuiRepository
     {
@@ -15,67 +14,43 @@ namespace BagStore.Web.Repositories.implementations
             _context = context;
         }
 
-        public async Task<DanhMucLoaiTuiDto> CreateAsync(DanhMucLoaiTuiDto danhMucLoaiTuiDto)
+        // Thêm mới loại túi
+        public async Task<DanhMucLoaiTui> AddAsync(DanhMucLoaiTui entity)
         {
-            var entity = new DanhMucLoaiTui
-            {
-                TenLoaiTui = danhMucLoaiTuiDto.TenLoaiTui,
-                MoTa = danhMucLoaiTuiDto.MoTa
-            };
             _context.DanhMucLoaiTuis.Add(entity);
             await _context.SaveChangesAsync();
-            danhMucLoaiTuiDto.MaLoaiTui = entity.MaLoaiTui;
-            return danhMucLoaiTuiDto;
+            return entity;
         }
 
+        // Xóa loại túi
         public async Task<bool> DeleteAsync(int maLoaiTui)
         {
             var entity = await _context.DanhMucLoaiTuis.FindAsync(maLoaiTui);
-            if (entity == null)
-            {
-                return false;
-            }
+            if (entity == null) return false;
+
             _context.DanhMucLoaiTuis.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<List<DanhMucLoaiTuiDto>> GetAllDanhMucLoaiTuiAsync()
+        // Lấy tất cả loại túi
+        public async Task<List<DanhMucLoaiTui>> GetAllAsync()
         {
-            return await _context.DanhMucLoaiTuis.Select(x => new DanhMucLoaiTuiDto
-            {
-                MaLoaiTui = x.MaLoaiTui,
-                TenLoaiTui = x.TenLoaiTui,
-                MoTa = x.MoTa
-            }).ToListAsync();
+            return await _context.DanhMucLoaiTuis.ToListAsync();
         }
 
-        public async Task<DanhMucLoaiTuiDto> GetDanhMucLoaiTuiByIdAsync(int maLoaiTui)
+        // Lấy loại túi theo ID
+        public async Task<DanhMucLoaiTui> GetByIdAsync(int maLoaiTui)
         {
-            var entity = await _context.DanhMucLoaiTuis.FindAsync(maLoaiTui);
-            if (entity == null)
-            {
-                return null;
-            }
-            return new DanhMucLoaiTuiDto
-            {
-                MaLoaiTui = entity.MaLoaiTui,
-                TenLoaiTui = entity.TenLoaiTui,
-                MoTa = entity.MoTa
-            };
+            return await _context.DanhMucLoaiTuis.FindAsync(maLoaiTui);
         }
 
-        public async Task<DanhMucLoaiTuiDto> UpdateAsync(DanhMucLoaiTuiDto danhMucLoaiTuiDto)
+        // Cập nhật loại túi
+        public async Task<DanhMucLoaiTui> UpdateAsync(DanhMucLoaiTui entity)
         {
-            var entity = await _context.DanhMucLoaiTuis.FindAsync(danhMucLoaiTuiDto.MaLoaiTui);
-            if (entity == null)
-            {
-                return null;
-            }
-            entity.TenLoaiTui = danhMucLoaiTuiDto.TenLoaiTui;
-            entity.MoTa = danhMucLoaiTuiDto.MoTa;
+            _context.DanhMucLoaiTuis.Update(entity);
             await _context.SaveChangesAsync();
-            return danhMucLoaiTuiDto;
+            return entity;
         }
     }
 }
