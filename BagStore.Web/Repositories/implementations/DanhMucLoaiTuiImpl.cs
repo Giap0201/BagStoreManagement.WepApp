@@ -52,13 +52,17 @@ namespace BagStore.Web.Repositories.implementations
 
         public async Task<DanhMucLoaiTuiDto> GetDanhMucLoaiTuiByIdAsync(int maLoaiTui)
         {
-            return await _context.DanhMucLoaiTuis.Where(x => x.MaLoaiTui == maLoaiTui)
-                .Select(x => new DanhMucLoaiTuiDto
-                {
-                    MaLoaiTui = x.MaLoaiTui,
-                    TenLoaiTui = x.TenLoaiTui,
-                    MoTa = x.MoTa
-                }).FirstOrDefaultAsync();
+            var entity = await _context.DanhMucLoaiTuis.FindAsync(maLoaiTui);
+            if (entity == null)
+            {
+                return null;
+            }
+            return new DanhMucLoaiTuiDto
+            {
+                MaLoaiTui = entity.MaLoaiTui,
+                TenLoaiTui = entity.TenLoaiTui,
+                MoTa = entity.MoTa
+            };
         }
 
         public async Task<DanhMucLoaiTuiDto> UpdateAsync(DanhMucLoaiTuiDto danhMucLoaiTuiDto)
@@ -70,7 +74,6 @@ namespace BagStore.Web.Repositories.implementations
             }
             entity.TenLoaiTui = danhMucLoaiTuiDto.TenLoaiTui;
             entity.MoTa = danhMucLoaiTuiDto.MoTa;
-            _context.DanhMucLoaiTuis.Update(entity);
             await _context.SaveChangesAsync();
             return danhMucLoaiTuiDto;
         }
