@@ -1,5 +1,6 @@
 ﻿using BagStore.Data;
-using BagStore.Web.Models.DTOs;
+using BagStore.Web.Models.DTOs.Request;
+using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,13 +55,18 @@ namespace BagStore.Web.Controllers.Api
             return Ok(result);
         }
 
-        // POST: api/DonHangApi
         [HttpPost]
-        public async Task<ActionResult> TaoDonHang([FromBody] DonHangTaoDTO dto)
+        public async Task<ActionResult<DonHangPhanHoiDTO>> TaoDonHang([FromBody] DonHangTaoDTO dto)
         {
-            if (dto == null || dto.ChiTietDonHangs.Count == 0)
+            // 1️⃣ Kiểm tra dữ liệu đầu vào
+            if (dto == null || dto.ChiTietDonHangs == null || dto.ChiTietDonHangs.Count == 0)
                 return BadRequest("Dữ liệu đơn hàng không hợp lệ.");
 
+            var khachHang = await _context.KhachHangs.FindAsync(dto.MaKH);
+            if (khachHang == null)
+                return BadRequest($"Khách hàng {dto.MaKH} không tồn tại.");
+
+            // 2️⃣ Tạo đơn hàng mới
             var donHang = new BagStore.Domain.Entities.DonHang
             {
                 MaKH = dto.MaKH,
@@ -68,18 +74,19 @@ namespace BagStore.Web.Controllers.Api
                 PhuongThucThanhToan = dto.PhuongThucThanhToan,
                 NgayDatHang = DateTime.Now,
                 TongTien = dto.ChiTietDonHangs.Sum(ct => ct.SoLuong * ct.GiaBan),
-                TrangThai = "Chờ xác nhận",
+                TrangThai = "Chờ xử lý",
                 TrangThaiThanhToan = "Chưa thanh toán",
                 PhiGiaoHang = 0
             };
 
             await _donHangRepo.ThemAsync(donHang);
-            await _donHangRepo.LuuAsync();
+            await _donHangRepo.LuuAsync(); // Lưu để có MaDonHang
 
+            // 3️⃣ Thêm chi tiết đơn hàng
             foreach (var ct in dto.ChiTietDonHangs)
             {
-                // Lấy ChiTietSanPham hiện tại
                 var chiTietSanPham = await _context.ChiTietSanPhams
+                    .Include(c => c.SanPham)
                     .FirstOrDefaultAsync(p => p.MaChiTietSP == ct.MaChiTietSP);
 
                 if (chiTietSanPham == null)
@@ -92,7 +99,7 @@ namespace BagStore.Web.Controllers.Api
                 chiTietSanPham.SoLuongTon -= ct.SoLuong;
                 _context.ChiTietSanPhams.Update(chiTietSanPham);
 
-                // Thêm chi tiết đơn hàng
+                // Thêm chi tiết đơn hàng (chưa cần lấy MaChiTietDH ngay)
                 var chiTiet = new BagStore.Domain.Entities.ChiTietDonHang
                 {
                     MaDonHang = donHang.MaDonHang,
@@ -100,14 +107,47 @@ namespace BagStore.Web.Controllers.Api
                     SoLuong = ct.SoLuong,
                     GiaBan = ct.GiaBan
                 };
+
                 await _chiTietRepo.ThemAsync(chiTiet);
             }
 
-            await _chiTietRepo.LuuAsync();
-            await _context.SaveChangesAsync(); // lưu thay đổi tồn kho
+            // 4️⃣ Lưu tất cả thay đổi một lần — sinh mã tự tăng cho ChiTietDonHang
+            await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(LayDonHangTheoKhachHang), new { maKhachHang = dto.MaKH }, donHang.MaDonHang);
+            // 5️⃣ Truy vấn lại danh sách chi tiết để phản hồi
+            var chiTietDonHangPhanHoi = await _context.ChiTietDonHangs
+                .Where(c => c.MaDonHang == donHang.MaDonHang)
+                .Include(c => c.ChiTietSanPham)
+                    .ThenInclude(sp => sp.SanPham)
+                .Select(c => new DonHangChiTietPhanHoiDTO
+                {
+                    MaChiTietDH = c.MaChiTietDH,
+                    TenSP = c.ChiTietSanPham.SanPham.TenSP,
+                    SoLuong = c.SoLuong,
+                    GiaBan = c.GiaBan
+                })
+                .ToListAsync();
+
+            // 6️⃣ Tạo DTO phản hồi
+            var response = new DonHangPhanHoiDTO
+            {
+                MaDonHang = donHang.MaDonHang,
+                TenKH = khachHang.TenKH,
+                NgayDatHang = donHang.NgayDatHang,
+                TongTien = donHang.TongTien,
+                TrangThai = donHang.TrangThai,
+                PhuongThucThanhToan = donHang.PhuongThucThanhToan,
+                TrangThaiThanhToan = donHang.TrangThaiThanhToan,
+                ChiTietDonHangs = chiTietDonHangPhanHoi
+            };
+
+            // 7️⃣ Trả về kết quả
+            return CreatedAtAction(nameof(LayDonHangTheoKhachHang),
+                new { maKhachHang = donHang.MaKH },
+                response);
         }
+
+
 
 
         // PUT: api/DonHangApi/CapNhatTrangThai
