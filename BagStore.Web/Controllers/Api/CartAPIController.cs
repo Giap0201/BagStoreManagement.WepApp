@@ -1,4 +1,5 @@
-﻿using BagStore.Web.Repositories.Interfaces;
+﻿using BagStore.Web.Models.DTOs.Requests;
+using BagStore.Web.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
@@ -24,4 +25,18 @@ public class CartController : ControllerBase
         return Ok(cartItems);
 
     }
+    [HttpPost("add")]
+    public async Task<IActionResult> AddToCart([FromBody] AddCartItemRequest request)
+    {
+        if (request == null || request.SoLuong <= 0)
+            return BadRequest("Dữ liệu không hợp lệ.");
+
+        var result = await _cartRepo.AddSanPhamAsync(request);
+
+        if (!result)
+            return BadRequest("Không thể thêm sản phẩm vào giỏ hàng.");
+
+        return Ok("Đã thêm sản phẩm vào giỏ hàng!");
+    }
+
 }
