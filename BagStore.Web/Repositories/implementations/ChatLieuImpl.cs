@@ -1,6 +1,5 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,57 +14,38 @@ namespace BagStore.Web.Repositories.implementations
             _context = context;
         }
 
-        public async Task<int> CreateAsync(ChatLieuDto request)
+        public async Task<ChatLieu> AddAsync(ChatLieu entity)
         {
-            var entity = new ChatLieu
-            {
-                TenChatLieu = request.TenChatLieu,
-                MoTa = request.MoTa
-            };
             _context.ChatLieus.Add(entity);
             await _context.SaveChangesAsync();
-            return entity.MaChatLieu;
+            return entity;
         }
 
         public async Task<bool> DeleteAsync(int maChatLieu)
         {
             var entity = await _context.ChatLieus.FindAsync(maChatLieu);
             if (entity == null) return false;
+
             _context.ChatLieus.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<List<ChatLieuDto>> GetAllAsync()
+        public async Task<List<ChatLieu>> GetAllAsync()
         {
-            return await _context.ChatLieus.Select(x => new ChatLieuDto
-            {
-                MaChatLieu = x.MaChatLieu,
-                TenChatLieu = x.TenChatLieu,
-                MoTa = x.MoTa
-            }).ToListAsync();
+            return await _context.ChatLieus.ToListAsync();
         }
 
-        public async Task<ChatLieuDto> GetByIdAsync(int maChatLieu)
+        public async Task<ChatLieu> GetByIdAsync(int maChatLieu)
         {
-            var entity = await _context.ChatLieus.FindAsync(maChatLieu);
-            if (entity == null) return null;
-            return new ChatLieuDto
-            {
-                MaChatLieu = entity.MaChatLieu,
-                TenChatLieu = entity.TenChatLieu,
-                MoTa = entity.MoTa
-            };
+            return await _context.ChatLieus.FindAsync(maChatLieu);
         }
 
-        public async Task<bool> UpdateAsync(ChatLieuDto request)
+        public async Task<ChatLieu> UpdateAsync(ChatLieu entity)
         {
-            var entity = await _context.ChatLieus.FindAsync(request.MaChatLieu);
-            if (entity == null) return false;
-            entity.TenChatLieu = request.TenChatLieu;
-            entity.MoTa = request.MoTa;
+            _context.ChatLieus.Update(entity);
             await _context.SaveChangesAsync();
-            return true;
+            return entity;
         }
     }
 }

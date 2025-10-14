@@ -5,14 +5,19 @@ namespace BagStore.Web.Repositories.Interfaces
 {
     public interface IThuongHieuRepository
     {
-        Task<List<ThuongHieuDto>> GetAllAsync();
+        // Lấy tất cả thương hiệu
+        Task<List<ThuongHieu>> GetAllAsync();
 
-        Task<ThuongHieuDto> GetByIdAsync(int maThuongHieu);
+        // Lấy thương hiệu theo ID
+        Task<ThuongHieu> GetByIdAsync(int maThuongHieu);
 
-        Task<int> CreateAsync(ThuongHieuDto request);
+        // Thêm mới thương hiệu
+        Task<ThuongHieu> AddAsync(ThuongHieu entity);
 
-        Task<bool> UpdateAsync(ThuongHieuDto request);
+        // Cập nhật thương hiệu
+        Task<ThuongHieu> UpdateAsync(ThuongHieu entity);
 
+        // Xóa thương hiệu
         Task<bool> DeleteAsync(int maThuongHieu);
     }
 }

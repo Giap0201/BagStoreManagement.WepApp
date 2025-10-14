@@ -1,7 +1,10 @@
 ﻿using BagStore.Data;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
+using BagStore.Web.Repositories.Implementations;
 using BagStore.Web.Repositories.Interfaces;
+using BagStore.Web.Services.Implementations;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -31,10 +34,15 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
+builder.Services.AddScoped<IDanhMucLoaiTuiService, DanhMucLoaiTuiService>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
+builder.Services.AddScoped<IThuongHieuService, ThuongHieuService>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+builder.Services.AddScoped<IChatLieuService, ChatLieuService>();
 builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
+builder.Services.AddScoped<IMauSacService, MauSacService>();
 builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
+builder.Services.AddScoped<IKichThuocService, KichThuocService>();
 
 //
 builder.Services.AddHttpClient();
