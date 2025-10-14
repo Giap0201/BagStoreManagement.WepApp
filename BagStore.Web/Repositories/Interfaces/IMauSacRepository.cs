@@ -1,16 +1,17 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Domain.Entities;
+using BagStore.Web.Models.DTOs;
 
 namespace BagStore.Web.Repositories.Interfaces
 {
     public interface IMauSacRepository
     {
-        Task<List<MauSacDto>> GetAllAsync();
+        Task<List<MauSac>> GetAllAsync();
 
-        Task<MauSacDto> GetByIdAsync(int maMauSac);
+        Task<MauSac> GetByIdAsync(int maMauSac);
 
-        Task<int> CreateAsync(MauSacDto request);
+        Task<MauSac> AddAsync(MauSac entity);
 
-        Task<bool> UpdateAsync(MauSacDto request);
+        Task<MauSac> UpdateAsync(MauSac entity);
 
         Task<bool> DeleteAsync(int maMauSac);
     }

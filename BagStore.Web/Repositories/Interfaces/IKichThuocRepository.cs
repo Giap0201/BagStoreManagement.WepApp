@@ -1,16 +1,17 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Domain.Entities;
+using BagStore.Web.Models.DTOs;
 
 namespace BagStore.Web.Repositories.Interfaces
 {
     public interface IKichThuocRepository
     {
-        Task<List<KichThuocDto>> GetAllAsync();
+        Task<List<KichThuoc>> GetAllAsync();
 
-        Task<KichThuocDto> GetByIdAsync(int maKichThuoc);
+        Task<KichThuoc> GetByIdAsync(int maKichThuoc);
 
-        Task<int> CreateAsync(KichThuocDto request);
+        Task<KichThuoc> AddAsync(KichThuoc entity);
 
-        Task<bool> UpdateAsync(KichThuocDto request);
+        Task<KichThuoc> UpdateAsync(KichThuoc entity);
 
         Task<bool> DeleteAsync(int maKichThuoc);
     }

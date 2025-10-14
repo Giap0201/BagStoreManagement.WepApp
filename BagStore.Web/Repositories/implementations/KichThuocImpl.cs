@@ -1,6 +1,5 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,18 +14,11 @@ namespace BagStore.Web.Repositories.implementations
             _context = context;
         }
 
-        public async Task<int> CreateAsync(KichThuocDto request)
+        public async Task<KichThuoc> AddAsync(KichThuoc entity)
         {
-            var entity = new KichThuoc
-            {
-                TenKichThuoc = request.TenKichThuoc,
-                ChieuDai = request.ChieuDai,
-                ChieuRong = request.ChieuRong,
-                ChieuCao = request.ChieuCao
-            };
             _context.KichThuocs.Add(entity);
             await _context.SaveChangesAsync();
-            return entity.MaKichThuoc;
+            return entity;
         }
 
         public async Task<bool> DeleteAsync(int maKichThuoc)
@@ -38,42 +30,15 @@ namespace BagStore.Web.Repositories.implementations
             return true;
         }
 
-        public async Task<List<KichThuocDto>> GetAllAsync()
-        {
-            return await _context.KichThuocs.Select(x => new KichThuocDto
-            {
-                MaKichThuoc = x.MaKichThuoc,
-                TenKichThuoc = x.TenKichThuoc,
-                ChieuDai = x.ChieuDai,
-                ChieuRong = x.ChieuRong,
-                ChieuCao = x.ChieuCao
-            }).ToListAsync();
-        }
+        public async Task<List<KichThuoc>> GetAllAsync() => await _context.KichThuocs.ToListAsync();
 
-        public async Task<KichThuocDto> GetByIdAsync(int maKichThuoc)
-        {
-            var entity = await _context.KichThuocs.FindAsync(maKichThuoc);
-            if (entity == null) return null;
-            return new KichThuocDto
-            {
-                MaKichThuoc = entity.MaKichThuoc,
-                TenKichThuoc = entity.TenKichThuoc,
-                ChieuDai = entity.ChieuDai,
-                ChieuRong = entity.ChieuRong,
-                ChieuCao = entity.ChieuCao
-            };
-        }
+        public async Task<KichThuoc> GetByIdAsync(int maKichThuoc) => await _context.KichThuocs.FindAsync(maKichThuoc);
 
-        public async Task<bool> UpdateAsync(KichThuocDto request)
+        public async Task<KichThuoc> UpdateAsync(KichThuoc entity)
         {
-            var entity = await _context.KichThuocs.FindAsync(request.MaKichThuoc);
-            if (entity == null) return false;
-            entity.TenKichThuoc = request.TenKichThuoc;
-            entity.ChieuDai = request.ChieuDai;
-            entity.ChieuRong = request.ChieuRong;
-            entity.ChieuCao = request.ChieuCao;
+            _context.KichThuocs.Update(entity);
             await _context.SaveChangesAsync();
-            return true;
+            return entity;
         }
     }
 }
