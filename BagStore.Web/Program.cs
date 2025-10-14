@@ -35,6 +35,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+
 builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
 builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
 builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
