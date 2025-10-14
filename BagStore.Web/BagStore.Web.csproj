@@ -17,7 +17,7 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />
     <Folder Include="Areas\Client\Models\" />
-    <Folder Include="Helpers\" />
+    <Folder Include="Models\DTOs\ChiTietSanPhams\" />
   </ItemGroup>
 
   <ItemGroup>
