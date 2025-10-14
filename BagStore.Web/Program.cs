@@ -1,7 +1,10 @@
 ﻿using BagStore.Data;
+using BagStore.Domain.Entities;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Interfaces;
+using BagStore.Web.Services.Implementations;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,28 +12,56 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Add DbContext
+// ==============================
+// 🔹 Đăng ký DbContext (SQL Server)
+// ==============================
 builder.Services.AddDbContext<BagStoreDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BagStoreDbContext")));
 
-// ✅ Đăng ký Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddEntityFrameworkStores<BagStoreDbContext>()
-    .AddDefaultTokenProviders();
+// ==============================
+// 🔹 Cấu hình Identity (ApplicationUser)
+// ==============================
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireDigit = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+})
+.AddEntityFrameworkStores<BagStoreDbContext>()
+.AddDefaultTokenProviders();
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
-builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
-builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+// ==============================
+// 🔹 Đăng ký Repository (DI Container)
+// ==============================
+// Bạn chỉ chịu trách nhiệm phần Đơn hàng => giữ lại phần liên quan
 builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
 builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
+builder.Services.AddScoped<IDonHangService, DonHangService>();
 
-//
+// Phần khác do team khác phụ trách — chỉ giữ lại nếu cần dùng chung
+//builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
+//builder.Services.AddScoped<IKhachHangRepository, KhachHangImpl>();
+builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
+builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
+builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
+
+// ==============================
+// 🔹 Cấu hình MVC + HttpClient
+// ==============================
+builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 
+// ==============================
+// 🔹 Xây dựng ứng dụng
+// ==============================
 var app = builder.Build();
-// Ví dụ trong Program.cs:
+
+// ==============================
+// 🔹 Xử lý lỗi toàn cục (Global Exception Handler)
+// ==============================
 app.UseExceptionHandler(appBuilder =>
 {
     appBuilder.Run(async context =>
@@ -38,13 +69,11 @@ app.UseExceptionHandler(appBuilder =>
         var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
         var exception = exceptionHandlerPathFeature?.Error;
 
-        // Log lỗi chi tiết tại đây (chỉ ghi log, không hiển thị ra ngoài)
-        // logger.LogError(exception, "An unhandled exception occurred.");
+        // ❗ Có thể ghi log chi tiết ở đây (Serilog, NLog, ...)
 
         context.Response.ContentType = "application/problem+json";
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-        // Trả về lỗi 500 chung và an toàn (Problem Details)
         await context.Response.WriteAsJsonAsync(new ProblemDetails
         {
             Status = context.Response.StatusCode,
@@ -54,19 +83,13 @@ app.UseExceptionHandler(appBuilder =>
         });
     });
 });
-//
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<BagStoreDbContext>();
-//    // Áp dụng các migration còn thiếu (nếu có)
-//    dbContext.Database.Migrate();
-//}
 
-// Configure the HTTP request pipeline.
+// ==============================
+// 🔹 Cấu hình môi trường & middleware
+// ==============================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -75,12 +98,24 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication(); // ⚠️ Cần có vì dùng Identity
 app.UseAuthorization();
 
+app.Use(async (context, next) =>
+{
+    // Bỏ qua xác thực cho tất cả request
+    context.User = new System.Security.Claims.ClaimsPrincipal();
+    await next.Invoke();
+});
+
+// ==============================
+// 🔹 Định tuyến cho Areas (Admin / Client)
+// ==============================
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
+// 🔹 Định tuyến mặc định (Home)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
