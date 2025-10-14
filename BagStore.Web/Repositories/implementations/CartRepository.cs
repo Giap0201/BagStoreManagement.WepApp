@@ -1,5 +1,7 @@
 ﻿using BagStore.Data;
+using BagStore.Domain.Entities;
 using BagStore.Web.Models.DTOs;
+using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.DTOs.Responses;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +46,34 @@ namespace BagStore.Web.Repositories.Implementations
                 Items = items
             };
         }
+        public async Task<bool> AddSanPhamAsync(AddCartItemRequest request)
+        {
+  
+            var spTrongGio = await _context.GioHangs
+                .FirstOrDefaultAsync(c => c.MaKH == request.MaKH 
+                && c.MaChiTietSP == request.MaChiTietSP);
+
+            if (spTrongGio != null)
+            {
+                // Nếu có rồi thì tăng số lượng
+                spTrongGio.SoLuong += request.SoLuong;
+            }
+            else
+            {
+                // Nếu chưa có thì thêm mới
+                var newItem = new GioHang
+                {
+                    MaKH = request.MaKH,
+                    MaChiTietSP = request.MaChiTietSP,
+                    SoLuong = request.SoLuong
+                };
+                _context.GioHangs.Add(newItem);
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
 
     }
 }
