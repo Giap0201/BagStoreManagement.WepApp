@@ -1,4 +1,5 @@
 ﻿using BagStore.Data;
+using BagStore.Domain.Enums;
 using BagStore.Web.Models.DTOs.Request;
 using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Repositories.Interfaces;
@@ -152,16 +153,65 @@ namespace BagStore.Web.Controllers.Api
 
         // PUT: api/DonHangApi/CapNhatTrangThai
         [HttpPut("CapNhatTrangThai")]
-        public async Task<ActionResult> CapNhatTrangThai([FromBody] DonHangCapNhatTrangThaiDTO dto)
+        public async Task<ActionResult<DonHangPhanHoiDTO>> CapNhatTrangThai([FromBody] DonHangCapNhatTrangThaiDTO dto)
         {
-            var donHang = await _donHangRepo.LayTheoIdAsync(dto.MaDonHang);
-            if (donHang == null) return NotFound("Đơn hàng không tồn tại.");
+            if (dto == null)
+                return BadRequest("Dữ liệu không hợp lệ.");
 
+            // 1️⃣ Map tiếng Việt -> Enum
+            var mapTrangThai = new Dictionary<string, TrangThaiDonHang>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Chờ xử lý", TrangThaiDonHang.ChoXuLy },
+                { "Đang giao hàng", TrangThaiDonHang.DangGiaoHang },
+                { "Hoàn thành", TrangThaiDonHang.HoanThanh },
+                { "Đã huỷ", TrangThaiDonHang.DaHuy }
+            };
+
+            if (!mapTrangThai.TryGetValue(dto.TrangThai, out var trangThaiEnum))
+                return BadRequest("Trạng thái đơn hàng không hợp lệ.");
+
+            // 2️⃣ Lấy đơn hàng
+            var donHang = await _context.DonHangs
+                .Include(d => d.KhachHang)
+                .FirstOrDefaultAsync(d => d.MaDonHang == dto.MaDonHang);
+
+            if (donHang == null)
+                return NotFound("Đơn hàng không tồn tại.");
+
+            // 3️⃣ Cập nhật trạng thái (ghi tiếng Việt để khớp DB)
             donHang.TrangThai = dto.TrangThai;
-            await _donHangRepo.CapNhatAsync(donHang);
-            await _donHangRepo.LuuAsync();
+            _context.DonHangs.Update(donHang);
+            await _context.SaveChangesAsync();
 
-            return Ok("Cập nhật trạng thái thành công.");
+            // 4️⃣ Chuẩn bị phản hồi
+            var chiTietDonHangs = await _context.ChiTietDonHangs
+                .Where(ct => ct.MaDonHang == donHang.MaDonHang)
+                .Include(ct => ct.ChiTietSanPham)
+                    .ThenInclude(sp => sp.SanPham)
+                .Select(ct => new DonHangChiTietPhanHoiDTO
+                {
+                    MaChiTietDH = ct.MaChiTietDH,
+                    TenSP = ct.ChiTietSanPham.SanPham.TenSP,
+                    SoLuong = ct.SoLuong,
+                    GiaBan = ct.GiaBan
+                })
+                .ToListAsync();
+
+            var response = new DonHangPhanHoiDTO
+            {
+                MaDonHang = donHang.MaDonHang,
+                TenKH = donHang.KhachHang.TenKH,
+                NgayDatHang = donHang.NgayDatHang,
+                TongTien = donHang.TongTien,
+                TrangThai = donHang.TrangThai,
+                PhuongThucThanhToan = donHang.PhuongThucThanhToan,
+                TrangThaiThanhToan = donHang.TrangThaiThanhToan,
+                ChiTietDonHangs = chiTietDonHangs
+            };
+
+            return Ok(response);
         }
+
+
     }
 }
