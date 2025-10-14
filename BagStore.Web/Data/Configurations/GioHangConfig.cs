@@ -10,7 +10,7 @@ namespace BagStore.Data.Configurations
         {
             builder.ToTable("GioHang");
 
-            builder.HasKey(x => x.MaGioHang);
+            builder.HasKey(x => x.MaSP_GH);
 
             builder.Property(x => x.SoLuong)
                    .IsRequired();

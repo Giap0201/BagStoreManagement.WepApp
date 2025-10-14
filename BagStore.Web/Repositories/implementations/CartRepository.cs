@@ -1,12 +1,11 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
-using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.DTOs.Responses;
-using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace BagStore.Web.Repositories.Implementations
+namespace BagStore.Repositories
 {
     public class CartRepository : ICartRepository
     {
@@ -17,63 +16,61 @@ namespace BagStore.Web.Repositories.Implementations
             _context = context;
         }
 
-        public CartResponse GetCartItems(int userId)
+        public async Task<CartResponse> GetCartByUserIdAsync(int userId)
         {
-
-            var items = _context.GioHangs
+            var items = await _context.GioHangs
                 .Where(g => g.MaKH == userId)
-                .Join(_context.ChiTietSanPhams, g => g.MaChiTietSP, ctsp => ctsp.MaChiTietSP, (g, ctsp) => new { g, ctsp })
-                .Join(_context.SanPhams, x => x.ctsp.MaSP, sp => sp.MaSP, (x, sp) => new { x.g, x.ctsp, sp })
-                .Join(_context.MauSacs, x => x.ctsp.MaMauSac, m => m.MaMauSac, (x, m) => new { x.g, x.ctsp, x.sp, m })
-                .Join(_context.KichThuocs, x => x.ctsp.MaKichThuoc, k => k.MaKichThuoc, (x, k) => new { x.g, x.ctsp, x.sp, x.m, k })
-                .GroupJoin(_context.AnhSanPhams, x => x.sp.MaSP, a => a.MaSP, (x, anhGroup) => new { x.g, x.ctsp, x.sp, x.m, x.k, anhGroup })
-                .SelectMany(x => x.anhGroup.DefaultIfEmpty(), (x, anh) => new CartItemResponse
+                .Select(g => new CartItemResponse
                 {
-                    MaGioHang = x.g.MaGioHang,
-                    TenSP = x.sp.TenSP,
-                    GiaBan = x.ctsp.GiaBan,
-                    SoLuong = x.g.SoLuong,
-                    MauSac = x.m.TenMauSac,
-                    KichThuoc = x.k.TenKichThuoc,
-                    DuongDanAnh = anh != null ? anh.DuongDan : "/images/no-image.png",
-                    ThanhTien = x.g.SoLuong * x.ctsp.GiaBan
+                    MaSP_GH = g.MaSP_GH,
+                    TenSP = g.ChiTietSanPham.SanPham.TenSP,
+                    GiaBan = g.ChiTietSanPham.GiaBan,
+                    SoLuong = g.SoLuong,
+                    MauSac = g.ChiTietSanPham.MauSac.TenMauSac,
+                    KichThuoc = g.ChiTietSanPham.KichThuoc.TenKichThuoc,
+                    DuongDanAnh = g.ChiTietSanPham.SanPham.AnhSanPhams
+                        .Select(a => a.DuongDan)
+                        .FirstOrDefault() ?? "/images/no-image.png",
+                    ThanhTien = g.SoLuong * g.ChiTietSanPham.GiaBan
                 })
-                .ToList();
+                .ToListAsync();
+
+            if (items == null || !items.Any())
+                return null;
 
             return new CartResponse
             {
-                UserId = userId,
+                MaKH = userId,
                 Items = items
             };
         }
-        public async Task<bool> AddSanPhamAsync(AddCartItemRequest request)
+
+        public async Task<GioHang> GetCartItemAsync(int userId, int maCTSP)
         {
-  
-            var spTrongGio = await _context.GioHangs
-                .FirstOrDefaultAsync(c => c.MaKH == request.MaKH 
-                && c.MaChiTietSP == request.MaChiTietSP);
-
-            if (spTrongGio != null)
-            {
-                // Nếu có rồi thì tăng số lượng
-                spTrongGio.SoLuong += request.SoLuong;
-            }
-            else
-            {
-                // Nếu chưa có thì thêm mới
-                var newItem = new GioHang
-                {
-                    MaKH = request.MaKH,
-                    MaChiTietSP = request.MaChiTietSP,
-                    SoLuong = request.SoLuong
-                };
-                _context.GioHangs.Add(newItem);
-            }
-
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.GioHangs
+                .FirstOrDefaultAsync(g => g.MaKH == userId && g.MaChiTietSP == maCTSP);
         }
 
+        public async Task AddCartItemAsync(GioHang item)
+        {
+            await _context.GioHangs.AddAsync(item);
+        }
 
-    }
+        public async Task UpdateCartItemAsync(GioHang item)
+        {
+            _context.GioHangs.Update(item);
+            await Task.CompletedTask;
+        }
+
+        public async Task RemoveCartItemAsync(GioHang item)
+        {
+            _context.GioHangs.Remove(item);
+            await Task.CompletedTask;
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+}
 }

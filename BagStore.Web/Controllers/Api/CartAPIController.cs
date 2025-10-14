@@ -1,42 +1,45 @@
-﻿using BagStore.Web.Models.DTOs.Requests;
-using BagStore.Web.Repositories.Interfaces;
+﻿using BagStore.Services;
+using BagStore.Web.Models.DTOs.Requests;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-[Route("api/[controller]")]
-[ApiController]
-public class CartController : ControllerBase
+namespace BagStore.Web.Controllers
 {
-    private readonly ICartRepository _cartRepo;
-
-    public CartController(ICartRepository cartRepo)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class CartController : ControllerBase
     {
-        _cartRepo = cartRepo;
+        private readonly ICartService _cartService;
+
+        public CartController(ICartService cartService)
+        {
+            _cartService = cartService;
+        }
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetCart(int userId)
+        {
+            var cart = await _cartService.GetCartByUserIdAsync(userId);
+            if (cart == null || !cart.Items.Any())
+                return NotFound(new { message = "Giỏ hàng trống." });
+
+            return Ok(cart);
+        }
+
+        [HttpPost("add")]
+        public async Task<IActionResult> AddToCart([FromBody] AddCartItemRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _cartService.AddToCartAsync(request);
+            if (!result)
+                return BadRequest(new { message = "Không thể thêm sản phẩm vào giỏ hàng." });
+
+            return Ok(new { message = "Đã thêm sản phẩm vào giỏ hàng thành công." });
+        }
+
+       
+
     }
-
-    [HttpGet("getcart/{userId}")]
-    public IActionResult GetCart(int userId)
-    {
-
-        var cartItems = _cartRepo.GetCartItems(userId);
-
-        if (cartItems == null || cartItems.Items == null || !cartItems.Items.Any())
-            return NotFound("Giỏ hàng trống");
-
-        return Ok(cartItems);
-
-    }
-    [HttpPost("add")]
-    public async Task<IActionResult> AddToCart([FromBody] AddCartItemRequest request)
-    {
-        if (request == null || request.SoLuong <= 0)
-            return BadRequest("Dữ liệu không hợp lệ.");
-
-        var result = await _cartRepo.AddSanPhamAsync(request);
-
-        if (!result)
-            return BadRequest("Không thể thêm sản phẩm vào giỏ hàng.");
-
-        return Ok("Đã thêm sản phẩm vào giỏ hàng!");
-    }
-
 }
