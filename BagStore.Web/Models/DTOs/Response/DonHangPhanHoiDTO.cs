@@ -1,4 +1,4 @@
-﻿namespace BagStore.Web.Models.DTOs
+﻿namespace BagStore.Web.Models.DTOs.Response
 {
     public class DonHangPhanHoiDTO
     {
