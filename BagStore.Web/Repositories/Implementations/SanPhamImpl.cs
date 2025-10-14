@@ -16,14 +16,23 @@ namespace BagStore.Web.Repositories.implementations
             _context = context;
         }
 
-        public async Task<SanPham> AddSanPhamAsync(SanPham sanPham)
+        public async Task<SanPham> AddAsync(SanPham sanPham)
         {
             _context.SanPhams.Add(sanPham);
             await _context.SaveChangesAsync();
             return sanPham;
         }
 
-        public async Task<SanPham?> GetSanPhamByIdAsync(int maSP)
+        public async Task<bool> DeleteAsync(int maSP)
+        {
+            var sp = await _context.SanPhams.FindAsync(maSP);
+            if (sp == null) return false;
+            _context.SanPhams.Remove(sp);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<SanPham?> GetByIdAsync(int maSP)
         {
             return await _context.SanPhams
                 .Include(sp => sp.ChiTietSanPhams).ThenInclude(ct => ct.KichThuoc)
@@ -33,6 +42,13 @@ namespace BagStore.Web.Repositories.implementations
                 .Include(sp => sp.ThuongHieu)
                 .Include(sp => sp.ChatLieu)
                 .FirstOrDefaultAsync(sp => sp.MaSP == maSP);
+        }
+
+        public async Task<SanPham> UpdateAsync(SanPham entity)
+        {
+            _context.SanPhams.Update(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
     }
 }

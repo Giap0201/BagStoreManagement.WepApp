@@ -8,6 +8,7 @@ using BagStore.Web.Utilities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using NuGet.Packaging;
+using NuGet.Protocol.Core.Types;
 
 namespace BagStore.Web.Services.Implementations
 {
@@ -22,7 +23,7 @@ namespace BagStore.Web.Services.Implementations
             _env = env;
         }
 
-        public async Task<SanPhamDetailResponseDto> CreateSanPhamAsync(SanPhamCreateDto dto)
+        public async Task<SanPhamDetailResponseDto> CreateAsync(SanPhamCreateDto dto)
         {
             //validate du lieu
             if (dto.BienThe == null)
@@ -68,17 +69,48 @@ namespace BagStore.Web.Services.Implementations
             }
 
             //luu vao database
-            var created = await _repo.AddSanPhamAsync(sanPham);
+            var created = await _repo.AddAsync(sanPham);
 
             //map sao dto response
-            var response = MappingResponse(created);
+            var response = new SanPhamDetailResponseDto
+            {
+                MaSP = sanPham.MaSP,
+                TenSP = sanPham.TenSP,
+                MoTaChiTiet = sanPham.MoTaChiTiet,
+                MetaTitle = sanPham.MetaTitle,
+                MetaDescription = sanPham.MetaDescription,
+                MaLoaiTui = sanPham.MaLoaiTui,
+                //TenLoaiTui = sanPham.DanhMucLoaiTui != null ? sanPham.DanhMucLoaiTui.TenLoaiTui : "N/A",
+                MaThuongHieu = sanPham.MaThuongHieu,
+                //TenThuongHieu = sanPham.ThuongHieu != null ? sanPham.ThuongHieu.TenThuongHieu : "N/A",
+                MaChatLieu = sanPham.MaChatLieu,
+                //TenChatLieu = sanPham.ChatLieu != null ? sanPham.ChatLieu.TenChatLieu : "N/A",
+                NgayCapNhat = sanPham.NgayCapNhat,
+                ChiTietSanPhams = sanPham.ChiTietSanPhams.Select(ct => new ChiTietSanPhamResponseDto
+                {
+                    MaChiTietSP = ct.MaChiTietSP,
+                    MaKichThuoc = ct.MaKichThuoc,
+                    //TenKichThuoc = ct.KichThuoc != null ? ct.KichThuoc.TenKichThuoc : "N/A",
+                    MaMauSac = ct.MaMauSac,
+                    //TenMauSac = ct.MauSac != null ? ct.MauSac.TenMauSac : "N/A",
+                    SoLuongTon = ct.SoLuongTon,
+                    GiaBan = ct.GiaBan
+                }).ToList(),
+                AnhSanPhams = sanPham.AnhSanPhams.Select(a => new AnhSanPhamResponseDto
+                {
+                    MaAnh = a.MaAnh,
+                    DuongDan = a.DuongDan,
+                    ThuTuHienThi = a.ThuTuHienThi,
+                    LaHinhChinh = a.LaHinhChinh
+                }).ToList()
+            };
 
             return response;
         }
 
-        public async Task<SanPhamDetailResponseDto> GetSanPhamByIdAsync(int maSP)
+        public async Task<SanPhamDetailResponseDto> GetByIdAsync(int maSP)
         {
-            var sp = await _repo.GetSanPhamByIdAsync(maSP);
+            var sp = await _repo.GetByIdAsync(maSP);
             if (sp == null)
             {
                 return null;
@@ -123,6 +155,62 @@ namespace BagStore.Web.Services.Implementations
                     LaHinhChinh = a.LaHinhChinh
                 }).ToList()
             };
+        }
+
+        public async Task<SanPhamDetailResponseDto> UpdateAsync(int maSP, SanPhamUpdateDto dto)
+        {
+            var sp = await _repo.GetByIdAsync(maSP);
+            if (sp != null) throw new KeyNotFoundException("Sản phẩm không tồn tại");
+            sp.TenSP = dto.TenSP;
+            sp.MoTaChiTiet = dto.MoTaChiTiet;
+            sp.MetaDescription = dto.MetaDescription;
+            sp.MetaTitle = dto.MetaTitle;
+            sp.MaLoaiTui = dto.MaLoaiTui;
+            sp.MaThuongHieu = dto.MaThuongHieu;
+            sp.MaChatLieu = dto.MaChatLieu;
+
+            var updated = await _repo.UpdateAsync(sp);
+            var response = new SanPhamDetailResponseDto
+            {
+                MaSP = updated.MaSP,
+                TenSP = updated.TenSP,
+                MoTaChiTiet = updated.MoTaChiTiet,
+                MetaTitle = updated.MetaTitle,
+                MetaDescription = updated.MetaDescription,
+                MaLoaiTui = updated.MaLoaiTui,
+                //TenLoaiTui = sanPham.DanhMucLoaiTui != null ? sanPham.DanhMucLoaiTui.TenLoaiTui : "N/A",
+                MaThuongHieu = updated.MaThuongHieu,
+                //TenThuongHieu = sanPham.ThuongHieu != null ? sanPham.ThuongHieu.TenThuongHieu : "N/A",
+                MaChatLieu = updated.MaChatLieu,
+                //TenChatLieu = sanPham.ChatLieu != null ? sanPham.ChatLieu.TenChatLieu : "N/A",
+                NgayCapNhat = updated.NgayCapNhat,
+                ChiTietSanPhams = updated.ChiTietSanPhams.Select(ct => new ChiTietSanPhamResponseDto
+                {
+                    MaChiTietSP = ct.MaChiTietSP,
+                    MaKichThuoc = ct.MaKichThuoc,
+                    //TenKichThuoc = ct.KichThuoc != null ? ct.KichThuoc.TenKichThuoc : "N/A",
+                    MaMauSac = ct.MaMauSac,
+                    //TenMauSac = ct.MauSac != null ? ct.MauSac.TenMauSac : "N/A",
+                    SoLuongTon = ct.SoLuongTon,
+                    GiaBan = ct.GiaBan
+                }).ToList(),
+                AnhSanPhams = updated.AnhSanPhams.Select(a => new AnhSanPhamResponseDto
+                {
+                    MaAnh = a.MaAnh,
+                    DuongDan = a.DuongDan,
+                    ThuTuHienThi = a.ThuTuHienThi,
+                    LaHinhChinh = a.LaHinhChinh
+                }).ToList()
+            };
+
+            return response;
+        }
+
+        public async Task<bool> DeleteAsync(int maSP)
+        {
+            var sp = await _repo.GetByIdAsync(maSP);
+            if (sp == null) throw new KeyNotFoundException("Sản phẩm không tồn tại");
+            return await _repo.DeleteAsync(maSP);
         }
     }
 }

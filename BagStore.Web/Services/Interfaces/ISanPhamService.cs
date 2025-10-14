@@ -7,8 +7,12 @@ namespace BagStore.Web.Services.Interfaces
 {
     public interface ISanPhamService
     {
-        Task<SanPhamDetailResponseDto> CreateSanPhamAsync(SanPhamCreateDto dto);
+        Task<SanPhamDetailResponseDto> CreateAsync(SanPhamCreateDto dto);
 
-        Task<SanPhamDetailResponseDto> GetSanPhamByIdAsync(int maSP);
+        Task<SanPhamDetailResponseDto> GetByIdAsync(int maSP);
+
+        Task<SanPhamDetailResponseDto> UpdateAsync(int maSP, SanPhamUpdateDto dto);
+
+        Task<bool> DeleteAsync(int maSP);
     }
 }
