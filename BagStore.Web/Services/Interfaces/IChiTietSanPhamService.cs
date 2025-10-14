@@ -6,8 +6,15 @@ namespace BagStore.Web.Services.Interfaces
 {
     public interface IChiTietSanPhamService
     {
-        Task<ChiTietSanPhamResponseDto?> AddAsync(ChiTietSanPhamCreateDto dto);
+        Task<ChiTietSanPhamResponseDto?> AddAsync(int MaSP, ChiTietSanPhamCreateDto dto);
 
         Task<ChiTietSanPhamResponseDto?> GetByIdAsync(int maChiTietSanPham);
+
+        Task<ChiTietSanPhamResponseDto> UpdateAsync(int maChiTietSanPham, ChiTietSanPhamCreateDto dto);
+
+        Task<bool> DeleteAsync(int maChiTietSanPham);
+
+        // Lay danh sach bien the cua mot san pham
+        Task<List<ChiTietSanPham>> GetBySanPhamIdAsync(int maSP);
     }
 }

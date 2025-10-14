@@ -1,6 +1,7 @@
 ﻿using BagStore.Data;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
+using BagStore.Web.Repositories.Implementations;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Implementations;
 using BagStore.Web.Services.Interfaces;
@@ -38,6 +39,8 @@ builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
 builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
 builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
 builder.Services.AddScoped<ISanPhamService, SanPhamService>();
+builder.Services.AddScoped<IChiTietSanPhamRepository, ChiTietSanPhamImpl>();
+builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
 
 // ----------------------------
 // 4️⃣ Cấu hình HttpClient để gọi API
