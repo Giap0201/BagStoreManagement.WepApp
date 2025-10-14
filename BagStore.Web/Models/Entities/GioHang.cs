@@ -9,7 +9,7 @@ namespace BagStore.Domain.Entities
 {
     public class GioHang
     {
-        public int MaGioHang { get; set; }
+        public int MaSP_GH { get; set; }
         public int? MaKH { get; set; }
         public int MaChiTietSP { get; set; }
         public int SoLuong { get; set; }

@@ -1,4 +1,6 @@
 ﻿using BagStore.Data;
+using BagStore.Repositories;
+using BagStore.Services;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;
@@ -36,6 +38,7 @@ builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
 builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
