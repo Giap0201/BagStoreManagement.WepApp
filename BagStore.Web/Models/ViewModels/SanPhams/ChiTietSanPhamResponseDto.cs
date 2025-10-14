@@ -2,6 +2,7 @@
 {
     public class ChiTietSanPhamResponseDto
     {
+        public int MaSP { get; set; } // Join
         public int MaChiTietSP { get; set; }
         public int MaKichThuoc { get; set; }
         public string TenKichThuoc { get; set; } // Join
@@ -9,5 +10,6 @@
         public string TenMauSac { get; set; } // Join
         public int SoLuongTon { get; set; }
         public decimal GiaBan { get; set; }
+        public DateTime NgayTao { get; set; }
     }
 }

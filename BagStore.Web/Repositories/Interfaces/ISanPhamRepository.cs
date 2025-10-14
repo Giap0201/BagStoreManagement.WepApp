@@ -6,8 +6,12 @@ namespace BagStore.Web.Repositories.Interfaces
 {
     public interface ISanPhamRepository
     {
-        Task<SanPham> AddSanPhamAsync(SanPham sanPham);
+        Task<SanPham> AddAsync(SanPham sanPham);
 
-        Task<SanPham?> GetSanPhamByIdAsync(int maSP);
+        Task<SanPham?> GetByIdAsync(int maSP);
+
+        Task<SanPham> UpdateAsync(SanPham entity);
+
+        Task<bool> DeleteAsync(int maSP);
     }
 }
