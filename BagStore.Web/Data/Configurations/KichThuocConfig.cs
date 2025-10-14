@@ -15,6 +15,7 @@ namespace BagStore.Data.Configurations
             builder.Property(x => x.TenKichThuoc)
                    .IsRequired()
                    .HasMaxLength(50);
+            //Ten kich thuoc la duy nhat
             builder.HasIndex(x => x.TenKichThuoc).IsUnique();
 
             builder.Property(x => x.ChieuDai).HasColumnType("decimal(5,2)").IsRequired(false);
