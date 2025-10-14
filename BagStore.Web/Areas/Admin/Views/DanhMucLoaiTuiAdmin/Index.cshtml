@@ -1,0 +1,218 @@
+﻿@{
+    ViewData["Title"] = "Quản lý Danh mục Loại Túi (AJAX)";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a href="#" id="btnCreateNew" class="btn btn-primary">Tạo mới Danh mục</a>
+</p>
+
+<div id="loading" class="alert alert-info">Đang tải dữ liệu...</div>
+<div id="errorMessage" class="alert alert-danger" style="display:none;"></div>
+<div id="successMessage" class="alert alert-success" style="display:none;"></div>
+
+<div id="categoriesTableContainer">
+    @* Dữ liệu sẽ được tải và chèn vào đây bởi jQuery AJAX *@
+</div>
+
+@* Modal cho Form Thêm/Sửa *@
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalLabel">Tạo/Sửa Danh mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="MaLoaiTui" name="MaLoaiTui" />
+                    <div class="mb-3">
+                        <label for="TenLoaiTui" class="form-label">Tên Loại Túi</label>
+                        <input type="text" class="form-control" id="TenLoaiTui" name="TenLoaiTui" required>
+                        <div class="invalid-feedback">
+                            Tên loại túi không được để trống.
+                        </div>
+                        <label for="MoTa" class="form-label">Mô Tả</label>
+                        <input type="text" class="form-control" id="MoTa" name="MoTa" required>
+                        <div class="invalid-feedback">
+                            Mô tả không được để trống.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const apiBaseUrl = '/api/DanhMucLoaiTui'; // URL API của bạn
+            const categoriesTableContainer = $('#categoriesTableContainer');
+            const loadingDiv = $('#loading');
+            const errorMessageDiv = $('#errorMessage');
+            const successMessageDiv = $('#successMessage');
+            const categoryModal = $('#categoryModal');
+            const categoryModalLabel = $('#categoryModalLabel');
+            const categoryForm = $('#categoryForm');
+            const maLoaiTuiInput = $('#MaLoaiTui');
+            const tenLoaiTuiInput = $('#TenLoaiTui');
+            const moTaInput = $('#MoTa');
+
+            function showMessage(type, message) {
+                if (type === 'success') {
+                    successMessageDiv.text(message).show();
+                    errorMessageDiv.hide();
+                } else if (type === 'error') {
+                    errorMessageDiv.text(message).show();
+                    successMessageDiv.hide();
+                }
+                setTimeout(() => {
+                    successMessageDiv.hide();
+                    errorMessageDiv.hide();
+                }, 5000); // Ẩn thông báo sau 5 giây
+            }
+
+            // Tải danh sách danh mục
+            function loadCategories() {
+                loadingDiv.show();
+                categoriesTableContainer.empty();
+                errorMessageDiv.hide();
+
+                $.getJSON(apiBaseUrl)
+                    .done(function (data) {
+                        loadingDiv.hide();
+                        if (data && data.length > 0) {
+                            let tableHtml = `
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã Loại Túi</th>
+                                            <th>Tên Loại Túi</th>
+                                            <th>Mô tả</th>
+                                            <th>Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+                            $.each(data, function (index, item) {
+                                tableHtml += `
+                                    <tr>
+                                        <td>${item.maLoaiTui}</td>
+                                        <td>${item.tenLoaiTui}</td>
+                                        <td>${item.moTa}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info btn-edit" data-id="${item.maLoaiTui}" data-name="${item.tenLoaiTui}">Sửa</button>
+
+                                            <button class="btn btn-sm btn-danger btn-delete" data-id="${item.maLoaiTui}">Xóa</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            tableHtml += `
+                                    </tbody>
+                                </table>
+                            `;
+                            categoriesTableContainer.html(tableHtml);
+                        } else {
+                            categoriesTableContainer.html('<p>Không có danh mục loại túi nào để hiển thị.</p>');
+                        }
+                    })
+                    .fail(function (jqXHR, textStatus, errorThrown) {
+                        loadingDiv.hide();
+                        const errorMsg = jqXHR.responseJSON ? jqXHR.responseJSON.detail || jqXHR.responseJSON.title : errorThrown;
+                        showMessage('error', `Lỗi tải danh mục: ${errorMsg}`);
+                        console.error("Lỗi AJAX khi tải danh mục:", jqXHR.responseText);
+                    });
+            }
+
+            // Mở modal tạo mới
+            $('#btnCreateNew').on('click', function () {
+                categoryModalLabel.text('Tạo mới Danh mục');
+                maLoaiTuiInput.val('');
+                tenLoaiTuiInput.val('');
+                moTaInput.val('');
+                categoryForm.removeClass('was-validated'); // Reset validation
+                categoryModal.modal('show');
+            });
+
+            // Xử lý submit form (Tạo mới hoặc Sửa)
+            categoryForm.on('submit', function (e) {
+                e.preventDefault();
+                if (!this.checkValidity()) {
+                    $(this).addClass('was-validated');
+                    return;
+                }
+
+                const maLoaiTuiVal = maLoaiTuiInput.val();
+                const tenLoaiTuiVal = tenLoaiTuiInput.val();
+                const moTaVal = moTaInput.val();
+                const method = maLoaiTuiVal ? 'PUT' : 'POST';
+                const url = maLoaiTuiVal ? `${apiBaseUrl}/${maLoaiTuiVal}` : apiBaseUrl;
+
+                const dto = {
+                    maLoaiTui: maLoaiTuiVal ? parseInt(maLoaiTuiVal) : 0, // Cần parse nếu có mã
+                    tenLoaiTui: tenLoaiTuiVal,
+                    moTa: moTaVal
+                };
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    contentType: 'application/json',
+                    data: JSON.stringify(dto),
+                    success: function (response) {
+                        showMessage('success', maLoaiTuiVal ? 'Cập nhật danh mục thành công!' : 'Tạo mới danh mục thành công!');
+                        categoryModal.modal('hide');
+                        loadCategories(); // Tải lại danh sách
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        const errorMsg = jqXHR.responseJSON ? jqXHR.responseJSON.detail || jqXHR.responseJSON.title : errorThrown;
+                        showMessage('error', `Lỗi ${method === 'POST' ? 'tạo' : 'cập nhật'} danh mục: ${errorMsg}`);
+                        console.error("Lỗi AJAX khi lưu danh mục:", jqXHR.responseText);
+                    }
+                });
+            });
+
+            // Mở modal sửa
+            categoriesTableContainer.on('click', '.btn-edit', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                categoryModalLabel.text('Sửa Danh mục');
+                maLoaiTuiInput.val(id);
+                tenLoaiTuiInput.val(name);
+                categoryForm.removeClass('was-validated');
+                categoryModal.modal('show');
+            });
+
+            // Xử lý xóa danh mục
+            categoriesTableContainer.on('click', '.btn-delete', function () {
+                const id = $(this).data('id');
+                if (confirm(`Bạn có chắc muốn xóa danh mục có mã ${id} không?`)) {
+                    $.ajax({
+                        url: `${apiBaseUrl}/${id}`,
+                        type: 'DELETE',
+                        success: function () {
+                            showMessage('success', 'Xóa danh mục thành công!');
+                            loadCategories(); // Tải lại danh sách
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            const errorMsg = jqXHR.responseJSON ? jqXHR.responseJSON.detail || jqXHR.responseJSON.title : errorThrown;
+                            showMessage('error', `Lỗi khi xóa danh mục: ${errorMsg}`);
+                            console.error("Lỗi AJAX khi xóa danh mục:", jqXHR.responseText);
+                        }
+                    });
+                }
+            });
+
+            // Tải danh mục khi trang được tải lần đầu
+            loadCategories();
+        });
+    </script>
+}

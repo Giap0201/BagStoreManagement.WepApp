@@ -64,7 +64,6 @@ namespace BagStore.Web.Repositories.implementations
             if (entity == null) return false;
             entity.TenThuongHieu = request.TenThuongHieu;
             entity.QuocGia = request.QuocGia;
-            _context.ThuongHieux.Update(entity);
             await _context.SaveChangesAsync();
             return true;
         }
