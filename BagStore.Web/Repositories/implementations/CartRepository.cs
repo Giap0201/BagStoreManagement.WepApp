@@ -45,7 +45,7 @@ namespace BagStore.Repositories
             };
         }
 
-        public async Task<GioHang> GetCartItemAsync(int userId, int maCTSP)
+        public async Task<GioHang?> GetCartItemAsync(int userId, int maCTSP)
         {
             return await _context.GioHangs
                 .FirstOrDefaultAsync(g => g.MaKH == userId && g.MaChiTietSP == maCTSP);
