@@ -1,0 +1,27 @@
+﻿using BagStore.Web.Models.Entities;
+using BagStore.Web.Models.ViewModels;
+using Microsoft.AspNetCore.Identity;
+using System.Threading.Tasks;
+
+namespace BagStore.Web.Services
+{
+    public interface IUserService
+    {
+        Task<IdentityResult> RegisterAsync(RegisterModel model);
+        Task<SignInResult> LoginAsync(LoginModel model);
+        Task<ApplicationUser?> GetProfileAsync(string userId);
+        //Task<IdentityResult> UpdateProfileAsync(ApplicationUser user);
+        Task<IdentityResult> UpdateProfileAsync(ProfileEditModel model);
+        Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword);
+
+        //string GenerateJwtToken(ApplicationUser user);
+        Task LogoutAsync();
+
+        Task<List<ApplicationUser>> GetAllCustomersAsync();
+        Task<ApplicationUser?> GetByIdAsync(string id);
+        Task<IdentityResult> CreateCustomerAsync(AdminCustomerViewModel model);
+        Task<IdentityResult> UpdateCustomerAsync(AdminCustomerViewModel model);
+        Task<IdentityResult> DeleteAccountAsync(string userId);
+        Task<IdentityResult> ResetPasswordAsync(string userId, string newPassword);
+    }
+}

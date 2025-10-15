@@ -1,0 +1,81 @@
+﻿@using BagStore.Web.Models.Entities
+
+@model IEnumerable<ApplicationUser>
+@{
+    ViewData["Title"] = "Danh sách khách hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<a asp-area="Admin" asp-controller="Customer" asp-action="Create" class="btn btn-success mb-3">
+    + Thêm khách hàng
+</a>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Tên đăng nhập</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Số điện thoại</th>
+            <th>Ngày sinh</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.FullName</td>
+                <td>@user.Email</td>
+                <td>@user.PhoneNumber</td>
+                <td>@user.NgaySinh?.ToString("dd/MM/yyyy")</td>
+                <td>
+                    <a asp-area="Admin" asp-controller="Customer" asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-primary">
+                        Sửa
+                    </a>
+                    <a asp-area="Admin" asp-controller="Customer" asp-action="ResetPassword" asp-route-id="@user.Id" class="btn btn-sm btn-warning">
+                        Đặt lại MK
+                    </a>
+                    <a asp-area="Admin" asp-controller="Customer" asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-danger">
+                        Xoá
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@* <a asp-action="Create" class="btn btn-primary mb-3">+ Thêm mới khách hàng</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Tên đăng nhập</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>SĐT</th>
+            <th>Ngày sinh</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.UserName</td>
+                <td>@u.FullName</td>
+                <td>@u.Email</td>
+                <td>@u.PhoneNumber</td>
+                <td>@u.NgaySinh?.ToString("dd/MM/yyyy")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-warning">Sửa</a>
+                    <a asp-action="ResetPassword" asp-route-id="@u.Id" class="btn btn-sm btn-info">Đặt lại mật khẩu</a>
+                    <a asp-action="Delete" asp-route-id="@u.Id" class="btn btn-sm btn-danger">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table> *@
