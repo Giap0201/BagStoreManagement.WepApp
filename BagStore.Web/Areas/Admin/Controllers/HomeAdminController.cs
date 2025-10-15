@@ -11,5 +11,15 @@ namespace BagStore.Web.Areas.Admin.Controllers
         {
             return View();
         }
+
+        public IActionResult DanhMucLoaiTui()
+        {
+            return View();
+        }
+
+        public IActionResult ChatLieu()
+        {
+            return View();
+        }
     }
 }

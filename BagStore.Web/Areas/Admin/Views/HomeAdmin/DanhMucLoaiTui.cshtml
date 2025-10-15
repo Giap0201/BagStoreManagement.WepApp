@@ -1,0 +1,276 @@
+﻿@{
+    ViewData["Title"] = "Quản lý danh mục loại túi";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="card shadow-sm border-0 mt-4">
+    <!-- Header -->
+    <div class="card-header bg-white border-0 d-flex align-items-center pb-2">
+        <i class="mdi mdi-bag-personal-outline text-primary fs-3 me-2"></i>
+        <h4 class="text-primary mb-0 fw-semibold">Quản lý danh mục loại túi</h4>
+    </div>
+
+    <div class="card-body pt-3">
+        <!-- Thanh tìm kiếm -->
+        <div class="row g-2 align-items-center mb-3">
+            <div class="col-md-8">
+                <input type="text" id="searchDanhMuc" class="form-control" placeholder="🔍 Nhập từ khóa để tìm kiếm danh mục...">
+            </div>
+            <div class="col-md-4 text-md-start text-end">
+                <button id="btnSearch" class="btn btn-outline-primary">
+                    <i class="mdi mdi-magnify me-1"></i> Tìm kiếm
+                </button>
+            </div>
+        </div>
+
+        <!-- Bảng danh mục -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle text-center mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Mã danh mục</th>
+                        <th scope="col">Tên danh mục</th>
+                        <th scope="col">Mô tả</th>
+                        <th scope="col">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="danhMucTableBody">
+                    
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Nút thêm danh mục -->
+        <div class="text-end mt-4">
+            <button id="btnAddNew" class="btn btn-primary px-4">
+                <i class="mdi mdi-plus-circle-outline me-1"></i> +Thêm danh mục
+            </button>
+        </div>
+    </div>
+    <div class="modal fade" id="danhMucModal" tabindex="-1" aria-labelledby="danhMucModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="danhMucModalLabel">Thêm mới danh mục</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="danhMucForm">
+                        <input type="hidden" id="maLoaiTui" name="MaLoaiTui" />
+
+                        <div class="mb-3">
+                            <label for="tenLoaiTui" class="form-label">Tên danh mục</label>
+                            <input type="text" class="form-control" id="tenLoaiTui" name="TenLoaiTui" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="moTa" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="moTa" name="MoTa" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" form="danhMucForm" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Điều này đảm bảo trang HTML đã tải xong trước khi JavaScript chạy.
+        $(document).ready(function () {
+
+            // === 1. CÁC THÔNG TIN CẦN THIẾT BAN ĐẦU ===
+            // Địa chỉ của API trên server của bạn (nơi xử lý dữ liệu)
+            const apiUrl = '/api/DanhMucLoaiTuiApi';
+
+            // Các phần tử HTML mà chúng ta sẽ tương tác:
+            const tableBody = $('#danhMucTableBody');          // Cái bảng nơi hiển thị danh sách
+            const danhMucModal = new bootstrap.Modal(document.getElementById('danhMucModal')); // Hộp thoại popup (Thêm/Sửa)
+            const modalLabel = $('#danhMucModalLabel');        // Tiêu đề của hộp thoại popup
+            const danhMucForm = $('#danhMucForm');              // Cái form trong hộp thoại popup
+
+            // === 2. HÀM CHÍNH: LẤY DỮ LIỆU TỪ SERVER VÀ HIỂN THỊ LÊN BẢNG ===
+            // Đây là hàm quan trọng nhất, dùng để "làm mới" danh sách.
+            function loadData() {
+                // Bước 1: Hiện thông báo "Đang tải..." trong bảng
+                tableBody.html('<tr><td colspan="4" class="text-center text-muted">Đang tải dữ liệu...</td></tr>');
+
+                // Bước 2: Gửi yêu cầu "GET" (lấy dữ liệu) đến server
+                $.ajax({
+                    url: apiUrl,       // Gửi đến địa chỉ API đã định nghĩa
+                    method: 'GET',     // Yêu cầu LẤY DỮ LIỆU
+                    dataType: 'json',  // Mong muốn server trả về dữ liệu dạng JSON (mà JavaScript dễ hiểu)
+
+                    // Bước 3: Nếu server TRẢ LỜI THÀNH CÔNG:
+                    success: function (data) {
+                        tableBody.empty(); // Xóa hết các dòng cũ trong bảng
+
+                        if (data.length === 0) {
+                            tableBody.html('<tr><td colspan="4" class="text-center text-info">Không có danh mục nào.</td></tr>');
+                            return; // Dừng lại nếu không có dữ liệu
+                        }
+
+                        // Duyệt qua từng danh mục mà server gửi về (mỗi 'item' là 1 danh mục)
+                        $.each(data, function (index, item) {
+                            // Tạo một dòng HTML cho mỗi danh mục
+                            const row = `
+                                <tr>
+                                    <td>${item.maLoaiTui}</td>
+                                    <td>${item.tenLoaiTui}</td>
+                                    <td>${item.moTa || ''}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning me-1 btn-edit" data-id="${item.maLoaiTui}">
+                                            Sửa
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${item.maLoaiTui}">
+                                            Xóa
+                                        </button>
+                                    </td>
+                                </tr>`;
+                            tableBody.append(row); // Thêm dòng này vào bảng
+                        });
+                    },
+
+                    // Bước 4: Nếu có LỖI khi giao tiếp với server:
+                    error: function (xhr, status, error) {
+                        console.error("Lỗi khi tải dữ liệu:", error); // Ghi lỗi ra Console để xem
+                        tableBody.html('<tr class="table-danger"><td colspan="4" class="text-center">Lỗi khi tải dữ liệu.</td></tr>');
+                        Swal.fire('Lỗi!', 'Không thể tải dữ liệu danh mục.', 'error'); // Hiện thông báo lỗi đẹp
+                    }
+                });
+            }
+
+            // Gọi hàm này NGAY KHI TRANG TẢI XONG để hiển thị danh sách ban đầu
+            loadData();
+
+            // === 3. KHI NHẤN NÚT "THÊM DANH MỤC" ===
+            $('#btnAddNew').on('click', function () {
+                danhMucForm[0].reset(); // Xóa trắng các ô nhập trong form
+                $('#maLoaiTui').val(0); // Đặt ID là 0 để biết đây là THÊM MỚI (server sẽ tự tạo ID)
+                modalLabel.text('Thêm mới danh mục'); // Đổi tiêu đề hộp thoại
+                danhMucModal.show(); // Mở hộp thoại popup
+            });
+
+            // === 4. KHI NHẤN NÚT "SỬA" TRÊN MỖI DÒNG ===
+            // Dùng 'on' trên 'tableBody' vì các nút Sửa/Xóa được tạo ĐỘNG sau này
+            tableBody.on('click', '.btn-edit', function () {
+                const id = $(this).data('id'); // Lấy mã danh mục từ nút "Sửa" vừa nhấn
+
+                // Gửi yêu cầu "GET" để lấy THÔNG TIN CHI TIẾT của danh mục đó từ server
+                $.ajax({
+                    url: `${apiUrl}/${id}`, // Ví dụ: /api/DanhMucLoaiTuiApi/DM01
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (item) { // Server gửi về 1 'item' (danh mục)
+                        // Điền thông tin của danh mục vào các ô trong form
+                        $('#maLoaiTui').val(item.maLoaiTui);
+                        $('#tenLoaiTui').val(item.tenLoaiTui);
+                        $('#moTa').val(item.moTa);
+
+                        modalLabel.text('Cập nhật danh mục'); // Đổi tiêu đề hộp thoại
+                        danhMucModal.show(); // Mở hộp thoại popup
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(`Lỗi khi lấy danh mục ${id}:`, error);
+                        Swal.fire('Lỗi!', 'Không tìm thấy danh mục này.', 'error');
+                    }
+                });
+            });
+
+            // === 5. KHI NHẤN NÚT "XÓA" TRÊN MỖI DÒNG ===
+            tableBody.on('click', '.btn-delete', function () {
+                const id = $(this).data('id'); // Lấy mã danh mục từ nút "Xóa" vừa nhấn
+
+                // Hỏi người dùng có chắc chắn muốn xóa không (dùng SweetAlert2)
+                Swal.fire({
+                    title: 'Xóa thật không?',
+                    text: "Không thể phục hồi được đâu!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đúng, xóa đi!',
+                    cancelButtonText: 'Thôi, đừng xóa'
+                }).then((result) => {
+                    if (result.isConfirmed) { // Nếu người dùng xác nhận xóa
+                        // Gửi yêu cầu "DELETE" (xóa dữ liệu) đến server
+                        $.ajax({
+                            url: `${apiUrl}/${id}`, // Gửi đến địa chỉ API với ID cần xóa
+                            method: 'DELETE',      // Yêu cầu XÓA DỮ LIỆU
+                            success: function () {
+                                Swal.fire('Đã xóa!', 'Danh mục đã bay màu.', 'success');
+                                loadData(); // Tải lại danh sách để thấy danh mục đã bị xóa
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(`Lỗi khi xóa danh mục ${id}:`, error);
+                                Swal.fire('Lỗi!', 'Không xóa được danh mục.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // === 6. KHI NHẤN NÚT "LƯU THAY ĐỔI" TRONG HỘP THOẠI POPUP ===
+            // Xử lý khi người dùng gửi form (dù là thêm mới hay cập nhật)
+            danhMucForm.on('submit', function (e) {
+                e.preventDefault(); // RẤT QUAN TRỌNG: Ngăn trang bị tải lại khi gửi form
+
+                const id = parseInt($('#maLoaiTui').val()); // Lấy ID (0 nếu là thêm mới, khác 0 nếu là sửa)
+                const dataToSend = { // Tạo một đối tượng chứa dữ liệu từ form
+                    // Tên các thuộc tính này PHẢI GIỐNG VỚI TÊN TRÊN SERVER của bạn!
+                    maLoaiTui: id,
+                    tenLoaiTui: $('#tenLoaiTui').val(),
+                    moTa: $('#moTa').val()
+                };
+
+                // Xác định gửi POST (thêm) hay PUT (sửa) và URL tương ứng
+                const method = (id === 0) ? 'POST' : 'PUT'; // Nếu ID = 0 là THÊM (POST), ngược lại là SỬA (PUT)
+                const url = (id === 0) ? apiUrl : `${apiUrl}/${id}`; // URL cho THÊM khác URL cho SỬA
+
+                // Gửi yêu cầu AJAX POST hoặc PUT đến server
+                $.ajax({
+                    url: url,
+                    method: method,
+                    contentType: 'application/json', // Báo cho server biết dữ liệu gửi đi là JSON
+                    data: JSON.stringify(dataToSend), // BIẾN ĐỔI đối tượng JavaScript thành CHUỖI JSON để gửi
+                    success: function (response) {
+                        danhMucModal.hide(); // Ẩn hộp thoại popup
+                        Swal.fire(
+                            'Thành công!',
+                            `Đã ${id === 0 ? 'thêm mới' : 'cập nhật'} danh mục thành công.`,
+                            'success'
+                        );
+                        loadData(); // Tải lại danh sách để thấy thay đổi
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Lỗi khi lưu danh mục:', error);
+                        // Cố gắng lấy lỗi từ server hoặc hiện thông báo chung
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.message || 'Có lỗi xảy ra.' : 'Có lỗi xảy ra.';
+                        Swal.fire('Lỗi!', errorMsg, 'error');
+                    }
+                });
+            });
+
+            // === 7. CHỨC NĂNG TÌM KIẾM TRÊN BẢNG (Không cần gọi server) ===
+            $('#searchDanhMuc').on('keyup', function() { // Khi người dùng gõ phím vào ô tìm kiếm
+                const searchTerm = $(this).val().toLowerCase(); // Lấy chữ người dùng gõ (chuyển về chữ thường)
+
+                // Duyệt qua TỪNG DÒNG trong bảng
+                $('#danhMucTableBody tr').filter(function() {
+                    // Lấy TẤT CẢ chữ trong dòng đó (chuyển về chữ thường)
+                    const rowText = $(this).text().toLowerCase();
+
+                    // Ẩn/hiện dòng đó dựa trên việc nó CÓ CHỨA chữ người dùng gõ hay không
+                    $(this).toggle(rowText.indexOf(searchTerm) > -1);
+                });
+            });
+
+            // Khi click nút Tìm kiếm, chỉ cần kích hoạt sự kiện gõ phím để chạy logic tìm kiếm
+            $('#btnSearch').on('click', function() {
+                 $('#searchDanhMuc').trigger('keyup');
+            });
+
+        }); // Hết phần JavaScript khi trang đã sẵn sàng
+    </script>
+}
