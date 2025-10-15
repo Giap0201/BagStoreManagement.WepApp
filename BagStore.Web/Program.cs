@@ -2,6 +2,7 @@
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Interfaces;
+using BagStore.Web.Services;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,15 +20,57 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
     .AddDefaultTokenProviders();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+
+//NguyenKhanhSon
+builder.Services.AddScoped<IUserService, UserService>();
+
+//End NguyenKhanhSon
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
 
+
+builder.Services.AddControllersWithViews();
 //
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
+
+//NguyenKhanhSon
+
+// Tự tạo role + admin nếu chưa có
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    // 1️⃣ Tạo role ADMIN nếu chưa có
+    if (!await roleManager.RoleExistsAsync("Admin"))
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+    // 2️⃣ Tạo tài khoản admin mặc định
+    var adminEmail = "admin@bagstore.com";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = "admin",
+            FullName = "Administrator",
+            Email = adminEmail,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(adminUser, "Admin@123"); // ✅ password hash hợp lệ
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+        }
+    }
+}
+
+//End NguyenKhanhSon
+
 // Ví dụ trong Program.cs:
 app.UseExceptionHandler(appBuilder =>
 {
@@ -60,6 +103,8 @@ app.UseExceptionHandler(appBuilder =>
 //    dbContext.Database.Migrate();
 //}
 
+
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -68,11 +113,23 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseDeveloperExceptionPage(); // ✅ Hiện lỗi chi tiết khi dev
+//}
+//else
+//{
+//    app.UseExceptionHandler("/Home/Error");
+//    app.UseHsts();
+//}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseDeveloperExceptionPage();
+app.UseAuthentication(); // Thêm dòng này để kích hoạt xác thực
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -83,4 +140,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+
+//NguyenKhanhSon
+
+//End NguyenKhanhSon
+
 app.Run();
+
