@@ -2,6 +2,7 @@
 using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace BagStore.Web.Controllers
 {
@@ -38,8 +39,23 @@ namespace BagStore.Web.Controllers
 
             return Ok(new { message = "Đã thêm sản phẩm vào giỏ hàng thành công." });
         }
+        [HttpDelete("remove/{MaKH:int}/{MaChiTietSP:int}")]
+        public async Task<IActionResult> DeleteCart(int MaKH, int MaChiTietSP)
+        {
 
-       
+            try
+            {
+                var result = await _cartService.RemoveCartItemAsync(MaKH, MaChiTietSP);
+                if (result)
+                    return Ok(new { message = "Đã xóa sản phẩm khỏi giỏ hàng thành công." });
 
+                return NotFound(new { message = "Không tìm thấy sản phẩm trong giỏ hàng." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
     }
 }
+

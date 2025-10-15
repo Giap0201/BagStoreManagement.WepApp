@@ -52,9 +52,9 @@ namespace BagStore.Services
 
 
         //  Xóa sản phẩm khỏi giỏ
-        public async Task<bool> RemoveCartItemAsync(RemoveCartItemRequest request)
+        public async Task<bool> RemoveCartItemAsync(int MaKH, int MaChiTietSP)
         {
-            var item = await _cartRepository.GetCartItemAsync(request.MaKH, request.MaChiTietSP);
+            var item = await _cartRepository.GetCartItemAsync(MaKH,MaChiTietSP);
             if (item == null) return false;
 
             await _cartRepository.RemoveCartItemAsync(item);

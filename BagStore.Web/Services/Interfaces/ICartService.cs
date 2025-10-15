@@ -14,7 +14,7 @@ namespace BagStore.Services
         Task<bool> AddToCartAsync(AddCartItemRequest request);
 
         // Xóa sản phẩm khỏi giỏ
-        Task<bool> RemoveCartItemAsync(RemoveCartItemRequest request);
+        Task<bool> RemoveCartItemAsync(int MaKH, int MaChiTietSP);
 
         // Xóa toàn bộ giỏ hàng (nếu cần)
         Task<bool> ClearCartAsync(int userId);
