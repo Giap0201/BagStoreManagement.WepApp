@@ -2,11 +2,10 @@
     ViewData["Title"] = "Quản lý chất liệu";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
-
 <div class="card shadow-sm border-0 mt-4">
     <!-- Header -->
     <div class="card-header bg-white border-0 d-flex align-items-center pb-2">
-        <i class="mdi mdi-texture text-primary fs-3 me-2"></i>
+        <i class="mdi mdi-table text-primary fs-3 me-2"></i>
         <h4 class="text-primary mb-0 fw-semibold">Quản lý chất liệu</h4>
     </div>
 
@@ -14,10 +13,10 @@
         <!-- Thanh tìm kiếm -->
         <div class="row g-2 align-items-center mb-3">
             <div class="col-md-8">
-                <input type="text" id="txtSearchChatLieu" class="form-control" placeholder="🔍 Nhập từ khóa để tìm kiếm ...">
+                <input type="text" id="searchInput" class="form-control" placeholder="Nhập tên chất liệu để tìm kiếm...">
             </div>
             <div class="col-md-4 text-md-start text-end">
-                <button id="btnSearchChatLieu" class="btn btn-outline-primary">
+                <button id="btnSearch" class="btn btn-outline-primary">
                     <i class="mdi mdi-magnify me-1"></i> Tìm kiếm
                 </button>
             </div>
@@ -25,7 +24,7 @@
 
         <!-- Bảng dữ liệu -->
         <div class="table-responsive">
-            <table id="tblChatLieu" class="table table-striped table-hover align-middle text-center mb-0">
+            <table class="table table-striped table-hover align-middle text-center mb-0">
                 <thead class="table-light">
                     <tr>
                         <th scope="col">Mã chất liệu</th>
@@ -34,47 +33,46 @@
                         <th scope="col">Hành động</th>
                     </tr>
                 </thead>
-                <tbody id="tblChatLieuBody">
+                <tbody id="tableBody">
+                    <!-- Dữ liệu sẽ được load bằng JS -->
                 </tbody>
             </table>
         </div>
 
-        <!-- Nút thêm mới -->
+        <!-- Nút thêm dữ liệu -->
         <div class="text-end mt-4">
-            <button id="btnAddChatLieu" class="btn btn-primary px-4">
-                <i class="mdi mdi-plus-circle-outline me-1"></i> + Thêm chất liệu
+            <button id="btnAddNew" class="btn btn-primary px-4">
+                <i class="mdi mdi-plus-circle-outline me-1"></i> +Thêm chất liệu
             </button>
         </div>
     </div>
 
-    <!-- Modal thêm/sửa -->
-    <div class="modal fade" id="chatLieuModal" tabindex="-1" aria-labelledby="chatLieuModalLabel" aria-hidden="true">
+    <!-- Modal Thêm/Sửa chung -->
+    <div class="modal fade" id="modalData" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="chatLieuModalLabel">Thêm mới chất liệu</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Thêm mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body">
-                    <form id="chatLieuForm">
-                        <input type="hidden" id="chatLieuId" name="MaChatLieu" />
+                    <form id="modalForm">
+                        <input type="hidden" id="inputId" name="Id" />
 
                         <div class="mb-3">
-                            <label for="tenChatLieu" class="form-label">Tên chất liệu</label>
-                            <input type="text" class="form-control" id="tenChatLieu" name="TenChatLieu" required>
+                            <label for="inputName" class="form-label">Tên chất liệu</label>
+                            <input type="text" class="form-control" id="inputName" name="Name" required>
                         </div>
-
                         <div class="mb-3">
-                            <label for="moTaChatLieu" class="form-label">Mô tả</label>
-                            <textarea class="form-control" id="moTaChatLieu" name="MoTa" rows="3"></textarea>
+                            <label for="inputDesc" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="inputDesc" name="Desc" rows="3"></textarea>
                         </div>
                     </form>
                 </div>
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" form="chatLieuForm" class="btn btn-primary">Lưu thay đổi</button>
+                    <button type="submit" form="modalForm" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             </div>
         </div>
@@ -85,140 +83,204 @@
     <script>
         $(document).ready(function () {
 
-            // === 1. Khai báo URL API ===
-            var apiUrl = '/api/ChatLieuApi';
+            // === 1. CÁC THÔNG TIN CẦN THIẾT BAN ĐẦU ===
+            // ĐIỀU CHỈNH LẠI ĐỊA CHỈ API CHO CHẤT LIỆU
+            const apiUrl = '/api/ChatLieuApi'; // <-- ĐÃ SỬA: Thay đổi tên API cho Chất liệu
 
-            // === 2. Hàm tải dữ liệu lên bảng ===
-            function loadChatLieu() {
-                $("#tblChatLieuBody").html("<tr><td colspan='4'>Đang tải dữ liệu...</td></tr>");
+            const tableBody = $('#tableBody');
+            const modalDataInstance = new bootstrap.Modal(document.getElementById('modalData'));
+            const modalLabel = $('#modalLabel');
+            const modalForm = $('#modalForm');
+
+            let allMaterials = []; // <-- ĐÃ SỬA: Đổi tên biến từ allCategories sang allMaterials cho rõ ràng hơn
+
+            // === 2. HÀM CHÍNH: LẤY DỮ LIỆU TỪ SERVER VÀ HIỂN THỊ LÊN BẢNG ===
+            function loadData() {
+                tableBody.html('<tr><td colspan="4" class="text-center text-muted">Đang tải dữ liệu...</td></tr>');
 
                 $.ajax({
                     url: apiUrl,
-                    type: "GET",
-                    dataType: "json",
+                    method: 'GET',
+                    dataType: 'json',
                     success: function (data) {
-                        var rows = "";
-
-                        if (data.length === 0) {
-                            rows = "<tr><td colspan='4'>Không có dữ liệu</td></tr>";
-                        } else {
-                            $.each(data, function (i, item) {
-                                rows += "<tr>" +
-                                    "<td>" + item.maChatLieu + "</td>" +
-                                    "<td>" + item.tenChatLieu + "</td>" +
-                                    "<td>" + (item.moTa || '') + "</td>" +
-                                    "<td>" +
-                                        "<button class='btn btn-warning btn-sm btnEdit' data-id='" + item.maChatLieu + "'>Sửa</button> " +
-                                        "<button class='btn btn-danger btn-sm btnDelete' data-id='" + item.maChatLieu + "'>Xóa</button>" +
-                                    "</td>" +
-                                "</tr>";
-                            });
-                        }
-
-                        $("#tblChatLieuBody").html(rows);
+                        allMaterials = data; // <-- ĐÃ SỬA: Lưu vào allMaterials
+                        renderTable(allMaterials); // Hiển thị tất cả dữ liệu ban đầu
                     },
-                    error: function () {
-                        alert("Lỗi khi tải dữ liệu!");
+                    error: function (xhr, status, error) {
+                        console.error("Lỗi khi tải dữ liệu:", error);
+                        tableBody.html('<tr class="table-danger"><td colspan="4" class="text-center">Lỗi khi tải dữ liệu.</td></tr>');
+                        Swal.fire('Lỗi!', 'Không thể tải dữ liệu chất liệu.', 'error');
                     }
                 });
             }
 
-            // Gọi khi trang vừa load
-            loadChatLieu();
+            // Hàm riêng để render (vẽ) bảng từ một mảng dữ liệu
+            function renderTable(materialsToRender) { // <-- ĐÃ SỬA: Đổi tên tham số
+                tableBody.empty();
 
+                if (materialsToRender.length === 0) {
+                    tableBody.html('<tr><td colspan="4" class="text-center text-info">Không có chất liệu nào.</td></tr>');
+                    return;
+                }
 
-            // === 3. Khi nhấn nút "Thêm chất liệu" ===
-            $("#btnAddChatLieu").click(function () {
-                $("#chatLieuId").val(0);
-                $("#tenChatLieu").val("");
-                $("#moTaChatLieu").val("");
-                $("#chatLieuModalLabel").text("Thêm chất liệu mới");
-                $("#chatLieuModal").modal("show");
+                $.each(materialsToRender, function (index, item) {
+                    const row = `
+                        <tr>
+                            <td>${item.maChatLieu}</td> <!-- ĐÃ SỬA: Thêm dấu } -->
+                            <td>${item.tenChatLieu}</td>
+                            <td>${item.moTa || ''}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-warning me-1 btn-edit" data-id="${item.maChatLieu}"> <!-- ĐÃ SỬA: data-id là maChatLieu -->
+                                    Sửa
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${item.maChatLieu}"> <!-- ĐÃ SỬA: data-id là maChatLieu -->
+                                    Xóa
+                                </button>
+                            </td>
+                        </tr>`;
+                    tableBody.append(row);
+                });
+            }
+
+            // Gọi hàm này NGAY KHI TRANG TẢI XONG để hiển thị danh sách ban đầu
+            loadData();
+
+            // === 3. KHI NHẤN NÚT "THÊM CHẤT LIỆU" ===
+            $('#btnAddNew').on('click', function () {
+                modalForm[0].reset();
+                $('#inputId').val(0);
+                modalLabel.text('Thêm mới chất liệu');
+                modalDataInstance.show();
             });
 
+            // === 4. KHI NHẤN NÚT "SỬA" TRÊN MỖI DÒNG ===
+            tableBody.on('click', '.btn-edit', function () {
+                const id = $(this).data('id');
 
-            // === 4. Khi nhấn nút "Lưu thay đổi" (trong form) ===
-            $("#chatLieuForm").submit(function (e) {
+                $.ajax({
+                    url: `${apiUrl}/${id}`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (item) {
+                        // ĐÃ SỬA: Thêm dấu ) cho val() và dùng đúng tên thuộc tính
+                        $('#inputId').val(item.maChatLieu);
+                        $('#inputName').val(item.tenChatLieu);
+                        $('#inputDesc').val(item.moTa);
+
+                        modalLabel.text('Cập nhật chất liệu');
+                        modalDataInstance.show();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(`Lỗi khi lấy chất liệu ${id}:`, error);
+                        Swal.fire('Lỗi!', 'Không tìm thấy chất liệu này.', 'error');
+                    }
+                });
+            });
+
+            // === 5. KHI NHẤN NÚT "XÓA" TRÊN MỖI DÒNG ===
+            tableBody.on('click', '.btn-delete', function () {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Bạn có chắc chắn xoá không?',
+                    text: "Dữ liệu này sẽ bị xoá vĩnh viễn!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xác nhận xoá',
+                    cancelButtonText: 'Huỷ'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `${apiUrl}/${id}`,
+                            method: 'DELETE',
+                            success: function () {
+                                Swal.fire('Đã xóa!', 'Chất liệu đã bị xoá thành công.', 'success');
+                                loadData();
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(`Lỗi khi xóa chất liệu ${id}:`, error);
+                                Swal.fire('Lỗi!', 'Không xóa được chất liệu, có thể chất liệu đang có sản phẩm.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // === 6. KHI NHẤN NÚT "LƯU THAY ĐỔI" TRONG HỘP THOẠI POPUP ===
+            modalForm.on('submit', function (e) {
                 e.preventDefault();
 
-                var id = $("#chatLieuId").val();
-                var data = {
-                    MaChatLieu: id,
-                    TenChatLieu: $("#tenChatLieu").val(),
-                    MoTa: $("#moTaChatLieu").val()
+                if (!modalForm[0].checkValidity()) {
+                    return;
+                }
+
+                const id = $('#inputId').val();
+
+                const dataToSend = {
+                    // ĐẢM BẢO TÊN THUỘC TÍNH NÀY KHỚP VỚI MODEL C# TRÊN API CỦA BẠN!
+                    maChatLieu: id,
+                    tenChatLieu: $('#inputName').val(),
+                    moTa: $('#inputDesc').val()
                 };
 
-                var method = id == 0 ? "POST" : "PUT";
-                var url = id == 0 ? apiUrl : apiUrl + "/" + id;
+                const isNew = (id === '0' || id === 0 || id === null || id === '');
+                const method = isNew ? 'POST' : 'PUT';
+                const url = isNew ? apiUrl : `${apiUrl}/${id}`;
 
                 $.ajax({
                     url: url,
-                    type: method,
-                    contentType: "application/json",
-                    data: JSON.stringify(data),
-                    success: function () {
-                        alert("Lưu thành công!");
-                        $("#chatLieuModal").modal("hide");
-                        loadChatLieu();
+                    method: method,
+                    contentType: 'application/json',
+                    data: JSON.stringify(dataToSend),
+                    success: function (response) {
+                        modalDataInstance.hide();
+                        Swal.fire(
+                            'Thành công!',
+                            `Đã ${isNew ? 'thêm mới' : 'cập nhật'} chất liệu thành công.`, // <-- ĐÃ SỬA: Thông báo
+                            'success'
+                        );
+                        loadData();
                     },
-                    error: function () {
-                        alert("Có lỗi xảy ra khi lưu!");
+                    error: function (xhr, status, error) {
+                        console.error('Lỗi khi lưu chất liệu:', error);
+                        let errorMsg = 'Có lỗi xảy ra khi lưu chất liệu.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                             errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                const jsonError = JSON.parse(xhr.responseText);
+                                errorMsg = jsonError.message || jsonError.errors || xhr.responseText;
+                            } catch (e) {
+                                errorMsg = xhr.responseText;
+                            }
+                        }
+                        Swal.fire('Lỗi!', errorMsg, 'error');
                     }
                 });
             });
 
+            // === 7. CHỨC NĂNG TÌM KIẾM THEO TÊN (CLIENT-SIDE) ===
+            $('#searchInput').on('keyup', function() {
+                const searchTerm = $(this).val().toLowerCase().trim();
 
-            // === 5. Khi nhấn nút "Sửa" ===
-            $(document).on("click", ".btnEdit", function () {
-                var id = $(this).data("id");
+                if (searchTerm === '') {
+                    renderTable(allMaterials); // <-- ĐÃ SỬA: render allMaterials
+                    return;
+                }
 
-                $.ajax({
-                    url: apiUrl + "/" + id,
-                    type: "GET",
-                    dataType: "json",
-                    success: function (item) {
-                        $("#chatLieuId").val(item.maChatLieu);
-                        $("#tenChatLieu").val(item.tenChatLieu);
-                        $("#moTaChatLieu").val(item.moTa);
-                        $("#chatLieuModalLabel").text("Chỉnh sửa chất liệu");
-                        $("#chatLieuModal").modal("show");
-                    },
-                    error: function () {
-                        alert("Không lấy được dữ liệu chất liệu!");
-                    }
+                const filteredMaterials = allMaterials.filter(item => { // <-- ĐÃ SỬA: Lọc trên allMaterials
+                    // ĐÃ SỬA: Tìm kiếm theo tenChatLieu
+                    return item.tenChatLieu.toLowerCase().includes(searchTerm);
                 });
+
+                renderTable(filteredMaterials); // <-- ĐÃ SỬA: render filteredMaterials
             });
 
-
-            // === 6. Khi nhấn nút "Xóa" ===
-            $(document).on("click", ".btnDelete", function () {
-                if (!confirm("Bạn có chắc chắn muốn xóa chất liệu này không?")) return;
-
-                var id = $(this).data("id");
-
-                $.ajax({
-                    url: apiUrl + "/" + id,
-                    type: "DELETE",
-                    success: function () {
-                        alert("Đã xóa thành công!");
-                        loadChatLieu();
-                    },
-                    error: function () {
-                        alert("Lỗi khi xóa chất liệu!");
-                    }
-                });
+            // Khi click nút Tìm kiếm, chỉ cần kích hoạt sự kiện gõ phím để chạy logic tìm kiếm
+            $('#btnSearch').on('click', function() {
+                 $('#searchInput').trigger('keyup');
             });
 
-
-            // === 7. Chức năng tìm kiếm đơn giản ===
-            $("#btnSearchChatLieu").click(function () {
-                var keyword = $("#txtSearchChatLieu").val().toLowerCase();
-
-                $("#tblChatLieuBody tr").filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(keyword) > -1);
-                });
-            });
-
-        });
+        }); // Hết phần JavaScript khi trang đã sẵn sàng
     </script>
 }
