@@ -15,7 +15,8 @@ namespace BagStore.Web.Repositories.implementations
         {
             return await _dbSet
                 .Include(d => d.ChiTietDonHangs)
-                .ThenInclude(ct => ct.ChiTietSanPham)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(c => c.SanPham) // thêm dòng này
                 .Where(d => d.MaKH == maKH)
                 .ToListAsync();
         }
