@@ -24,6 +24,30 @@ namespace BagStore.Web.Services.Implementations
             _chiTietRepo = chiTietRepo;
         }
 
+        public async Task<IEnumerable<DonHangPhanHoiDTO>> LayTatCaDonHangAsync()
+        {
+            var donHangs = await _donHangRepo.LayTatCaDonHangAsync();
+            if (!donHangs.Any())
+                return Enumerable.Empty<DonHangPhanHoiDTO>();
+            return donHangs.Select(d => new DonHangPhanHoiDTO
+            {
+                MaDonHang = d.MaDonHang,
+                TenKH = d.KhachHang?.TenKH ?? "Khách",
+                NgayDatHang = d.NgayDatHang,
+                TongTien = d.TongTien,
+                TrangThai = d.TrangThai,
+                PhuongThucThanhToan = d.PhuongThucThanhToan,
+                TrangThaiThanhToan = d.TrangThaiThanhToan,
+                ChiTietDonHangs = d.ChiTietDonHangs.Select(ct => new DonHangChiTietPhanHoiDTO
+                {
+                    MaChiTietDH = ct.MaChiTietDH,
+                    TenSP = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Sản phẩm",
+                    SoLuong = ct.SoLuong,
+                    GiaBan = ct.GiaBan
+                }).ToList()
+            }).ToList();
+        }
+
         public async Task<IEnumerable<DonHangPhanHoiDTO>> LayDonHangTheoKhachHangAsync(int maKhachHang)
         {
             var donHangs = await _donHangRepo.LayDonHangTheoKhachHangAsync(maKhachHang);

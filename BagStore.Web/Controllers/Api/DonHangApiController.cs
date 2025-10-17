@@ -20,6 +20,21 @@ namespace BagStore.Web.Controllers.Api
             _donHangService = donHangService;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<DonHangPhanHoiDTO>>> LayTatCaDonHang()
+        {
+            try
+            {
+                var result = await _donHangService.LayTatCaDonHangAsync(); // thêm method service/repo nếu chưa có
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi server");
+            }
+        }
+
+
         [HttpGet("KhachHang/{maKhachHang}")]
         public async Task<ActionResult<IEnumerable<DonHangPhanHoiDTO>>> LayDonHangTheoKhachHang(int maKhachHang)
         {
