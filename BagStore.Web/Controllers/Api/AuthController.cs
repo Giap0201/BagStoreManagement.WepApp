@@ -11,10 +11,12 @@ namespace BagStore.Web.Controllers.Api
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public AuthController(IUserService userService)
+        public AuthController(IUserService userService, IHttpClientFactory clientFactory)
         {
             _userService = userService;
+            _clientFactory = clientFactory;
         }
 
         // 🟩 POST: /api/auth/register
@@ -62,17 +64,40 @@ namespace BagStore.Web.Controllers.Api
 
             var result = await _userService.LoginAsync(model);
 
-            if (result.Succeeded)
-                return Ok(new { message = "Đăng nhập thành công!" });
-
             //if (result.Succeeded)
-            //{
-            //    var user = await _userService.GetProfileAsync(model.UserName); // cần GetProfileAsync theo username
-            //    var token = _userService.GenerateJwtToken(user);
-            //    return Ok(new { message = "Đăng nhập thành công!", token });
-            //}
+            //    return Ok(new { message = "Đăng nhập thành công!" })
 
-            return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
+            //return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
+
+            if (!result.Succeeded)
+                return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
+
+            // ✅ Tạo JWT token
+            var user = await _userService.GetProfileByUserNameAsync(model.UserName);
+            if (user == null)
+                return Unauthorized(new { message = "Không tìm thấy người dùng" });
+
+            var token = _userService.GenerateJwtToken(user);
+
+            // ✅ Trả về token cho client
+            return Ok(new
+            {
+                message = "Đăng nhập thành công!",
+                token
+            });
+
+            //// Với API login, ta trả JWT
+            //var token = await _userService.GenerateJwtForUserAsync(model.UserName, model.Password);
+            //if (token == null)
+            //    return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
+
+            //// 🔹 Trả về token cho client (Postman hoặc AJAX)
+            //return Ok(new
+            //{
+            //    message = "Đăng nhập thành công!",
+            //    token,
+            //    token_type = "Bearer"
+            //});
         }
 
         // 🟨 GET: /api/auth/profile/{userId}

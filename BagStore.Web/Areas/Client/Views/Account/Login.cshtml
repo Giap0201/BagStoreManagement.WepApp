@@ -1,10 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-
-@model BagStore.Web.Models.ViewModels.LoginModel
+﻿@* @model BagStore.Web.Models.ViewModels.LoginModel
 
 @{
     ViewData["Title"] = "Login";
@@ -32,17 +26,55 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+} *@
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
 }
 
-@* <h2>Login</h2>
-<form asp-action="Login" method="post">
+<h2>@ViewData["Title"]</h2>
+
+<form id="loginForm">
     <div class="form-group">
-        <label asp-for="UserName"></label>
-        <input asp-for="UserName" class="form-control" />
+        <label for="UserName">Tên đăng nhập</label>
+        <input type="text" class="form-control" id="UserName" name="UserName" required />
     </div>
     <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" type="password" />
+        <label for="Password">Mật khẩu</label>
+        <input type="password" class="form-control" id="Password" name="Password" required />
     </div>
-    <button type="submit" class="btn btn-primary">Login</button>
-</form> *@
+    <button type="submit" id="btnLogin" class="btn btn-primary mt-2">Đăng nhập</button>
+</form>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $("#loginForm").submit(function (e) {
+            e.preventDefault();
+
+            var username = $("#UserName").val();
+            var password = $("#Password").val();
+
+            $.ajax({
+                url: "/api/auth/login",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ userName: username, password: password }),
+                success: function (res) {
+                    console.log("Token nhận được:", res.token);
+
+                    // Lưu token vào sessionStorage
+                    sessionStorage.setItem("jwtToken", res.token);
+
+                    // Chuyển hướng sang trang Admin
+                    window.location.href = "/Admin/Customer/Index";
+                },
+                error: function (xhr) {
+                    console.error("Lỗi login:", xhr.responseText);
+                    alert("Đăng nhập thất bại!");
+                }
+            });
+        });
+    </script>
+}
