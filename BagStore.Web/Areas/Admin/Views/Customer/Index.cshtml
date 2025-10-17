@@ -1,7 +1,7 @@
 ﻿@using BagStore.Web.Models.Entities
 
 @model IEnumerable<ApplicationUser>
-@{
+@* @{
     ViewData["Title"] = "Danh sách khách hàng";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
@@ -46,11 +46,89 @@
             </tr>
         }
     </tbody>
+</table> *@
+
+
+
+@* @{
+    ViewData["Title"] = "Danh sách khách hàng (API)";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="mb-3">
+    <button id="btnLoginApi" class="btn btn-primary">Đăng nhập API</button>
+    <button id="btnLoadApi" class="btn btn-success">Tải danh sách khách hàng</button>
+</div>
+
+<table id="tblCustomers" class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Tên đăng nhập</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>SĐT</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
 </table>
 
-@* <a asp-action="Create" class="btn btn-primary mb-3">+ Thêm mới khách hàng</a>
+@section Scripts {
+    <script>
+        async function loginApi() {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userName: 'admin', password: 'Admin@123' })
+            });
+            const data = await res.json();
+            sessionStorage.setItem('jwtToken', data.token);
+            alert('Token lưu thành công!');
+        }
 
-<table class="table table-striped">
+        async function loadCustomers() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (!token) return alert('Chưa có token, hãy login API trước.');
+
+            const res = await fetch('/api/admin/CustomerApi/all', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!res.ok) {
+                alert('Lỗi: ' + res.status);
+                return;
+            }
+
+            const customers = await res.json();
+            const tbody = document.querySelector('#tblCustomers tbody');
+            tbody.innerHTML = '';
+            customers.forEach(c => {
+                tbody.innerHTML += `<tr>
+                    <td>${c.userName}</td>
+                    <td>${c.fullName}</td>
+                    <td>${c.email}</td>
+                    <td>${c.phoneNumber}</td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('btnLoginApi').addEventListener('click', loginApi);
+        document.getElementById('btnLoadApi').addEventListener('click', loadCustomers);
+    </script>
+} *@
+
+
+@{
+    ViewData["Title"] = "Danh sách khách hàng (API)";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<button id="btnLoadApi" class="btn btn-primary mb-3">Tải danh sách từ API</button>
+
+<table class="table table-bordered" id="tblCustomers">
     <thead>
         <tr>
             <th>Tên đăng nhập</th>
@@ -58,24 +136,105 @@
             <th>Email</th>
             <th>SĐT</th>
             <th>Ngày sinh</th>
-            <th>Thao tác</th>
         </tr>
     </thead>
-    <tbody>
-        @foreach (var u in Model)
-        {
-            <tr>
-                <td>@u.UserName</td>
-                <td>@u.FullName</td>
-                <td>@u.Email</td>
-                <td>@u.PhoneNumber</td>
-                <td>@u.NgaySinh?.ToString("dd/MM/yyyy")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-warning">Sửa</a>
-                    <a asp-action="ResetPassword" asp-route-id="@u.Id" class="btn btn-sm btn-info">Đặt lại mật khẩu</a>
-                    <a asp-action="Delete" asp-route-id="@u.Id" class="btn btn-sm btn-danger">Xóa</a>
-                </td>
-            </tr>
+    <tbody></tbody>
+</table>
+
+@* @section Scripts {
+    <script>
+        // 🟩 B1. Token JWT — tạm hardcode hoặc lấy từ sessionStorage
+        const jwtToken = sessionStorage.getItem("jwtToken")
+            || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MGM0MjI0Yy05M2E3LTRhNzgtYTRmZi0wZWM4YzcyZjg0YWQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQwYzQyMjRjLTkzYTctNGE3OC1hNGZmLTBlYzhjNzJmODRhZCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImVtYWlsIjoiYWRtaW5AYmFnc3RvcmUuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQWRtaW4iLCJleHAiOjE3NjA2MzgwMzksImlzcyI6IkJhZ1N0b3JlQVBJIiwiYXVkIjoiQmFnU3RvcmVDbGllbnQifQ.oIE5ZYA3JHRQqP7pXo2rI3RoPiF5Gb0_TZymwfxA5Qw"; // <== Dán token ở đây
+
+        // 🟦 B2. Hàm load dữ liệu từ API
+        async function loadCustomersFromApi() {
+            console.log("Đã click nút, đang gọi Api...");
+            const resp = await fetch('/api/Admin/CustomerApi/all', {
+                headers: {
+                    'Authorization': 'Bearer ' + jwtToken,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log("Trạng thái HTTP:", resp.status);
+            if (!resp.ok) {
+                alert("Lỗi gọi API: " + resp.status);
+                console.error(await resp.text());
+                return;
+            }
+
+            const customers = await resp.json();
+            console.log("Dữ liệu từ API:", customers);
+
+            // 🟨 B3. Render ra bảng
+            const tbody = document.querySelector("#tblCustomers tbody");
+            tbody.innerHTML = "";
+
+            customers.forEach(c => {
+                const row = `
+                    <tr>
+                        <td>${c.userName}</td>
+                        <td>${c.fullName ?? ''}</td>
+                        <td>${c.email}</td>
+                        <td>${c.phoneNumber ?? ''}</td>
+                        <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ''}</td>
+                    </tr>`;
+                tbody.insertAdjacentHTML("beforeend", row);
+            });
         }
-    </tbody>
-</table> *@
+
+        document.getElementById("btnLoadApi").addEventListener("click", loadCustomersFromApi);
+    </script>
+} *@
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadCustomersFromApi() {
+            var token = sessionStorage.getItem("jwtToken");
+
+            if (!token) {
+                alert("Bạn chưa đăng nhập hoặc token không tồn tại.");
+                window.location.href = "/Account/Login";
+                return;
+            }
+
+            $.ajax({
+                url: "/api/Admin/CustomerApi/all",
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                },
+                success: function (res) {
+                    console.log("Dữ liệu nhận được:", res);
+
+                    var tbody = $("#tblCustomers tbody");
+                    tbody.empty();
+
+                    $.each(res, function (i, c) {
+                        var row = `
+                            <tr>
+                                <td>${c.userName}</td>
+                                <td>${c.fullName ?? ''}</td>
+                                <td>${c.email}</td>
+                                <td>${c.phoneNumber ?? ''}</td>
+                                <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ''}</td>
+                            </tr>`;
+                        tbody.append(row);
+                    });
+                },
+                error: function (xhr) {
+                    console.error("Lỗi khi gọi API:", xhr.status, xhr.responseText);
+                    alert("Không thể tải dữ liệu. Kiểm tra token hoặc quyền truy cập.");
+                }
+            });
+        }
+
+        $("#btnLoadApi").click(loadCustomersFromApi);
+        $(document).ready(loadCustomersFromApi);
+    </script>
+}
+
+
+

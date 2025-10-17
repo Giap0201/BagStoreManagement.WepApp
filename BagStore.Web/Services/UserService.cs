@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace BagStore.Web.Services
 {
@@ -19,27 +20,20 @@ namespace BagStore.Web.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly BagStoreDbContext _dbContext;
+        private readonly IConfiguration _configuration;
 
         public UserService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            BagStoreDbContext dbContext)
+            BagStoreDbContext dbContext,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _dbContext = dbContext;
+            _configuration = configuration;
         }
 
-        //private readonly IConfiguration _configuration;
-
-        //public UserService(UserManager<ApplicationUser> userManager,
-        //                   SignInManager<ApplicationUser> signInManager,
-        //                   IConfiguration configuration)
-        //{
-        //    _userManager = userManager;
-        //    _signInManager = signInManager;
-        //    _configuration = configuration;
-        //}
 
         public async Task<IdentityResult> RegisterAsync(RegisterModel model)
         {
@@ -255,5 +249,90 @@ namespace BagStore.Web.Services
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             return await _userManager.ResetPasswordAsync(user, token, newPassword);
         }
+
+        public async Task<ApplicationUser?> GetProfileByUserNameAsync(string username)
+        {
+            return await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        }
+
+
+        //JWT Token
+        private string CreateJwtToken(ApplicationUser user, IList<string> roles)
+        {
+            var jwtSection = _configuration.GetSection("Jwt");
+            var key = jwtSection["Key"];
+            var issuer = jwtSection["Issuer"];
+            var audience = jwtSection["Audience"];
+            var expiresMinutes = int.Parse(jwtSection["ExpiresMinutes"] ?? "120");
+
+            var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty)
+    };
+
+            // add role claims
+            foreach (var r in roles)
+                claims.Add(new Claim(ClaimTypes.Role, r));
+
+            var keyBytes = Encoding.UTF8.GetBytes(key);
+            var creds = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(expiresMinutes),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public async Task<string?> GenerateJwtForUserAsync(string userName, string password)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user == null) return null;
+
+            var valid = await _userManager.CheckPasswordAsync(user, password);
+            if (!valid) return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return CreateJwtToken(user, roles);
+        }
+
+        public string GenerateJwtToken(ApplicationUser user)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Name, user.UserName ?? ""),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email ?? "")
+        };
+
+            // Thêm role (nếu có)
+            var roles = _userManager.GetRolesAsync(user).Result;
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:ExpiresMinutes"])),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
     }
 }
