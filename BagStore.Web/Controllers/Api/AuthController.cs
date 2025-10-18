@@ -11,12 +11,10 @@ namespace BagStore.Web.Controllers.Api
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IHttpClientFactory _clientFactory;
 
-        public AuthController(IUserService userService, IHttpClientFactory clientFactory)
+        public AuthController(IUserService userService)
         {
             _userService = userService;
-            _clientFactory = clientFactory;
         }
 
         // 🟩 POST: /api/auth/register

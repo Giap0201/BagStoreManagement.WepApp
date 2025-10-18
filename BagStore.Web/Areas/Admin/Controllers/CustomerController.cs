@@ -93,7 +93,10 @@ namespace BagStore.Web.Areas.Admin.Controllers
 
             var result = await _userService.ResetPasswordAsync(model.Id, model.NewPassword);
             if (result.Succeeded)
+            {
+                TempData["Success"] = "Đặt lại mật khẩu thành công.";
                 return RedirectToAction(nameof(Index));
+            }
 
             foreach (var err in result.Errors)
                 ModelState.AddModelError("", err.Description);
