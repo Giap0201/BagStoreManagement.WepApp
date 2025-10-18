@@ -14,17 +14,17 @@ namespace BagStore.Web.Models.ViewModels
         [Required(ErrorMessage = "Họ tên là bắt buộc")]
         public string FullName { get; set; } = string.Empty;
 
-        [EmailAddress]
         [Required(ErrorMessage = "Email là bắt buộc")]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Phone]
+        //[Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         public string? PhoneNumber { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime? NgaySinh { get; set; }
 
-        // chỉ dùng khi thêm mới
+        // Dùng khi tạo mới
         [DataType(DataType.Password)]
         public string? Password { get; set; }
     }

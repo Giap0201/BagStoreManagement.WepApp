@@ -6,10 +6,15 @@ namespace BagStore.Web.Models.ViewModels
     {
         public string Id { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
-        [StringLength(100, MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Mật khẩu mới")]
+        //[Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
+        //[StringLength(100, MinimumLength = 6)]
+        //[DataType(DataType.Password)]
+        //[Display(Name = "Mật khẩu mới")]
         public string NewPassword { get; set; } = string.Empty;
+
+        //[Required, Compare("NewPassword")]
+        //[DataType(DataType.Password)]
+        //[Display(Name = "Xác nhận mật khẩu")]
+        //public string ConfirmPassword { get; set; } = null!;
     }
 }

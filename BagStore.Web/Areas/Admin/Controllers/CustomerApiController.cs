@@ -1,17 +1,18 @@
-﻿using BagStore.Web.Services;
+﻿using BagStore.Web.Models.Entities;
+using BagStore.Web.Models.ViewModels;
+using BagStore.Web.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BagStore.Web.Models.Entities;
 
 namespace BagStore.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-    [Authorize(Roles = "Admin")]   
+    //[Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class CustomerApiController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -23,24 +24,112 @@ namespace BagStore.Web.Areas.Admin.Controllers
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
         {
-            var list = await _userService.GetAllCustomersAsync();
-            // map to DTO if cần
-            return Ok(list.Select(u => new {
-                u.Id,
-                u.UserName,
-                u.FullName,
-                u.Email,
-                u.PhoneNumber,
-                NgaySinh = u.NgaySinh?.ToString("yyyy-MM-dd")
-            }));
+            var users = await _userService.GetAllCustomersAsync();
+            // map to simple DTO to avoid leaking sensitive fields
+            var list = users.Select(u => new {
+                id = u.Id,
+                userName = u.UserName,
+                fullName = u.FullName,
+                email = u.Email,
+                phoneNumber = u.PhoneNumber,
+                ngaySinh = u.NgaySinh
+            });
+            return Ok(list);
         }
 
+        // GET api/Admin/CustomerApi/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var user = await _userService.GetByIdAsync(id);
+            if (user == null) return NotFound();
+            return Ok(new
+            {
+                id = user.Id,
+                userName = user.UserName,
+                fullName = user.FullName,
+                email = user.Email,
+                phoneNumber = user.PhoneNumber,
+                ngaySinh = user.NgaySinh
+            });
+        }
+
+        // POST api/Admin/CustomerApi
+        //[HttpPost]
+        //public async Task<IActionResult> Create([FromBody] AdminCustomerViewModel model)
+        //{
+        //    if (!ModelState.IsValid) return BadRequest(ModelState);
+        //    var result = await _userService.CreateCustomerAsync(model);
+        //    if (!result.Succeeded)
+        //        return BadRequest(result.Errors.Select(e => e.Description));
+        //    return CreatedAtAction(nameof(GetById), new { id = model.UserName /* or return created id */ }, new { message = "Created" });
+        //}
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] AdminCustomerViewModel model)
+        {
+            if (model == null)
+                return BadRequest("Model không hợp lệ.");
+
+            // Gán mật khẩu mặc định nếu chưa có
+            if (string.IsNullOrEmpty(model.Password))
+                model.Password = "Customer@123";
+
+            var result = await _userService.CreateCustomerAsync(model);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors.Select(e => e.Description));
+
+            return Ok(new { message = "Tạo khách hàng thành công!" });
+        }
+
+
+        // PUT api/Admin/CustomerApi/{id}
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> Update(string id, [FromBody] AdminCustomerViewModel model)
+        //{
+        //    if (!ModelState.IsValid) return BadRequest(ModelState);
+        //    if (id != model.Id) return BadRequest("Id không khớp");
+        //    var result = await _userService.UpdateCustomerAsync(model);
+        //    if (!result.Succeeded)
+        //        return BadRequest(result.Errors.Select(e => e.Description));
+        //    return NoContent();
+        //}
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] AdminCustomerViewModel model)
+        {
+            if (model == null)
+                return BadRequest("Model không hợp lệ.");
+
+            // ép Id từ URL vào model nếu cần
+            model.Id = id;
+
+            var result = await _userService.UpdateCustomerAsync(model);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors.Select(e => e.Description));
+
+            return Ok(new { message = "Cập nhật thành công!" });
+        }
+
+
+        // DELETE api/Admin/CustomerApi/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            var res = await _userService.DeleteAccountAsync(id);
-            if (res.Succeeded) return Ok();
-            return BadRequest(res.Errors);
+            var result = await _userService.DeleteAccountAsync(id);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors.Select(e => e.Description));
+            return NoContent();
+        }
+
+        // POST api/Admin/CustomerApi/resetpassword
+        [HttpPost("resetpassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _userService.ResetPasswordAsync(model.Id, model.NewPassword);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors.Select(e => e.Description));
+            return Ok(new { message = "Đặt lại mật khẩu thành công" });
         }
     }
 }

@@ -1,11 +1,13 @@
-﻿using BagStore.Web.Models.ViewModels;
+﻿using BagStore.Web.Models.Entities;
+using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Claims;
-using BagStore.Web.Models.Entities;
+using System.Text;
+using System.Text.Json;
 
 namespace BagStore.Web.Areas.Client.Controllers
 {
@@ -16,15 +18,18 @@ namespace BagStore.Web.Areas.Client.Controllers
         private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IHttpClientFactory _clientFactory;
 
         public AccountController(
             IUserService userService,
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            IHttpClientFactory clientFactory)
         {
             _userService = userService;
             _userManager = userManager;
             _signInManager = signInManager;
+            _clientFactory = clientFactory;
         }
 
         // GET: /Client/Account/Login
@@ -35,34 +40,62 @@ namespace BagStore.Web.Areas.Client.Controllers
         }
 
         // POST: /Client/Account/Login
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Login(LoginModel model)
+        //{
+        //    if (!ModelState.IsValid)
+        //        return View(model);
+
+        //    //var result = await _userService.LoginAsync(model);
+        //    //if (result.Succeeded)
+        //    //    return RedirectToAction("Index", "Home", new { area = "Client" });
+
+        //    var result = await _userService.LoginAsync(model);
+        //    if (result.Succeeded)
+        //    {
+        //        var user = await _userManager.FindByNameAsync(model.UserName);
+        //        var roles = await _userManager.GetRolesAsync(user);
+
+        //        if (roles.Contains("Admin"))
+        //        {
+        //            return RedirectToAction("Index", "Customer", new { area = "Admin" });
+        //            // nếu bạn chưa có DashboardController thì đổi thành CustomerController hoặc trang nào của admin
+        //        }
+
+        //        return RedirectToAction("Index", "Home", new { area = "Client" });
+        //    }
+
+        //    ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng");
+        //    return View(model);
+        //}
+
+        //JWT Login
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
-            //var result = await _userService.LoginAsync(model);
-            //if (result.Succeeded)
-            //    return RedirectToAction("Index", "Home", new { area = "Client" });
+            var client = _clientFactory.CreateClient();
+            var content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
-            var result = await _userService.LoginAsync(model);
-            if (result.Succeeded)
+            var response = await client.PostAsync("https://localhost:7013/api/auth/login", content);
+            if (!response.IsSuccessStatusCode)
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
-                var roles = await _userManager.GetRolesAsync(user);
-
-                if (roles.Contains("Admin"))
-                {
-                    return RedirectToAction("Index", "Customer", new { area = "Admin" });
-                    // nếu bạn chưa có DashboardController thì đổi thành CustomerController hoặc trang nào của admin
-                }
-
-                return RedirectToAction("Index", "Home", new { area = "Client" });
+                ModelState.AddModelError("", "Sai tài khoản hoặc mật khẩu");
+                return View(model);
             }
 
-            ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng");
-            return View(model);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(responseBody);
+            var token = doc.RootElement.GetProperty("token").GetString();
+
+            // ⚡ Lưu token tạm vào TempData để JS đọc
+            TempData["JwtToken"] = token;
+
+            // ✅ Chuyển hướng sang trang khách hàng
+            return RedirectToAction("Index", "Customer", new { area = "Admin" });
         }
 
         // GET: /Client/Account/Register
