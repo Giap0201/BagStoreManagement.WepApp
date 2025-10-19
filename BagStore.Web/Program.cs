@@ -40,6 +40,8 @@ builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IThuongHieuService, ThuongHieuService>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
 builder.Services.AddScoped<IChatLieuService, ChatLieuService>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+
 builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
 builder.Services.AddScoped<IMauSacService, MauSacService>();
 builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
