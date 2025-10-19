@@ -13,6 +13,6 @@ namespace BagStore.Web.Models.DTOs
 
         [MaxLength(500, ErrorMessage = "Mô tả không được vượt quá 500 ký tự.")]
         [Required(ErrorMessage = "Mô tả là bắt buộc")]
-        public string? MoTa { get; set; }
+        public string MoTa { get; set; }
     }
 }
