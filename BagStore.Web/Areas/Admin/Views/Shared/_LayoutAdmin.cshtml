@@ -57,7 +57,10 @@
                             </a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#">
-                                <i class="mdi mdi-logout me-2 text-primary"></i> Signout
+                                @* <i class="mdi mdi-logout me-2 text-primary"></i> Signout *@
+                                <form asp-area="Client" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-link nav-link">Đăng xuất</button>
+                                </form>
                             </a>
                         </div>
                     </li>
