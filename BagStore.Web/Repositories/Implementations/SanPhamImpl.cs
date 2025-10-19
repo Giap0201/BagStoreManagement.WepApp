@@ -1,7 +1,5 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs.SanPhams;
-using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,16 +30,24 @@ namespace BagStore.Web.Repositories.implementations
             return true;
         }
 
+        public async Task<List<SanPham>> GetAllAsync()
+        {
+            return await _context.SanPhams
+                .Include(p => p.AnhSanPhams)
+                .ToListAsync();
+        }
+
         public async Task<SanPham?> GetByIdAsync(int maSP)
         {
             return await _context.SanPhams
-                .Include(sp => sp.ChiTietSanPhams).ThenInclude(ct => ct.KichThuoc)
-                .Include(sp => sp.ChiTietSanPhams).ThenInclude(ct => ct.MauSac)
-                .Include(sp => sp.AnhSanPhams)
-                .Include(sp => sp.DanhMucLoaiTui)
-                .Include(sp => sp.ThuongHieu)
-                .Include(sp => sp.ChatLieu)
-                .FirstOrDefaultAsync(sp => sp.MaSP == maSP);
+                .Include(p => p.AnhSanPhams)
+                .FirstOrDefaultAsync(p => p.MaSP == maSP);
+        }
+
+        public async Task<SanPham> GetByNameAsync(string tenSanPham)
+        {
+            var entity = await _context.SanPhams.FirstOrDefaultAsync(x => x.TenSP == tenSanPham);
+            return entity;
         }
 
         public async Task<SanPham> UpdateAsync(SanPham entity)
