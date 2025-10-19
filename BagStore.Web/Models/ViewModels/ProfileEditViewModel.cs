@@ -2,7 +2,7 @@
 
 namespace BagStore.Web.Models.ViewModels
 {
-    public class ProfileEditModel
+    public class ProfileEditViewModel
     {
         public string? Id { get; set; }
 

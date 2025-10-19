@@ -2,7 +2,7 @@
 
 namespace BagStore.Web.Models.ViewModels
 {
-    public class LoginModel
+    public class LoginViewModel
     {
         [Required]
         public string UserName { get; set; }

@@ -19,7 +19,7 @@ namespace BagStore.Web.Controllers.Api
 
         // 🟦 POST: /api/auth/login
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

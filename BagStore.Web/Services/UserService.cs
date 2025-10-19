@@ -55,7 +55,7 @@ namespace BagStore.Web.Services
             return result;
         }
 
-        public async Task<SignInResult> LoginAsync(LoginModel model)
+        public async Task<SignInResult> LoginAsync(LoginViewModel model)
         {
             // dùng PasswordSignInAsync cho cookie authentication
             var result = await _signInManager.PasswordSignInAsync(
@@ -78,7 +78,7 @@ namespace BagStore.Web.Services
             return await _userManager.UpdateAsync(user);
         }
 
-        public async Task<IdentityResult> UpdateProfileAsync(ProfileEditModel model)
+        public async Task<IdentityResult> UpdateProfileAsync(ProfileEditViewModel model)
         {
             // Lấy user hiện tại
             var user = await _userManager.FindByIdAsync(model.Id);
