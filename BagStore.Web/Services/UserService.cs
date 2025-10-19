@@ -35,36 +35,25 @@ namespace BagStore.Web.Services
         }
 
 
-        public async Task<IdentityResult> RegisterAsync(RegisterModel model)
+        public async Task<IdentityResult> RegisterCustomerAsync(RegisterViewModel model)
         {
             var user = new ApplicationUser
             {
                 UserName = model.UserName,
+                FullName = model.FullName,
                 Email = model.Email,
-                FullName = model.FullName
+                PhoneNumber = model.PhoneNumber,
+                NgaySinh = model.NgaySinh
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
-
-            //if (result.Succeeded)
-            //    await _userManager.AddToRoleAsync(user, "Customer");
-
             if (result.Succeeded)
             {
-                // optional: seed role check elsewhere; guard in case role doesn't exist
-                if (await _userManager.IsInRoleAsync(user, "Customer") == false)
-                {
-                    try { await _userManager.AddToRoleAsync(user, "Customer"); } catch { /* ignore role errors for now */ }
-                }
+                await _userManager.AddToRoleAsync(user, "Customer");
             }
 
             return result;
         }
-
-        //public async Task<SignInResult> LoginAsync(LoginModel model)
-        //{
-        //    return await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false, false);
-        //}
 
         public async Task<SignInResult> LoginAsync(LoginModel model)
         {
@@ -78,11 +67,6 @@ namespace BagStore.Web.Services
         {
             await _signInManager.SignOutAsync();
         }
-
-        //public async Task<ApplicationUser?> GetProfileAsync(string userId)
-        //{
-        //    return await _userManager.FindByIdAsync(userId);
-        //}
 
         public async Task<ApplicationUser?> GetProfileAsync(string userId)
         {
@@ -116,20 +100,6 @@ namespace BagStore.Web.Services
             // Nếu thay đổi email and you want to re-confirm, you might need to manage EmailConfirmed flag & tokens.
             return result;
         }
-
-        //public async Task<IdentityResult> UpdateProfileAsync(ApplicationUser user)
-        //{
-        //    var existingUser = await _userManager.FindByIdAsync(user.Id);
-        //    if (existingUser == null)
-        //        return IdentityResult.Failed(new IdentityError { Description = "User not found" });
-
-        //    existingUser.FullName = user.FullName;
-        //    existingUser.Email = user.Email;
-        //    existingUser.PhoneNumber = user.PhoneNumber;
-        //    existingUser.NgaySinh = user.NgaySinh;
-
-        //    return await _userManager.UpdateAsync(existingUser);
-        //}
 
         public async Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword)
         {
