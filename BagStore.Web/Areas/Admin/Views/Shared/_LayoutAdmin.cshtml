@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Required meta tags -->
@@ -274,12 +275,8 @@
                 </div>
                 <!-- content-wrapper ends -->
                 <!-- partial:../../partials/_footer.html -->
-                <footer class="footer">
-                    <div class="container-fluid d-flex justify-content-between">
-                        <span class="text-muted d-block text-center text-sm-start d-sm-inline-block">Copyright © bootstrapdash.com 2021</span>
-                        <span class="float-none float-sm-end mt-1 mt-sm-0 text-end"> Free <a href="https://www.bootstrapdash.com/bootstrap-admin-template/" target="_blank">Bootstrap admin template</a> from Bootstrapdash.com</span>
-                    </div>
-                </footer>
+
+                <partial name="Footer"></partial>
                 <!-- partial -->
             </div>
             <!-- main-panel ends -->
@@ -296,6 +293,10 @@
     <script src="../../LayoutAdmin/assets/js/off-canvas.js"></script>
     <script src="../../LayoutAdmin/assets/js/hoverable-collapse.js"></script>
     <script src="../../LayoutAdmin/assets/js/misc.js"></script>
+    <script src="../../LayoutAdmin/lib/jquery/dist/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @RenderSection("Scripts", required: false)
     <!-- endinject -->
     <!-- Custom js for this page -->
     <!-- End custom js for this page -->
