@@ -59,14 +59,15 @@
                 <div class="modal-body">
                     <form id="modalForm">
                         <input type="hidden" id="inputId" name="Id" />
-
                         <div class="mb-3">
                             <label for="inputName" class="form-label">Tên chất liệu</label>
                             <input type="text" class="form-control" id="inputName" name="Name" required>
+                            <div class="invalid-feedback">Vui lòng nhập tên chất liệu (tối thiểu 3 ký tự).</div>
                         </div>
                         <div class="mb-3">
                             <label for="inputDesc" class="form-label">Mô tả</label>
-                            <textarea class="form-control" id="inputDesc" name="Desc" rows="3"></textarea>
+                            <textarea class="form-control" id="inputDesc" name="Desc" rows="3" required></textarea>
+                            <div class="invalid-feedback">Vui lòng nhập mô tả chất liệu.</div>
                         </div>
                     </form>
                 </div>
@@ -82,40 +83,18 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-
             // === 1. CÁC THÔNG TIN CẦN THIẾT BAN ĐẦU ===
-            // ĐIỀU CHỈNH LẠI ĐỊA CHỈ API CHO CHẤT LIỆU
-            const apiUrl = '/api/ChatLieuApi'; // <-- ĐÃ SỬA: Thay đổi tên API cho Chất liệu
-
+            const apiUrl = '/api/ChatLieuApi';
             const tableBody = $('#tableBody');
             const modalDataInstance = new bootstrap.Modal(document.getElementById('modalData'));
             const modalLabel = $('#modalLabel');
             const modalForm = $('#modalForm');
+            const inputName = $('#inputName');
+            const inputDesc = $('#inputDesc');
+            let allMaterials = [];
 
-            let allMaterials = []; // <-- ĐÃ SỬA: Đổi tên biến từ allCategories sang allMaterials cho rõ ràng hơn
-
-            // === 2. HÀM CHÍNH: LẤY DỮ LIỆU TỪ SERVER VÀ HIỂN THỊ LÊN BẢNG ===
-            function loadData() {
-                tableBody.html('<tr><td colspan="4" class="text-center text-muted">Đang tải dữ liệu...</td></tr>');
-
-                $.ajax({
-                    url: apiUrl,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (data) {
-                        allMaterials = data; // <-- ĐÃ SỬA: Lưu vào allMaterials
-                        renderTable(allMaterials); // Hiển thị tất cả dữ liệu ban đầu
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Lỗi khi tải dữ liệu:", error);
-                        tableBody.html('<tr class="table-danger"><td colspan="4" class="text-center">Lỗi khi tải dữ liệu.</td></tr>');
-                        Swal.fire('Lỗi!', 'Không thể tải dữ liệu chất liệu.', 'error');
-                    }
-                });
-            }
-
-            // Hàm riêng để render (vẽ) bảng từ một mảng dữ liệu
-            function renderTable(materialsToRender) { // <-- ĐÃ SỬA: Đổi tên tham số
+            // === 2. HÀM RENDER BẢNG DỮ LIỆU ===
+            function renderTable(materialsToRender) {
                 tableBody.empty();
 
                 if (materialsToRender.length === 0) {
@@ -126,14 +105,14 @@
                 $.each(materialsToRender, function (index, item) {
                     const row = `
                         <tr>
-                            <td>${item.maChatLieu}</td> <!-- ĐÃ SỬA: Thêm dấu } -->
+                            <td>${item.maChatLieu}</td>
                             <td>${item.tenChatLieu}</td>
                             <td>${item.moTa || ''}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-warning me-1 btn-edit" data-id="${item.maChatLieu}"> <!-- ĐÃ SỬA: data-id là maChatLieu -->
+                                <button class="btn btn-sm btn-outline-warning me-1 btn-edit" data-id="${item.maChatLieu}">
                                     Sửa
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${item.maChatLieu}"> <!-- ĐÃ SỬA: data-id là maChatLieu -->
+                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${item.maChatLieu}">
                                     Xóa
                                 </button>
                             </td>
@@ -142,18 +121,44 @@
                 });
             }
 
-            // Gọi hàm này NGAY KHI TRANG TẢI XONG để hiển thị danh sách ban đầu
+            // === 3. HÀM CHÍNH: LẤY DỮ LIỆU TỪ SERVER ===
+            function loadData() {
+                tableBody.html('<tr><td colspan="4" class="text-center text-muted">Đang tải dữ liệu...</td></tr>');
+
+                $.ajax({
+                    url: apiUrl,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            allMaterials = response.data;
+                            renderTable(allMaterials);
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                            tableBody.html('<tr class="table-danger"><td colspan="4" class="text-center">Lỗi khi tải dữ liệu.</td></tr>');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Lỗi khi tải dữ liệu:', error);
+                        Swal.fire('Lỗi!', 'Không thể tải dữ liệu chất liệu.', 'error');
+                    }
+                });
+            }
+
+            // Gọi loadData khi trang tải
             loadData();
 
-            // === 3. KHI NHẤN NÚT "THÊM CHẤT LIỆU" ===
+            // === 4. KHI NHẤN NÚT "THÊM CHẤT LIỆU" ===
             $('#btnAddNew').on('click', function () {
                 modalForm[0].reset();
+                inputName.removeClass('is-invalid');
+                inputDesc.removeClass('is-invalid');
                 $('#inputId').val(0);
                 modalLabel.text('Thêm mới chất liệu');
                 modalDataInstance.show();
             });
 
-            // === 4. KHI NHẤN NÚT "SỬA" TRÊN MỖI DÒNG ===
+            // === 5. KHI NHẤN NÚT "SỬA" TRÊN MỖI DÒNG ===
             tableBody.on('click', '.btn-edit', function () {
                 const id = $(this).data('id');
 
@@ -161,14 +166,17 @@
                     url: `${apiUrl}/${id}`,
                     method: 'GET',
                     dataType: 'json',
-                    success: function (item) {
-                        // ĐÃ SỬA: Thêm dấu ) cho val() và dùng đúng tên thuộc tính
-                        $('#inputId').val(item.maChatLieu);
-                        $('#inputName').val(item.tenChatLieu);
-                        $('#inputDesc').val(item.moTa);
-
-                        modalLabel.text('Cập nhật chất liệu');
-                        modalDataInstance.show();
+                    success: function (response) {
+                        if (response.success) {
+                            const item = response.data;
+                            $('#inputId').val(item.maChatLieu);
+                            $('#inputName').val(item.tenChatLieu).removeClass('is-invalid');
+                            $('#inputDesc').val(item.moTa).removeClass('is-invalid');
+                            modalLabel.text('Cập nhật chất liệu');
+                            modalDataInstance.show();
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                        }
                     },
                     error: function (xhr, status, error) {
                         console.error(`Lỗi khi lấy chất liệu ${id}:`, error);
@@ -177,50 +185,71 @@
                 });
             });
 
-            // === 5. KHI NHẤN NÚT "XÓA" TRÊN MỖI DÒNG ===
+            // === 6. KHI NHẤN NÚT "XÓA" TRÊN MỖI DÒNG ===
             tableBody.on('click', '.btn-delete', function () {
                 const id = $(this).data('id');
 
                 Swal.fire({
-                    title: 'Bạn có chắc chắn xoá không?',
-                    text: "Dữ liệu này sẽ bị xoá vĩnh viễn!",
+                    title: 'Bạn có chắc chắn xóa không?',
+                    text: 'Dữ liệu này sẽ bị xóa vĩnh viễn!',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Xác nhận xoá',
-                    cancelButtonText: 'Huỷ'
+                    confirmButtonText: 'Xác nhận xóa',
+                    cancelButtonText: 'Hủy'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
                             url: `${apiUrl}/${id}`,
                             method: 'DELETE',
-                            success: function () {
-                                Swal.fire('Đã xóa!', 'Chất liệu đã bị xoá thành công.', 'success');
-                                loadData();
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire('Đã xóa!', response.message, 'success');
+                                    loadData();
+                                } else {
+                                    Swal.fire('Lỗi!', response.message, 'error');
+                                }
                             },
                             error: function (xhr, status, error) {
                                 console.error(`Lỗi khi xóa chất liệu ${id}:`, error);
-                                Swal.fire('Lỗi!', 'Không xóa được chất liệu, có thể chất liệu đang có sản phẩm.', 'error');
+                                Swal.fire('Lỗi!', 'Không xóa được chất liệu, có thể chất liệu đang được sử dụng.', 'error');
                             }
                         });
                     }
                 });
             });
 
-            // === 6. KHI NHẤN NÚT "LƯU THAY ĐỔI" TRONG HỘP THOẠI POPUP ===
+            // === 7. KHI NHẤN NÚT "LƯU THAY ĐỔI" TRONG MODAL ===
             modalForm.on('submit', function (e) {
                 e.preventDefault();
 
-                if (!modalForm[0].checkValidity()) {
+                // Client-side validation
+                const tenChatLieu = inputName.val().trim();
+                const moTa = inputDesc.val().trim();
+                let isValid = true;
+
+                if (tenChatLieu.length < 3) {
+                    inputName.addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    inputName.removeClass('is-invalid');
+                }
+
+                if (moTa === '') {
+                    inputDesc.addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    inputDesc.removeClass('is-invalid');
+                }
+
+                if (!isValid) {
                     return;
                 }
 
                 const id = $('#inputId').val();
-
                 const dataToSend = {
-                    // ĐẢM BẢO TÊN THUỘC TÍNH NÀY KHỚP VỚI MODEL C# TRÊN API CỦA BẠN!
                     maChatLieu: id,
-                    tenChatLieu: $('#inputName').val(),
-                    moTa: $('#inputDesc').val()
+                    tenChatLieu: tenChatLieu,
+                    moTa: moTa
                 };
 
                 const isNew = (id === '0' || id === 0 || id === null || id === '');
@@ -233,54 +262,49 @@
                     contentType: 'application/json',
                     data: JSON.stringify(dataToSend),
                     success: function (response) {
-                        modalDataInstance.hide();
-                        Swal.fire(
-                            'Thành công!',
-                            `Đã ${isNew ? 'thêm mới' : 'cập nhật'} chất liệu thành công.`, // <-- ĐÃ SỬA: Thông báo
-                            'success'
-                        );
-                        loadData();
+                        if (response.success) {
+                            modalDataInstance.hide();
+                            Swal.fire('Thành công!', response.message, 'success');
+                            loadData();
+                        } else {
+                            let errorMsg = response.message;
+                            if (response.errors && response.errors.length > 0) {
+                                errorMsg += '<ul>' + response.errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+                            }
+                            Swal.fire({
+                                title: 'Lỗi!',
+                                html: errorMsg,
+                                icon: 'error'
+                            });
+                        }
                     },
                     error: function (xhr, status, error) {
                         console.error('Lỗi khi lưu chất liệu:', error);
-                        let errorMsg = 'Có lỗi xảy ra khi lưu chất liệu.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                             errorMsg = xhr.responseJSON.message;
-                        } else if (xhr.responseText) {
-                            try {
-                                const jsonError = JSON.parse(xhr.responseText);
-                                errorMsg = jsonError.message || jsonError.errors || xhr.responseText;
-                            } catch (e) {
-                                errorMsg = xhr.responseText;
-                            }
-                        }
-                        Swal.fire('Lỗi!', errorMsg, 'error');
+                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi lưu chất liệu.', 'error');
                     }
                 });
             });
 
-            // === 7. CHỨC NĂNG TÌM KIẾM THEO TÊN (CLIENT-SIDE) ===
-            $('#searchInput').on('keyup', function() {
+            // === 8. CHỨC NĂNG TÌM KIẾM THEO TÊN (CLIENT-SIDE) ===
+            $('#searchInput').on('keyup', function () {
                 const searchTerm = $(this).val().toLowerCase().trim();
 
                 if (searchTerm === '') {
-                    renderTable(allMaterials); // <-- ĐÃ SỬA: render allMaterials
+                    renderTable(allMaterials);
                     return;
                 }
 
-                const filteredMaterials = allMaterials.filter(item => { // <-- ĐÃ SỬA: Lọc trên allMaterials
-                    // ĐÃ SỬA: Tìm kiếm theo tenChatLieu
-                    return item.tenChatLieu.toLowerCase().includes(searchTerm);
-                });
+                const filteredMaterials = allMaterials.filter(item =>
+                    item.tenChatLieu.toLowerCase().includes(searchTerm)
+                );
 
-                renderTable(filteredMaterials); // <-- ĐÃ SỬA: render filteredMaterials
+                renderTable(filteredMaterials);
             });
 
-            // Khi click nút Tìm kiếm, chỉ cần kích hoạt sự kiện gõ phím để chạy logic tìm kiếm
-            $('#btnSearch').on('click', function() {
-                 $('#searchInput').trigger('keyup');
+            // Khi click nút Tìm kiếm, kích hoạt sự kiện keyup
+            $('#btnSearch').on('click', function () {
+                $('#searchInput').trigger('keyup');
             });
-
-        }); // Hết phần JavaScript khi trang đã sẵn sàng
+        });
     </script>
 }

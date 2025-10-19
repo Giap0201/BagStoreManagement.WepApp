@@ -16,8 +16,6 @@ namespace BagStore.Web.Services.Implementations
 
         public async Task<ChatLieuDto> CreateAsync(ChatLieuDto dto)
         {
-            if (dto == null) throw new ArgumentException("Dữ liệu không hợp lệ");
-
             var entity = new ChatLieu
             {
                 TenChatLieu = dto.TenChatLieu,
@@ -37,7 +35,7 @@ namespace BagStore.Web.Services.Implementations
         public async Task<bool> DeleteAsync(int maChatLieu)
         {
             var entity = await _repo.GetByIdAsync(maChatLieu);
-            if (entity == null) throw new ArgumentException("Mã chất liệu không tồn tại");
+            if (entity == null) return false;
 
             return await _repo.DeleteAsync(maChatLieu);
         }
@@ -56,7 +54,7 @@ namespace BagStore.Web.Services.Implementations
         public async Task<ChatLieuDto> GetByIdAsync(int maChatLieu)
         {
             var entity = await _repo.GetByIdAsync(maChatLieu);
-            if (entity == null) throw new ArgumentException("Mã chất liệu không tồn tại");
+            if (entity == null) throw new KeyNotFoundException("Mã chất liệu không tồn tại");
 
             return new ChatLieuDto
             {
@@ -69,7 +67,7 @@ namespace BagStore.Web.Services.Implementations
         public async Task<ChatLieuDto> UpdateAsync(int maChatLieu, ChatLieuDto dto)
         {
             var entity = await _repo.GetByIdAsync(maChatLieu);
-            if (entity == null) throw new ArgumentException("Mã chất liệu không tồn tại");
+            if (entity == null) throw new KeyNotFoundException("Mã chất liệu không tồn tại");
 
             entity.TenChatLieu = dto.TenChatLieu;
             entity.MoTa = dto.MoTa;

@@ -1,9 +1,12 @@
 ﻿using BagStore.Domain.Entities;
+using BagStore.Models.Common;
 using BagStore.Web.Models.DTOs;
 using BagStore.Web.Repositories.Interfaces;
-using BagStore.Web.Services.Interfaces;
+using BagStore.Services.Interfaces;
+using BagStore.Web.Models.Common;
+using System.ComponentModel.DataAnnotations;
 
-namespace BagStore.Web.Services.Implementations
+namespace BagStore.Services.Implementations
 {
     public class DanhMucLoaiTuiService : IDanhMucLoaiTuiService
     {
@@ -14,63 +17,95 @@ namespace BagStore.Web.Services.Implementations
             _repo = repo;
         }
 
-        public async Task<DanhMucLoaiTuiDto> CreateAsync(DanhMucLoaiTuiDto dto)
+        private List<ErrorDetail> ValidateDto(DanhMucLoaiTuiDto dto)
         {
-            if (dto == null)
-                throw new ArgumentNullException(nameof(dto), "Dữ liệu không được null.");
+            var validationResults = new List<ValidationResult>();
+            var context = new ValidationContext(dto, null, null);
+            Validator.TryValidateObject(dto, context, validationResults, true);
+            return validationResults.Select(vr =>
+                new ErrorDetail(vr.MemberNames.FirstOrDefault() ?? "", vr.ErrorMessage)).ToList();
+        }
 
+        // Thêm mới loại túi
+        public async Task<BaseResponse<DanhMucLoaiTuiDto>> CreateAsync(DanhMucLoaiTuiDto dto)
+        {
+            var errors = ValidateDto(dto);
+            if (errors.Any())
+            {
+                return BaseResponse<DanhMucLoaiTuiDto>.Error(errors);
+            }
             var entity = new DanhMucLoaiTui
             {
-                TenLoaiTui = dto.TenLoaiTui,
-                MoTa = dto.MoTa
+                TenLoaiTui = dto.TenLoaiTui!,
+                MoTa = dto.MoTa!
             };
-
             var created = await _repo.AddAsync(entity);
-            return MapEntityToDto(created);
+            var resultDto = MapEntityToDto(created);
+            return BaseResponse<DanhMucLoaiTuiDto>.Success(resultDto);
         }
 
-        public async Task<bool> DeleteAsync(int maLoaiTui)
+        // Cập nhật loại túi
+        public async Task<BaseResponse<DanhMucLoaiTuiDto>> UpdateAsync(int maLoaiTui, DanhMucLoaiTuiDto dto)
+        {
+            var errors = ValidateDto(dto);
+            if (errors.Any())
+            {
+                return BaseResponse<DanhMucLoaiTuiDto>.Error(errors);
+            }
+            var existing = await _repo.GetByIdAsync(maLoaiTui);
+            if (existing == null)
+            {
+                return BaseResponse<DanhMucLoaiTuiDto>.Error(new List<ErrorDetail>
+                {
+                    new ErrorDetail("MaLoaiTui", $"Loại túi với mã {maLoaiTui} không tồn tại.")
+                });
+            }
+            existing.TenLoaiTui = dto.TenLoaiTui;
+            existing.MoTa = dto.MoTa;
+            var updated = await _repo.UpdateAsync(existing);
+            var resultDto = MapEntityToDto(updated);
+            return BaseResponse<DanhMucLoaiTuiDto>.Success(resultDto, "Cập nhật thành công");
+        }
+
+        // Xóa loại túi
+        public async Task<BaseResponse<bool>> DeleteAsync(int maLoaiTui)
+        {
+            var existing = await _repo.GetByIdAsync(maLoaiTui);
+            if (existing == null)
+            {
+                return BaseResponse<bool>.Error(new List<ErrorDetail>
+                {
+                    new ErrorDetail("MaLoaiTui", $"Loại túi với mã {maLoaiTui} không tồn tại.")
+                });
+            }
+            var success = await _repo.DeleteAsync(maLoaiTui);
+            return BaseResponse<bool>.Success(success, success ? "Xóa loại túi thành công." : "Xoá thất bại");
+        }
+
+        // Lấy loại túi theo ID
+        public async Task<BaseResponse<DanhMucLoaiTuiDto>> GetByIdAsync(int maLoaiTui)
         {
             var entity = await _repo.GetByIdAsync(maLoaiTui);
             if (entity == null)
-                throw new KeyNotFoundException($"Loại túi với mã {maLoaiTui} không tồn tại.");
-
-            return await _repo.DeleteAsync(maLoaiTui);
+            {
+                return BaseResponse<DanhMucLoaiTuiDto>.Error(new List<ErrorDetail>
+                {
+                    new ErrorDetail("MaLoaiTui", $"Loại túi với mã {maLoaiTui} không tồn tại.")
+                });
+            }
+            var dto = MapEntityToDto(entity);
+            return BaseResponse<DanhMucLoaiTuiDto>.Success(dto);
         }
 
-        public async Task<List<DanhMucLoaiTuiDto>> GetAllAsync()
+        // Lấy tất cả loại túi
+        public async Task<BaseResponse<List<DanhMucLoaiTuiDto>>> GetAllAsync()
         {
             var entities = await _repo.GetAllAsync();
-            return entities.Select(MapEntityToDto).ToList();
+            var dtos = entities.Select(MapEntityToDto).ToList();
+            return BaseResponse<List<DanhMucLoaiTuiDto>>.Success(dtos, "Lấy danh sách loại túi thành công.");
         }
 
-        public async Task<DanhMucLoaiTuiDto> GetByIdAsync(int maLoaiTui)
-        {
-            var entity = await _repo.GetByIdAsync(maLoaiTui);
-            if (entity == null)
-                throw new KeyNotFoundException($"Loại túi với mã {maLoaiTui} không tồn tại.");
-
-            return MapEntityToDto(entity);
-        }
-
-        public async Task<DanhMucLoaiTuiDto> UpdateAsync(int maLoaiTui, DanhMucLoaiTuiDto dto)
-        {
-            var entity = await _repo.GetByIdAsync(maLoaiTui);
-            if (entity == null)
-                throw new KeyNotFoundException($"Loại túi với mã {maLoaiTui} không tồn tại.");
-
-            // Optional: kiểm tra dto.MaLoaiTui có khớp với maLoaiTui không
-            if (dto.MaLoaiTui != maLoaiTui)
-                throw new ArgumentException("Mã loại túi trong DTO không khớp với URL.");
-
-            entity.TenLoaiTui = dto.TenLoaiTui;
-            entity.MoTa = dto.MoTa;
-
-            var updated = await _repo.UpdateAsync(entity);
-            return MapEntityToDto(updated);
-        }
-
-        // Private helper method để mapping
+        // Mapping entity -> DTO
         private DanhMucLoaiTuiDto MapEntityToDto(DanhMucLoaiTui entity)
         {
             return new DanhMucLoaiTuiDto

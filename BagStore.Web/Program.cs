@@ -1,4 +1,6 @@
 ﻿using BagStore.Data;
+using BagStore.Services.Implementations;
+using BagStore.Services.Interfaces;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;

@@ -1,17 +1,18 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Models.Common;
+using BagStore.Web.Models.DTOs;
 
-namespace BagStore.Web.Services.Interfaces
+namespace BagStore.Services.Interfaces
 {
     public interface IDanhMucLoaiTuiService
     {
-        Task<DanhMucLoaiTuiDto> CreateAsync(DanhMucLoaiTuiDto dto);
+        Task<BaseResponse<DanhMucLoaiTuiDto>> CreateAsync(DanhMucLoaiTuiDto dto);
 
-        Task<DanhMucLoaiTuiDto> GetByIdAsync(int maLoaiTui);
+        Task<BaseResponse<bool>> DeleteAsync(int maLoaiTui);
 
-        Task<List<DanhMucLoaiTuiDto>> GetAllAsync();
+        Task<BaseResponse<List<DanhMucLoaiTuiDto>>> GetAllAsync();
 
-        Task<DanhMucLoaiTuiDto> UpdateAsync(int maLoaiTui, DanhMucLoaiTuiDto dto);
+        Task<BaseResponse<DanhMucLoaiTuiDto>> GetByIdAsync(int maLoaiTui);
 
-        Task<bool> DeleteAsync(int maLoaiTui);
+        Task<BaseResponse<DanhMucLoaiTuiDto>> UpdateAsync(int maLoaiTui, DanhMucLoaiTuiDto dto);
     }
 }

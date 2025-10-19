@@ -36,7 +36,9 @@ namespace BagStore.Web.Repositories.Implementations
         // Lấy tất cả loại túi
         public async Task<List<DanhMucLoaiTui>> GetAllAsync()
         {
-            return await _context.DanhMucLoaiTuis.ToListAsync();
+            return await _context.DanhMucLoaiTuis
+                         .AsNoTracking()
+                         .ToListAsync();
         }
 
         // Lấy loại túi theo ID
