@@ -47,6 +47,14 @@ namespace BagStore.Web.Repositories.Implementations
             return await _context.DanhMucLoaiTuis.FindAsync(maLoaiTui);
         }
 
+        public async Task<DanhMucLoaiTui> GetByNameAsync(string tenLoaiTui)
+        {
+            var entity = await _context.DanhMucLoaiTuis
+                         .FirstOrDefaultAsync(x => x.TenLoaiTui == tenLoaiTui);
+            if (entity == null) return null;
+            return entity;
+        }
+
         // Cập nhật loại túi
         public async Task<DanhMucLoaiTui> UpdateAsync(DanhMucLoaiTui entity)
         {

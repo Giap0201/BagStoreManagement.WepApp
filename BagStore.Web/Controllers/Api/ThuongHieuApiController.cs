@@ -1,12 +1,14 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Models.Common;
+using BagStore.Web.Models.Common;
+using BagStore.Web.Models.DTOs;
 using BagStore.Web.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ValidateModel] // Áp dụng ValidateModelAttribute để tự động bắt lỗi DataAnnotation
     public class ThuongHieuApiController : ControllerBase
     {
         private readonly IThuongHieuService _service;
@@ -16,112 +18,51 @@ namespace BagStore.Web.Controllers.Api
             _service = service;
         }
 
-        // GET: api/ThuongHieuApi
+        // GET: /api/ThuongHieu
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var dtos = await _service.GetAllAsync();
-                return Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server khi lấy danh sách thương hiệu.", Details = ex.Message });
-            }
+            var response = await _service.GetAllAsync();
+            return Ok(response); // BaseResponse<List<ThuongHieuDto>>
         }
 
-        // GET: api/ThuongHieuApi/1
+        // GET: /api/ThuongHieu/{maThuongHieu}
         [HttpGet("{maThuongHieu}")]
         public async Task<IActionResult> GetById(int maThuongHieu)
         {
-            try
-            {
-                var dto = await _service.GetByIdAsync(maThuongHieu);
-                if (dto == null)
-                    return NotFound(new { message = $"Không tìm thấy Thương hiệu với mã: {maThuongHieu}" });
-
-                return Ok(dto);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.GetByIdAsync(maThuongHieu);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // POST: api/ThuongHieuApi
+        // POST: /api/ThuongHieu
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ThuongHieuDto dto)
         {
-            if (dto == null)
-                return BadRequest(new { message = "Dữ liệu không hợp lệ" });
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var created = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { maThuongHieu = created.MaThuongHieu }, created);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi khi tạo thương hiệu.", Details = ex.Message });
-            }
+            var response = await _service.CreateAsync(dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // PUT: api/ThuongHieuApi/1
+        // PUT: /api/ThuongHieu/{maThuongHieu}
         [HttpPut("{maThuongHieu}")]
         public async Task<IActionResult> Update(int maThuongHieu, [FromBody] ThuongHieuDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             if (maThuongHieu != dto.MaThuongHieu)
-                return BadRequest(new { message = "Mã thương hiệu trong URL và Body không khớp." });
+            {
+                return BadRequest(BaseResponse<ThuongHieuDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("MaThuongHieu", "ID không khớp") },
+                    "Cập nhật thất bại"));
+            }
 
-            try
-            {
-                var updated = await _service.UpdateAsync(maThuongHieu, dto);
-                if (updated == null)
-                    return NotFound(new { message = $"Không tìm thấy Thương hiệu với mã: {maThuongHieu} để cập nhật." });
-
-                return Ok(updated);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.UpdateAsync(maThuongHieu, dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // DELETE: api/ThuongHieuApi/1
+        // DELETE: /api/ThuongHieu/{maThuongHieu}
         [HttpDelete("{maThuongHieu}")]
         public async Task<IActionResult> Delete(int maThuongHieu)
         {
-            try
-            {
-                var success = await _service.DeleteAsync(maThuongHieu);
-                if (!success)
-                    return NotFound(new { message = $"Không tìm thấy Thương hiệu với mã: {maThuongHieu} để xóa." });
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.DeleteAsync(maThuongHieu);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
     }
 }

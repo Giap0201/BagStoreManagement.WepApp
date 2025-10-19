@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BagStore.Web.Areas.Admin.Controllers
 {
@@ -18,6 +19,21 @@ namespace BagStore.Web.Areas.Admin.Controllers
         }
 
         public IActionResult ChatLieu()
+        {
+            return View();
+        }
+
+        public IActionResult MauSac()
+        {
+            return View();
+        }
+
+        public IActionResult ThuongHieu()
+        {
+            return View();
+        }
+
+        public IActionResult KichThuoc()
         {
             return View();
         }

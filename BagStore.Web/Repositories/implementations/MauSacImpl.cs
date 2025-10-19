@@ -30,9 +30,22 @@ namespace BagStore.Web.Repositories.implementations
             return true;
         }
 
-        public async Task<List<MauSac>> GetAllAsync() => await _context.MauSacs.ToListAsync();
+        public async Task<List<MauSac>> GetAllAsync()
+        {
+            return await _context.MauSacs.ToListAsync();
+        }
 
-        public async Task<MauSac> GetByIdAsync(int maMauSac) => await _context.MauSacs.FindAsync(maMauSac);
+        public async Task<MauSac> GetByIdAsync(int maMauSac)
+        {
+            return await _context.MauSacs.FindAsync(maMauSac);
+        }
+
+        public async Task<MauSac> GetByNameAsync(string tenMauSac)
+        {
+            var entity = await _context.MauSacs.FirstOrDefaultAsync(x => x.TenMauSac == tenMauSac);
+            if (entity == null) return null;
+            return entity;
+        }
 
         public async Task<MauSac> UpdateAsync(MauSac entity)
         {

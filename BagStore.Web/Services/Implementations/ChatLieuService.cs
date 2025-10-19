@@ -1,5 +1,7 @@
 ﻿using BagStore.Domain.Entities;
+using BagStore.Models.Common;
 using BagStore.Web.Models.DTOs;
+using BagStore.Web.Models.Common;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
 
@@ -14,71 +16,100 @@ namespace BagStore.Web.Services.Implementations
             _repo = repo;
         }
 
-        public async Task<ChatLieuDto> CreateAsync(ChatLieuDto dto)
+        // Thêm mới chất liệu
+        public async Task<BaseResponse<ChatLieuDto>> CreateAsync(ChatLieuDto dto)
         {
+            // Kiểm tra duplicate tên
+            var existing = await _repo.GetByNameAsync(dto.TenChatLieu);
+            if (existing != null)
+                return BaseResponse<ChatLieuDto>.Error(
+                    new List<ErrorDetail>
+                    {
+                        new ErrorDetail(nameof(dto.TenChatLieu), $"Tên chất liệu '{dto.TenChatLieu}' đã tồn tại")
+                    },
+                    "Tạo mới thất bại");
+
             var entity = new ChatLieu
             {
                 TenChatLieu = dto.TenChatLieu,
                 MoTa = dto.MoTa
             };
 
-            var result = await _repo.AddAsync(entity);
-
-            return new ChatLieuDto
-            {
-                MaChatLieu = result.MaChatLieu,
-                TenChatLieu = result.TenChatLieu,
-                MoTa = result.MoTa
-            };
+            var created = await _repo.AddAsync(entity);
+            return BaseResponse<ChatLieuDto>.Success(MapEntityToDto(created), "Tạo mới chất liệu thành công");
         }
 
-        public async Task<bool> DeleteAsync(int maChatLieu)
+        // Cập nhật chất liệu
+        public async Task<BaseResponse<ChatLieuDto>> UpdateAsync(int maChatLieu, ChatLieuDto dto)
         {
             var entity = await _repo.GetByIdAsync(maChatLieu);
-            if (entity == null) return false;
+            if (entity == null)
+                return BaseResponse<ChatLieuDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("MaChatLieu", "Không tìm thấy chất liệu") },
+                    "Cập nhật thất bại");
 
-            return await _repo.DeleteAsync(maChatLieu);
+            // Kiểm tra duplicate tên khác record hiện tại
+            var duplicate = await _repo.GetByNameAsync(dto.TenChatLieu);
+            if (duplicate != null && duplicate.MaChatLieu != maChatLieu)
+                return BaseResponse<ChatLieuDto>.Error(
+                    new List<ErrorDetail>
+                    {
+                        new ErrorDetail(nameof(dto.TenChatLieu), $"Tên chất liệu '{dto.TenChatLieu}' đã tồn tại")
+                    },
+                    "Cập nhật thất bại");
+
+            entity.TenChatLieu = dto.TenChatLieu;
+            entity.MoTa = dto.MoTa;
+
+            var updated = await _repo.UpdateAsync(entity);
+            return BaseResponse<ChatLieuDto>.Success(MapEntityToDto(updated), "Cập nhật chất liệu thành công");
         }
 
-        public async Task<List<ChatLieuDto>> GetAllAsync()
-        {
-            var list = await _repo.GetAllAsync();
-            return list.Select(e => new ChatLieuDto
-            {
-                MaChatLieu = e.MaChatLieu,
-                TenChatLieu = e.TenChatLieu,
-                MoTa = e.MoTa
-            }).ToList();
-        }
+        // Xóa chất liệu
 
-        public async Task<ChatLieuDto> GetByIdAsync(int maChatLieu)
+        public async Task<BaseResponse<bool>> DeleteAsync(int maChatLieu)
         {
             var entity = await _repo.GetByIdAsync(maChatLieu);
-            if (entity == null) throw new KeyNotFoundException("Mã chất liệu không tồn tại");
+            if (entity == null)
+                return BaseResponse<bool>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("MaChatLieu", "Không tìm thấy chất liệu") },
+                    "Xóa thất bại");
 
+            var success = await _repo.DeleteAsync(maChatLieu);
+            return BaseResponse<bool>.Success(success, success ? "Xóa chất liệu thành công" : "Xóa thất bại");
+        }
+
+        // Lấy chất liệu theo ID
+
+        public async Task<BaseResponse<ChatLieuDto>> GetByIdAsync(int maChatLieu)
+        {
+            var entity = await _repo.GetByIdAsync(maChatLieu);
+            if (entity == null)
+                return BaseResponse<ChatLieuDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("MaChatLieu", "Không tìm thấy chất liệu") },
+                    "Lấy dữ liệu thất bại");
+
+            return BaseResponse<ChatLieuDto>.Success(MapEntityToDto(entity), "Lấy chất liệu thành công");
+        }
+
+        // Lấy tất cả chất liệu
+
+        public async Task<BaseResponse<List<ChatLieuDto>>> GetAllAsync()
+        {
+            var entities = await _repo.GetAllAsync();
+            var dtos = entities.Select(MapEntityToDto).ToList();
+            return BaseResponse<List<ChatLieuDto>>.Success(dtos, "Lấy danh sách chất liệu thành công");
+        }
+
+        // Mapping entity -> DTO
+
+        private ChatLieuDto MapEntityToDto(ChatLieu entity)
+        {
             return new ChatLieuDto
             {
                 MaChatLieu = entity.MaChatLieu,
                 TenChatLieu = entity.TenChatLieu,
                 MoTa = entity.MoTa
-            };
-        }
-
-        public async Task<ChatLieuDto> UpdateAsync(int maChatLieu, ChatLieuDto dto)
-        {
-            var entity = await _repo.GetByIdAsync(maChatLieu);
-            if (entity == null) throw new KeyNotFoundException("Mã chất liệu không tồn tại");
-
-            entity.TenChatLieu = dto.TenChatLieu;
-            entity.MoTa = dto.MoTa;
-
-            var result = await _repo.UpdateAsync(entity);
-
-            return new ChatLieuDto
-            {
-                MaChatLieu = result.MaChatLieu,
-                TenChatLieu = result.TenChatLieu,
-                MoTa = result.MoTa
             };
         }
     }
