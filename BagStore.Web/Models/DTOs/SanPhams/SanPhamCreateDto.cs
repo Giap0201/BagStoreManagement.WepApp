@@ -29,9 +29,6 @@ namespace BagStore.Web.Models.DTOs.SanPhams
         [Range(1, int.MaxValue, ErrorMessage = "Chất liệu không hợp lệ.")]
         public int MaChatLieu { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng thêm biến thể sản phẩm.")]
-        public ChiTietSanPhamCreateDto BienThe { get; set; }
-
         [Required(ErrorMessage = "Vui lòng thêm ảnh sản phẩm.")]
         public IFormFile AnhChinh { get; set; }
     }
