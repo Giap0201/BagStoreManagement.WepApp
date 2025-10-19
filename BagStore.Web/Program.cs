@@ -1,4 +1,6 @@
 ﻿using BagStore.Data;
+using BagStore.Repositories;
+using BagStore.Services;
 using BagStore.Models.Common;
 using BagStore.Services.Implementations;
 using BagStore.Services.Interfaces;
@@ -41,6 +43,7 @@ builder.Services.AddScoped<IThuongHieuService, ThuongHieuService>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
 builder.Services.AddScoped<IChatLieuService, ChatLieuService>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
 builder.Services.AddScoped<IMauSacService, MauSacService>();
