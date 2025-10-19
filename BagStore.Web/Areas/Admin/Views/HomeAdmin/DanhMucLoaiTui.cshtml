@@ -2,6 +2,7 @@
     ViewData["Title"] = "Quản lý danh mục loại túi";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
+
 <div class="card shadow-sm border-0 mt-4">
     <!-- Header -->
     <div class="card-header bg-white border-0 d-flex align-items-center pb-2">
@@ -52,21 +53,23 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Thêm mới</h5>
+                    <h5 class="modal-title" id="modalLabel">Thêm mới danh mục</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body">
+                    <div id="errorContainer" class="alert alert-danger d-none" role="alert"></div>
                     <form id="modalForm">
                         <input type="hidden" id="inputId" name="Id" />
-
                         <div class="mb-3">
                             <label for="inputName" class="form-label">Tên danh mục</label>
                             <input type="text" class="form-control" id="inputName" name="Name" required>
+                            <div class="invalid-feedback">Vui lòng nhập tên danh mục (tối thiểu 3 ký tự).</div>
                         </div>
                         <div class="mb-3">
                             <label for="inputDesc" class="form-label">Mô tả</label>
-                            <textarea class="form-control" id="inputDesc" name="Desc" rows="3"></textarea>
+                            <textarea class="form-control" id="inputDesc" name="Desc" rows="3" required></textarea>
+                            <div class="invalid-feedback">Vui lòng nhập mô tả danh mục.</div>
                         </div>
                     </form>
                 </div>
@@ -80,44 +83,44 @@
 </div>
 
 @section Scripts {
+    <!-- Thêm các thư viện cần thiết -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        // Đảm bảo $.cookie tương thích với jQuery Cookie hoặc js-cookie
+        if (typeof $.cookie === 'undefined' && typeof Cookies !== 'undefined') {
+            $.cookie = function (name, value, options) {
+                if (typeof value !== 'undefined') {
+                    Cookies.set(name, value, options);
+                } else {
+                    return Cookies.get(name);
+                }
+            };
+        }
+
         $(document).ready(function () {
-
             // === 1. CÁC THÔNG TIN CẦN THIẾT BAN ĐẦU ===
-            // Địa chỉ của API trên server của bạn (nơi xử lý dữ liệu)
-            const apiUrl = '/api/DanhMucLoaiTuiApi';
-
-            // Các phần tử HTML mà chúng ta sẽ tương tác:
-            const tableBody = $('#tableBody');          // Cái bảng nơi hiển thị danh sách
-            // Khởi tạo Bootstrap Modal MỘT LẦN ở đây
+            const baseUrl = "https://localhost:5001"; // Thay bằng URL thực tế từ Postman
+            const apiUrl = `${baseUrl}/api/DanhMucLoaiTuiApi`; // URL API cho danh mục loại túi
+            const tableBody = $('#tableBody');
             const modalDataInstance = new bootstrap.Modal(document.getElementById('modalData'));
-            const modalLabel = $('#modalLabel');        // Tiêu đề của hộp thoại popup
-            const modalForm = $('#modalForm');              // Cái form trong hộp thoại popup
-
-            // --- Biến để lưu trữ toàn bộ dữ liệu danh mục để phục vụ tìm kiếm cục bộ ---
+            const modalLabel = $('#modalLabel');
+            const modalForm = $('#modalForm');
+            const inputName = $('#inputName');
+            const inputDesc = $('#inputDesc');
+            const errorContainer = $('#errorContainer');
             let allCategories = [];
 
-            // === 2. HÀM CHÍNH: LẤY DỮ LIỆU TỪ SERVER VÀ HIỂN THỊ LÊN BẢNG ===
-            function loadData() {
-                tableBody.html('<tr><td colspan="4" class="text-center text-muted">Đang tải dữ liệu...</td></tr>');
-
-                $.ajax({
-                    url: apiUrl,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (data) {
-                        allCategories = data; // Lưu dữ liệu đã tải vào biến toàn cục
-                        renderTable(allCategories); // Hiển thị tất cả dữ liệu ban đầu
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Lỗi khi tải dữ liệu:", error);
-                        tableBody.html('<tr class="table-danger"><td colspan="4" class="text-center">Lỗi khi tải dữ liệu.</td></tr>');
-                        Swal.fire('Lỗi!', 'Không thể tải dữ liệu danh mục.', 'error');
-                    }
-                });
+            // Hàm tạo headers cho AJAX, chỉ gửi Authorization nếu token tồn tại
+            function getAjaxHeaders() {
+                const token = localStorage.getItem("accessToken");
+                return token ? { "Authorization": "Bearer " + token } : {};
             }
 
-            // Hàm riêng để render (vẽ) bảng từ một mảng dữ liệu
+            // === 2. HÀM RENDER BẢNG DỮ LIỆU ===
             function renderTable(categoriesToRender) {
                 tableBody.empty();
 
@@ -145,18 +148,57 @@
                 });
             }
 
-            // Gọi hàm này NGAY KHI TRANG TẢI XONG để hiển thị danh sách ban đầu
+            // === 3. HÀM CHÍNH: LẤY DỮ LIỆU TỪ SERVER ===
+            function loadData() {
+                tableBody.html('<tr><td colspan="4" class="text-center text-muted">Đang tải dữ liệu...</td></tr>');
+
+                $.ajax({
+                    url: apiUrl,
+                    method: 'GET',
+                    dataType: 'json',
+                    headers: getAjaxHeaders(),
+                    success: function (response) {
+                        if (response.success !== false) {
+                            allCategories = response.data || response; // Hỗ trợ cả mảng trực tiếp và { success: true, data: [...] }
+                            renderTable(allCategories);
+                        } else {
+                            let errorMsg = response.message || 'Lỗi khi tải dữ liệu.';
+                            if (response.errors && response.errors.length > 0) {
+                                errorMsg += '<ul>' + response.errors.map(e => `<li>${e.errorMessage}</li>`).join('') + '</ul>';
+                            }
+                            Swal.fire({
+                                title: 'Lỗi!',
+                                html: errorMsg,
+                                icon: 'error'
+                            });
+                            tableBody.html('<tr class="table-danger"><td colspan="4" class="text-center">Lỗi khi tải dữ liệu.</td></tr>');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Lỗi khi tải dữ liệu:', error);
+                        const errorMsg = xhr.status === 401
+                            ? 'Bạn chưa đăng nhập hoặc token không hợp lệ.'
+                            : `Không thể tải dữ liệu danh mục. Mã lỗi: ${xhr.status}`;
+                        Swal.fire('Lỗi!', errorMsg, 'error');
+                    }
+                });
+            }
+
+            // Gọi loadData khi trang tải
             loadData();
 
-            // === 3. KHI NHẤN NÚT "THÊM DANH MỤC" ===
+            // === 4. KHI NHẤN NÚT "THÊM DANH MỤC" ===
             $('#btnAddNew').on('click', function () {
-                modalForm[0].reset(); // Xóa trắng các ô nhập trong form
-                $('#inputId').val(0); // Đặt ID là 0 để biết đây là THÊM MỚI (server sẽ tự tạo ID)
-                modalLabel.text('Thêm mới danh mục'); // Đổi tiêu đề hộp thoại
-                modalDataInstance.show(); 
+                modalForm[0].reset();
+                inputName.removeClass('is-invalid');
+                inputDesc.removeClass('is-invalid');
+                errorContainer.addClass('d-none').empty();
+                $('#inputId').val(0);
+                modalLabel.text('Thêm mới danh mục');
+                modalDataInstance.show();
             });
 
-            // === 4. KHI NHẤN NÚT "SỬA" TRÊN MỖI DÒNG ===
+            // === 5. KHI NHẤN NÚT "SỬA" TRÊN MỖI DÒNG ===
             tableBody.on('click', '.btn-edit', function () {
                 const id = $(this).data('id');
 
@@ -164,72 +206,119 @@
                     url: `${apiUrl}/${id}`,
                     method: 'GET',
                     dataType: 'json',
-                    success: function (item) {
-                        $('#inputId').val(item.maLoaiTui);
-                        $('#inputName').val(item.tenLoaiTui);
-                        $('#inputDesc').val(item.moTa);
-
-                        modalLabel.text('Cập nhật danh mục');
-                        modalDataInstance.show(); // Dùng modalDataInstance để mở modal
+                    headers: getAjaxHeaders(),
+                    success: function (response) {
+                        if (response.success !== false) {
+                            const item = response.data || response;
+                            $('#inputId').val(item.maLoaiTui);
+                            $('#inputName').val(item.tenLoaiTui).removeClass('is-invalid');
+                            $('#inputDesc').val(item.moTa).removeClass('is-invalid');
+                            errorContainer.addClass('d-none').empty();
+                            modalLabel.text('Cập nhật danh mục');
+                            modalDataInstance.show();
+                        } else {
+                            let errorMsg = response.message || 'Lỗi khi lấy danh mục.';
+                            if (response.errors && response.errors.length > 0) {
+                                errorMsg += '<ul>' + response.errors.map(e => `<li>${e.errorMessage}</li>`).join('') + '</ul>';
+                            }
+                            Swal.fire({
+                                title: 'Lỗi!',
+                                html: errorMsg,
+                                icon: 'error'
+                            });
+                        }
                     },
                     error: function (xhr, status, error) {
                         console.error(`Lỗi khi lấy danh mục ${id}:`, error);
-                        Swal.fire('Lỗi!', 'Không tìm thấy danh mục này.', 'error');
+                        const errorMsg = xhr.status === 401
+                            ? 'Bạn chưa đăng nhập hoặc token không hợp lệ.'
+                            : `Không tìm thấy danh mục này. Mã lỗi: ${xhr.status}`;
+                        Swal.fire('Lỗi!', errorMsg, 'error');
                     }
                 });
             });
 
-            // === 5. KHI NHẤN NÚT "XÓA" TRÊN MỖI DÒNG ===
+            // === 6. KHI NHẤN NÚT "XÓA" TRÊN MỖI DÒNG ===
             tableBody.on('click', '.btn-delete', function () {
                 const id = $(this).data('id');
 
                 Swal.fire({
-                    title: 'Bạn có chắc chắn xoá không?',
-                    text: "Dữ liệu này sẽ bị xoá vĩnh viễn!",
+                    title: 'Bạn có chắc chắn xóa không?',
+                    text: 'Danh mục này sẽ bị xóa vĩnh viễn!',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Xác nhận xoá',
-                    cancelButtonText: 'Huỷ'
+                    confirmButtonText: 'Xác nhận xóa',
+                    cancelButtonText: 'Hủy'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
                             url: `${apiUrl}/${id}`,
                             method: 'DELETE',
-                            success: function () {
-                                Swal.fire('Đã xóa!', 'Danh mục đã bị xoá thành công.', 'success');
-                                loadData(); // Tải lại danh sách để thấy danh mục đã bị xóa
+                            headers: getAjaxHeaders(),
+                            success: function (response) {
+                                if (response.success !== false) {
+                                    Swal.fire('Đã xóa!', 'Danh mục đã bị xóa thành công.', 'success');
+                                    loadData();
+                                } else {
+                                    let errorMsg = response.message || 'Lỗi khi xóa danh mục.';
+                                    if (response.errors && response.errors.length > 0) {
+                                        errorMsg += '<ul>' + response.errors.map(e => `<li>${e.errorMessage}</li>`).join('') + '</ul>';
+                                    }
+                                    Swal.fire({
+                                        title: 'Lỗi!',
+                                        html: errorMsg,
+                                        icon: 'error'
+                                    });
+                                }
                             },
                             error: function (xhr, status, error) {
                                 console.error(`Lỗi khi xóa danh mục ${id}:`, error);
-                                Swal.fire('Lỗi!', 'Không xóa được danh mục, có thể danh mục đang có sản phẩm.', 'error');
+                                const errorMsg = xhr.status === 401
+                                    ? 'Bạn chưa đăng nhập hoặc token không hợp lệ.'
+                                    : 'Không xóa được danh mục, có thể danh mục đang được sử dụng.';
+                                Swal.fire('Lỗi!', errorMsg, 'error');
                             }
                         });
                     }
                 });
             });
 
-            // === 6. KHI NHẤN NÚT "LƯU THAY ĐỔI" TRONG HỘP THOẠI POPUP ===
+            // === 7. KHI NHẤN NÚT "LƯU THAY ĐỔI" TRONG MODAL ===
             modalForm.on('submit', function (e) {
                 e.preventDefault();
 
-                // Kiểm tra validation HTML5 cơ bản
-                if (!modalForm[0].checkValidity()) {
-                    // Nếu form không hợp lệ, trình duyệt sẽ tự hiển thị lỗi
-                    // và ngăn chặn submit, không cần làm gì thêm ở đây.
+                // Client-side validation
+                const tenLoaiTui = inputName.val().trim();
+                const moTa = inputDesc.val().trim();
+                let isValid = true;
+
+                if (tenLoaiTui.length < 3) {
+                    inputName.addClass('is-invalid');
+                    inputName.next('.invalid-feedback').text('Tên danh mục phải có ít nhất 3 ký tự.');
+                    isValid = false;
+                } else {
+                    inputName.removeClass('is-invalid');
+                }
+
+                if (moTa === '') {
+                    inputDesc.addClass('is-invalid');
+                    inputDesc.next('.invalid-feedback').text('Mô tả không được bỏ trống.');
+                    isValid = false;
+                } else {
+                    inputDesc.removeClass('is-invalid');
+                }
+
+                if (!isValid) {
                     return;
                 }
 
-                const id = $('#inputId').val(); // Giữ nguyên là string nếu API của bạn dùng string ID
-                // Nếu API của bạn dùng int ID, thì mới dùng parseInt: const id = parseInt($('#inputId').val());
-
+                const id = $('#inputId').val();
                 const dataToSend = {
-                    maLoaiTui: id, // Server sẽ tự tạo nếu là 0 hoặc chuỗi rỗng
-                    tenLoaiTui: $('#inputName').val(),
-                    moTa: $('#inputDesc').val()
+                    maLoaiTui: id,
+                    tenLoaiTui: tenLoaiTui,
+                    moTa: moTa
                 };
 
-                // Xác định gửi POST (thêm) hay PUT (sửa) và URL tương ứng
-                // Giả định ID là 0 hoặc chuỗi rỗng '' cho việc thêm mới
                 const isNew = (id === '0' || id === 0 || id === null || id === '');
                 const method = isNew ? 'POST' : 'PUT';
                 const url = isNew ? apiUrl : `${apiUrl}/${id}`;
@@ -238,27 +327,40 @@
                     url: url,
                     method: method,
                     contentType: 'application/json',
+                    headers: getAjaxHeaders(),
                     data: JSON.stringify(dataToSend),
                     success: function (response) {
-                        modalDataInstance.hide(); // Ẩn hộp thoại popup
-                        Swal.fire(
-                            'Thành công!',
-                            `Đã ${isNew ? 'thêm mới' : 'cập nhật'} danh mục thành công.`,
-                            'success'
-                        );
-                        loadData(); // Tải lại danh sách để thấy thay đổi
+                        if (response.success !== false) {
+                            modalDataInstance.hide();
+                            Swal.fire('Thành công!', `Đã ${isNew ? 'thêm mới' : 'cập nhật'} danh mục thành công.`, 'success');
+                            loadData();
+                        } else {
+                            let errorMsg = response.message || 'Có lỗi xảy ra khi lưu danh mục.';
+                            if (response.errors && response.errors.length > 0) {
+                                errorMsg = '<ul>' + response.errors.map(e => `<li>${e.errorMessage}</li>`).join('') + '</ul>';
+                                errorContainer.removeClass('d-none').html(errorMsg);
+                            } else {
+                                errorContainer.addClass('d-none').empty();
+                            }
+                            Swal.fire({
+                                title: 'Lỗi!',
+                                html: errorMsg,
+                                icon: 'error'
+                            });
+                        }
                     },
                     error: function (xhr, status, error) {
                         console.error('Lỗi khi lưu danh mục:', error);
-                        let errorMsg = 'Có lỗi xảy ra khi lưu danh mục.';
+                        let errorMsg = xhr.status === 401
+                            ? 'Bạn chưa đăng nhập hoặc token không hợp lệ.'
+                            : 'Có lỗi xảy ra khi lưu danh mục.';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
-                             errorMsg = xhr.responseJSON.message;
-                        } else if (xhr.responseText) {
-                            try { // Thử parse responseText nếu nó là JSON
-                                const jsonError = JSON.parse(xhr.responseText);
-                                errorMsg = jsonError.message || jsonError.errors || xhr.responseText;
-                            } catch (e) {
-                                errorMsg = xhr.responseText;
+                            errorMsg = xhr.responseJSON.message;
+                            if (xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                errorMsg = '<ul>' + xhr.responseJSON.errors.map(e => `<li>${e.errorMessage}</li>`).join('') + '</ul>';
+                                errorContainer.removeClass('d-none').html(errorMsg);
+                            } else {
+                                errorContainer.addClass('d-none').empty();
                             }
                         }
                         Swal.fire('Lỗi!', errorMsg, 'error');
@@ -266,29 +368,26 @@
                 });
             });
 
-            // === 7. CHỨC NĂNG TÌM KIẾM THEO TÊN DANH MỤC (CLIENT-SIDE) ===
-            // Gắn sự kiện keyup vào ô input tìm kiếm
-            $('#searchInput').on('keyup', function() {
-                const searchTerm = $(this).val().toLowerCase().trim(); // Lấy từ khóa và loại bỏ khoảng trắng
+            // === 8. CHỨC NĂNG TÌM KIẾM THEO TÊN (CLIENT-SIDE) ===
+            $('#searchInput').on('keyup', function () {
+                const searchTerm = $(this).val().toLowerCase().trim();
 
                 if (searchTerm === '') {
-                    renderTable(allCategories); // Nếu rỗng, hiển thị lại toàn bộ dữ liệu
+                    renderTable(allCategories);
                     return;
                 }
 
-                // Lọc dữ liệu từ mảng allCategories
-                const filteredCategories = allCategories.filter(item => {
-                    return item.tenLoaiTui.toLowerCase().includes(searchTerm);
-                });
+                const filteredCategories = allCategories.filter(item =>
+                    item.tenLoaiTui.toLowerCase().includes(searchTerm)
+                );
 
-                renderTable(filteredCategories); // Hiển thị dữ liệu đã lọc
+                renderTable(filteredCategories);
             });
 
-            // Khi click nút Tìm kiếm, chỉ cần kích hoạt sự kiện gõ phím để chạy logic tìm kiếm
-            $('#btnSearch').on('click', function() {
-                 $('#searchInput').trigger('keyup');
+            // Khi click nút Tìm kiếm, kích hoạt sự kiện keyup
+            $('#btnSearch').on('click', function () {
+                $('#searchInput').trigger('keyup');
             });
-
-        }); // Hết phần JavaScript khi trang đã sẵn sàng
+        });
     </script>
 }

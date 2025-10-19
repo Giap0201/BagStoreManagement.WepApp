@@ -11,6 +11,7 @@ namespace BagStore.Web.Models.DTOs
         public string TenChatLieu { get; set; }
 
         [StringLength(250, ErrorMessage = "Mô tả không được vượt quá 250 ký tự")]
+        [Required(ErrorMessage = "Mô tả không được để trống")]
         public string MoTa { get; set; }
     }
 }
