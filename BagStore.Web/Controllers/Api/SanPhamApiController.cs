@@ -1,14 +1,15 @@
-﻿using BagStore.Web.Models.DTOs.SanPhams;
+﻿using BagStore.Models.Common;
+using BagStore.Web.Models.Common;
+using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ValidateModel] // Tự động bắt lỗi DataAnnotation và trả BaseResponse
     public class SanPhamApiController : ControllerBase
     {
         private readonly ISanPhamService _service;
@@ -18,81 +19,51 @@ namespace BagStore.Web.Controllers.Api
             _service = service;
         }
 
+        // GET: /api/SanPhamApi
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var response = await _service.GetAllAsync();
+            return Ok(response);
+        }
+
+        // GET: /api/SanPhamApi/{maLoaiTui}
+        [HttpGet("{maSanPham}")]
+        public async Task<IActionResult> GetById(int maSanPham)
+        {
+            var response = await _service.GetByIdAsync(maSanPham);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
+        }
+
+        // POST: /api/SanPhamApi
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] SanPhamCreateDto dto)
         {
-            try
-            {
-                var result = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetByIdAsync), new { maSP = result.MaSP }, result);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi thêm sản phẩm.", Details = ex.Message });
-            }
+            var response = await _service.CreateAsync(dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        [HttpGet("{maSP}")]
-        public async Task<IActionResult> GetByIdAsync(int maSP)
-        {
-            try
-            {
-                var result = await _service.GetByIdAsync(maSP);
-                if (result == null)
-                    return NotFound(new { Message = $"Không tìm thấy sản phẩm với id = {maSP}" });
+        // PUT: /api/SanPhamApi/{maSanPham}
 
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
+        [HttpPut("{maSanPham}")]
+        public async Task<IActionResult> Update(int maSanPham, [FromBody] SanPhamUpdateDto dto)
+        {
+            if (maSanPham != dto.MaSanPham)
             {
-                return NotFound(new { message = ex.Message });
+                return BadRequest(BaseResponse<SanPhamResponseDto>.Error(
+                   new List<ErrorDetail> { new ErrorDetail("MaSanPham", "ID không khớp") },
+                   "Cập nhật thất bại"));
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.UpdateAsync(maSanPham, dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        [HttpPut("{maSP}")]
-        public async Task<IActionResult> Update(int maSP, [FromBody] SanPhamUpdateDto dto)
+        // DELETE: /api/SanPhamApi/{maSanPham}
+        [HttpDelete("{maSanPham}")]
+        public async Task<IActionResult> Delete(int maSanPham)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-            try
-            {
-                var result = await _service.UpdateAsync(maSP, dto);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
-        }
-
-        [HttpDelete("{maSP}")]
-        public async Task<IActionResult> Delete(int maSP)
-        {
-            try
-            {
-                var success = await _service.DeleteAsync(maSP);
-                if (!success)
-                    return NotFound(new { message = "Sản phẩm không tồn tại" });
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.DeleteAsync(maSanPham);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
     }
 }
