@@ -89,10 +89,10 @@ namespace BagStore.Web.Services
             return await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
         }
 
-        //public async Task<IdentityResult> UpdateProfileAsync(ApplicationUser user)
-        //{
-        //    return await _userManager.UpdateAsync(user);
-        //}
+        public async Task<IdentityResult> UpdateProfileAsync(ApplicationUser user)
+        {
+            return await _userManager.UpdateAsync(user);
+        }
 
         public async Task<IdentityResult> UpdateProfileAsync(ProfileEditModel model)
         {
@@ -116,6 +116,20 @@ namespace BagStore.Web.Services
             // Nếu thay đổi email and you want to re-confirm, you might need to manage EmailConfirmed flag & tokens.
             return result;
         }
+
+        //public async Task<IdentityResult> UpdateProfileAsync(ApplicationUser user)
+        //{
+        //    var existingUser = await _userManager.FindByIdAsync(user.Id);
+        //    if (existingUser == null)
+        //        return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+
+        //    existingUser.FullName = user.FullName;
+        //    existingUser.Email = user.Email;
+        //    existingUser.PhoneNumber = user.PhoneNumber;
+        //    existingUser.NgaySinh = user.NgaySinh;
+
+        //    return await _userManager.UpdateAsync(existingUser);
+        //}
 
         public async Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword)
         {
@@ -166,27 +180,15 @@ namespace BagStore.Web.Services
             return result;
         }
 
-        //    public string GenerateJwtToken(ApplicationUser user)
-        //    {
-        //        var claims = new[]
-        //        {
-        //    new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-        //    new Claim(ClaimTypes.NameIdentifier, user.Id)
-        //};
+        public async Task<IdentityResult> ChangePasswordAsync(string userId, string oldPassword, string newPassword)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return IdentityResult.Failed(new IdentityError { Description = "Người dùng không tồn tại" });
 
-        //        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-        //        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        //        var token = new JwtSecurityToken(
-        //            issuer: _configuration["Jwt:Issuer"],
-        //            audience: _configuration["Jwt:Audience"],
-        //            claims: claims,
-        //            expires: DateTime.Now.AddHours(1),
-        //            signingCredentials: creds
-        //        );
-
-        //        return new JwtSecurityTokenHandler().WriteToken(token);
-        //    }
+            var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+            return result;
+        }
 
 
         //ADMIN
@@ -333,6 +335,7 @@ namespace BagStore.Web.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
 
     }
 }

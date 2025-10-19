@@ -12,6 +12,7 @@ namespace BagStore.Web.Services
         Task<ApplicationUser?> GetProfileAsync(string userId);
         //Task<IdentityResult> UpdateProfileAsync(ApplicationUser user);
         Task<IdentityResult> UpdateProfileAsync(ProfileEditModel model);
+        //Task<IdentityResult> UpdateProfileAsync(ApplicationUser user);
         Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword);
 
         Task LogoutAsync();
@@ -27,5 +28,7 @@ namespace BagStore.Web.Services
         Task<string?> GenerateJwtForUserAsync(string userName, string password);
         Task<ApplicationUser?> GetProfileByUserNameAsync(string username);
         string GenerateJwtToken(ApplicationUser user);
+
+        Task<IdentityResult> ChangePasswordAsync(string userId, string oldPassword, string newPassword);
     }
 }

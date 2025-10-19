@@ -27,11 +27,11 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 } *@
-
+@* 
 @{
     ViewData["Title"] = "Đăng nhập";
     Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
-}
+} *@
 
 @* <h2>@ViewData["Title"]</h2>
 
@@ -121,7 +121,11 @@
                 url: "/api/auth/login", // gọi API đăng nhập
                 method: "POST",
                 contentType: "application/json",
-                data: JSON.stringify({ userName: username, password: password }),
+                // data: JSON.stringify({ userName: username, password: password }),
+                data: JSON.stringify({
+                    userName: $("#UserName").val(),
+                    password: $("#Password").val()
+                }),
                 // success: function (res) {
                 //     console.log("✅ Token nhận được:", res.token);
 

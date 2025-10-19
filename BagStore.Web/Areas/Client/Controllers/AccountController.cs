@@ -229,6 +229,8 @@ namespace BagStore.Web.Areas.Client.Controllers
             return View(model);
         }
 
+
+
         // POST: /Client/Account/Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -238,71 +240,77 @@ namespace BagStore.Web.Areas.Client.Controllers
             return RedirectToAction("Login");
         }
 
-        [HttpGet]
+        [Authorize]
         public IActionResult ChangePassword()
         {
             return View();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
+        //[HttpGet]
+        //public IActionResult ChangePassword()
+        //{
+        //    return View();
+        //}
 
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return RedirectToAction("Login");
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
+        //{
+        //    if (!ModelState.IsValid)
+        //        return View(model);
 
-            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+        //    var user = await _userManager.GetUserAsync(User);
+        //    if (user == null)
+        //        return RedirectToAction("Login");
 
-            if (result.Succeeded)
-            {
-                await _signInManager.RefreshSignInAsync(user);
-                ViewBag.Message = "Password changed successfully!";
-                return View();
-            }
+        //    var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
 
-            foreach (var error in result.Errors)
-                ModelState.AddModelError("", error.Description);
+        //    if (result.Succeeded)
+        //    {
+        //        await _signInManager.RefreshSignInAsync(user);
+        //        ViewBag.Message = "Password changed successfully!";
+        //        return View();
+        //    }
 
-            return View(model);
-        }
+        //    foreach (var error in result.Errors)
+        //        ModelState.AddModelError("", error.Description);
 
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> Delete()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Challenge();
+        //    return View(model);
+        //}
 
-            var model = new DeleteAccountModel { Id = userId };
-            return View(model);
-        }
+        //[Authorize]
+        //[HttpGet]
+        //public async Task<IActionResult> Delete()
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (string.IsNullOrEmpty(userId)) return Challenge();
 
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(DeleteAccountModel model)
-        {
-            if (!ModelState.IsValid) return View(model);
+        //    var model = new DeleteAccountModel { Id = userId };
+        //    return View(model);
+        //}
 
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (currentUserId != model.Id) return Forbid();
+        //[Authorize]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Delete(DeleteAccountModel model)
+        //{
+        //    if (!ModelState.IsValid) return View(model);
 
-            var result = await _userService.DeleteAccountAsync(model.Id, model.CurrentPassword);
-            if (result.Succeeded)
-            {
-                // Sau khi xóa xong, redirect tới trang chính hoặc thông báo
-                return RedirectToAction("Index", "Home", new { area = "" }); // về trang public
-            }
+        //    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (currentUserId != model.Id) return Forbid();
 
-            foreach (var err in result.Errors)
-                ModelState.AddModelError("", err.Description);
+        //    var result = await _userService.DeleteAccountAsync(model.Id, model.CurrentPassword);
+        //    if (result.Succeeded)
+        //    {
+        //        // Sau khi xóa xong, redirect tới trang chính hoặc thông báo
+        //        return RedirectToAction("Index", "Home", new { area = "" }); // về trang public
+        //    }
 
-            return View(model);
-        }
+        //    foreach (var err in result.Errors)
+        //        ModelState.AddModelError("", err.Description);
+
+        //    return View(model);
+        //}
 
     }
 }

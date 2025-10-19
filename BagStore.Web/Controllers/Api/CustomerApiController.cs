@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BagStore.Web.Areas.Admin.Controllers
+namespace BagStore.Web.Controllers.Api
 {
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
