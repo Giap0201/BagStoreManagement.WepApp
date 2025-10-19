@@ -1,14 +1,5 @@
 ﻿using BagStore.Data;
-<<<<<<< HEAD
-using BagStore.Repositories;
-using BagStore.Services;
-using BagStore.Models.Common;
-using BagStore.Services.Implementations;
-using BagStore.Services.Interfaces;
-=======
-using BagStore.Web.AppConfig.Implementations;
-using BagStore.Web.AppConfig.Interface;
->>>>>>> feature/lxt/order
+using BagStore.Domain.Entities;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;
@@ -22,6 +13,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using BagStore.Services.Interfaces;
+using BagStore.Services.Implementations;
+using BagStore.Repositories;
+using BagStore.Services;
+using BagStore.Web.AppConfig.Interface;
+using BagStore.Web.AppConfig.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,37 +46,7 @@ var jwtKey = jwtSection["Key"];
 var jwtIssuer = jwtSection["Issuer"];
 var jwtAudience = jwtSection["Audience"];
 
-<<<<<<< HEAD
 builder.Services.AddAuthentication(options =>
-=======
-// Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
-builder.Services.AddScoped<IEnumMapper, EnumMapper>();
-
-// Phần khác do team khác phụ trách — chỉ giữ lại nếu cần dùng chung
-//builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
-//builder.Services.AddScoped<IKhachHangRepository, KhachHangImpl>();
-builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
-builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
-builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
-
-
-
-// ==============================
-// 🔹 Cấu hình MVC + HttpClient
-// ==============================
-builder.Services.AddControllersWithViews();
-builder.Services.AddHttpClient();
-
-// ==============================
-// 🔹 Xây dựng ứng dụng
-// ==============================
-var app = builder.Build();
-
-// ==============================
-// 🔹 Xử lý lỗi toàn cục (Global Exception Handler)
-// ==============================
-app.UseExceptionHandler(appBuilder =>
->>>>>>> feature/lxt/order
 {
     options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
     options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
@@ -134,6 +101,12 @@ builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
 builder.Services.AddScoped<ISanPhamService, SanPhamService>();
 builder.Services.AddScoped<IChiTietSanPhamRepository, ChiTietSanPhamImpl>();
 builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
+builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
+builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
+builder.Services.AddScoped<IDonHangService, DonHangService>();
+
+// Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
+builder.Services.AddScoped<IEnumMapper, EnumMapper>();
 
 // ============================
 // 6️⃣ Controllers + Global Filter
@@ -210,17 +183,11 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-<<<<<<< HEAD
 // ============================
 // 11️⃣ Map Controllers & Routes
 // ============================
 app.MapControllers();
 
-=======
-// ==============================
-// 🔹 Định tuyến cho Areas (Admin / Client)
-// ==============================
->>>>>>> feature/lxt/order
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
