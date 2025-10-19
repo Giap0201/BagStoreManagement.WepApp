@@ -1,11 +1,7 @@
-﻿using BagStore.Data;
-using BagStore.Domain.Enums;
-using BagStore.Web.Models.DTOs.Request;
+﻿using BagStore.Web.Models.DTOs.Request;
 using BagStore.Web.Models.DTOs.Response;
-using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BagStore.Web.Controllers.Api
 {
@@ -14,62 +10,106 @@ namespace BagStore.Web.Controllers.Api
     public class DonHangApiController : ControllerBase
     {
         private readonly IDonHangService _donHangService;
+        private readonly ILogger<DonHangApiController> _logger;
 
-        public DonHangApiController(IDonHangService donHangService)
+        public DonHangApiController(IDonHangService donHangService, ILogger<DonHangApiController> logger)
         {
             _donHangService = donHangService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Lấy tất cả đơn hàng (chỉ Admin)
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DonHangPhanHoiDTO>>> LayTatCaDonHang()
+        public async Task<ActionResult<IEnumerable<DonHangResponse>>> LayTatCaDonHang()
         {
             try
             {
-                var result = await _donHangService.LayTatCaDonHangAsync(); // thêm method service/repo nếu chưa có
-                return Ok(result);
+                var orders = await _donHangService.LayTatCaDonHangAsync();
+                return Ok(orders);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi server");
+                _logger.LogError(ex, "Lỗi khi lấy danh sách đơn hàng");
+                return StatusCode(500, "Đã xảy ra lỗi phía máy chủ.");
             }
         }
 
-
-        [HttpGet("KhachHang/{maKhachHang}")]
-        public async Task<ActionResult<IEnumerable<DonHangPhanHoiDTO>>> LayDonHangTheoKhachHang(int maKhachHang)
+        /// <summary>
+        /// Lấy danh sách đơn hàng của một khách hàng
+        /// </summary>
+        [HttpGet("khachhang/{maKhachHang:int}")]
+        public async Task<ActionResult<IEnumerable<DonHangResponse>>> LayDonHangTheoKhachHang(int maKhachHang)
         {
-            var result = await _donHangService.LayDonHangTheoKhachHangAsync(maKhachHang);
-            if (!result.Any())
-                return NotFound("Chưa có đơn hàng.");
-            return Ok(result);
+            try
+            {
+                var orders = await _donHangService.LayDonHangTheoKhachHangAsync(maKhachHang);
+                if (orders == null || !orders.Any())
+                    return NotFound("Không tìm thấy đơn hàng nào cho khách hàng này.");
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy đơn hàng cho khách hàng {maKhachHang}", maKhachHang);
+                return StatusCode(500, "Đã xảy ra lỗi phía máy chủ.");
+            }
         }
 
+        /// <summary>
+        /// Tạo mới một đơn hàng
+        /// </summary>
         [HttpPost]
-        public async Task<ActionResult<DonHangPhanHoiDTO>> TaoDonHang([FromBody] DonHangTaoDTO dto)
+        public async Task<ActionResult<DonHangResponse>> TaoDonHang([FromBody] CreateDonHangRequest dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                var result = await _donHangService.TaoDonHangAsync(dto);
+                var order = await _donHangService.TaoDonHangAsync(dto);
                 return CreatedAtAction(nameof(LayDonHangTheoKhachHang),
-                    new { maKhachHang = dto.MaKH }, result);
+                    new { maKhachHang = dto.MaKhachHang }, order);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Dữ liệu không hợp lệ khi tạo đơn hàng");
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                _logger.LogError(ex, "Lỗi khi tạo đơn hàng");
+                return StatusCode(500, "Đã xảy ra lỗi phía máy chủ.");
             }
         }
 
-        [HttpPut("CapNhatTrangThai")]
-        public async Task<ActionResult<DonHangPhanHoiDTO>> CapNhatTrangThai([FromBody] DonHangCapNhatTrangThaiDTO dto)
+        /// <summary>
+        /// Cập nhật trạng thái đơn hàng (Admin)
+        /// </summary>
+        [HttpPut("capnhat-trangthai")]
+        public async Task<ActionResult<DonHangResponse>> CapNhatTrangThai([FromBody] UpdateDonHangStatusRequest dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                var result = await _donHangService.CapNhatTrangThaiAsync(dto);
-                return Ok(result);
+                var order = await _donHangService.CapNhatTrangThaiAsync(dto);
+                if (order == null)
+                    return NotFound("Không tìm thấy đơn hàng cần cập nhật.");
+
+                return Ok(order);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Trạng thái cập nhật không hợp lệ");
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                _logger.LogError(ex, "Lỗi khi cập nhật trạng thái đơn hàng");
+                return StatusCode(500, "Đã xảy ra lỗi phía máy chủ.");
             }
         }
     }
