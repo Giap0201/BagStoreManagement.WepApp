@@ -1,9 +1,11 @@
-﻿using BagStore.Web.Models.DTOs.Request;
+﻿using BagStore.Domain.Entities;
+using BagStore.Web.AppConfig.Implementations;
+using BagStore.Web.AppConfig.Interface;
+using BagStore.Web.Models.DTOs.Request;
 using BagStore.Web.Models.DTOs.Response;
+using BagStore.Web.Models.Entities.Enums;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
-using BagStore.Web.Models.Entities.Enums;
-using BagStore.Domain.Entities;
 
 namespace BagStore.Web.Services.Implementations
 {
@@ -11,17 +13,20 @@ namespace BagStore.Web.Services.Implementations
     {
         private readonly IDonHangRepository _donHangRepo;
         private readonly IChiTietDonHangRepository _chiTietRepo;
+        private readonly IEnumMapper _mapper;
         //private readonly IChiTietSanPhamRepository _chiTietSanPhamRepo;
         //private readonly IKhachHangRepository _khachHangRepo;
 
         public DonHangService(
             IDonHangRepository donHangRepo,
-            IChiTietDonHangRepository chiTietRepo)
+            IChiTietDonHangRepository chiTietRepo,
+            IEnumMapper mapper)
             //IChiTietSanPhamRepository chiTietSanPhamRepo,
             //IKhachHangRepository khachHangRepo)
         {
             _donHangRepo = donHangRepo;
             _chiTietRepo = chiTietRepo;
+            _mapper = mapper;
             //_chiTietSanPhamRepo = chiTietSanPhamRepo;
             //_khachHangRepo = khachHangRepo;
         }
@@ -53,8 +58,6 @@ namespace BagStore.Web.Services.Implementations
             //     ?? throw new ArgumentException($"Khách hàng {dto.MaKhachHang} không tồn tại.");
 
             // Thay bằng lookup khách hàng cho MaKH = 2 để kiểm tra phản hồi
-            var khachHang = await _donHangRepo.LayTheoIdAsync(maKhachHangTest)
-                ?? throw new ArgumentException($"Khách hàng {maKhachHangTest} không tồn tại (test cứng).");
 
             var donHang = new DonHang
             {
@@ -65,7 +68,7 @@ namespace BagStore.Web.Services.Implementations
                 NgayDatHang = DateTime.Now,
                 TongTien = dto.ChiTietDonHang.Sum(ct => ct.SoLuong * ct.GiaBan),
                 TrangThai = "Chờ xử lý",
-                TrangThaiThanhToan = "Chưa thanh toán",
+                TrangThaiThanhToan = "Chờ xác nhận",
                 PhiGiaoHang = 0
             };
 
@@ -100,24 +103,62 @@ namespace BagStore.Web.Services.Implementations
 
         public async Task<DonHangResponse> CapNhatTrangThaiAsync(UpdateDonHangStatusRequest dto)
         {
-            var mapTrangThai = new Dictionary<string, TrangThaiDonHang>(StringComparer.OrdinalIgnoreCase)
+            if (dto == null || string.IsNullOrWhiteSpace(dto.TrangThai))
+                throw new ArgumentException("Trạng thái không hợp lệ.");
+
+            // 1️⃣ Map string -> enum để kiểm tra logic
+            TrangThaiDonHang trangThaiEnum;
+            try
             {
-                { "Chờ xử lý", TrangThaiDonHang.ChoXuLy },
-                { "Đang giao hàng", TrangThaiDonHang.DangGiaoHang },
-                { "Hoàn thành", TrangThaiDonHang.HoanThanh },
-                { "Đã huỷ", TrangThaiDonHang.DaHuy }
-            };
+                trangThaiEnum = _mapper.MapToEnum<TrangThaiDonHang>(dto.TrangThai.Trim());
+            }
+            catch (ArgumentException ex)
+            {
+                throw new ArgumentException("Trạng thái đơn hàng không hợp lệ.", ex);
+            }
 
-            if (!mapTrangThai.ContainsKey(dto.TrangThai))
-                throw new ArgumentException("Trạng thái đơn hàng không hợp lệ.");
-
+            // 2️⃣ Lấy đơn hàng
             var donHang = await _donHangRepo.LayTheoIdAsync(dto.MaDonHang)
                 ?? throw new KeyNotFoundException("Đơn hàng không tồn tại.");
 
-            donHang.TrangThai = dto.TrangThai;
+            // Map lại trạng thái cũ từ string -> enum để so sánh
+            var trangThaiCu = _mapper.MapToEnum<TrangThaiDonHang>(donHang.TrangThai);
+
+            // 3️⃣ Không cho cập nhật nếu đã Hoàn thành hoặc Đã hủy
+            if (trangThaiCu == TrangThaiDonHang.HoanThanh || trangThaiCu == TrangThaiDonHang.DaHuy)
+                throw new InvalidOperationException("Không thể thay đổi trạng thái của đơn hàng đã hoàn thành hoặc đã hủy.");
+
+            // 4️⃣ Nếu trạng thái không đổi thì bỏ qua
+            if (trangThaiCu == trangThaiEnum)
+                return MapToDonHangResponse(donHang);
+
+            // 5️⃣ Cập nhật trạng thái đơn hàng (enum -> string hiển thị)
+            donHang.TrangThai = _mapper.MapToString(trangThaiEnum);
+
+            // 6️⃣ Đồng bộ trạng thái thanh toán (string → enum → string)
+            var trangThaiThanhToanCu = _mapper.MapToEnum<TrangThaiThanhToan>(donHang.TrangThaiThanhToan);
+            var phuongThucThanhToan = _mapper.MapToEnum<TrangThaiPhuongThucThanhToan>(donHang.PhuongThucThanhToan);
+
+            var trangThaiThanhToanMoi = trangThaiEnum switch
+            {
+                TrangThaiDonHang.HoanThanh => TrangThaiThanhToan.ThanhCong,
+                TrangThaiDonHang.DaHuy => trangThaiThanhToanCu == TrangThaiThanhToan.ThanhCong
+                                           ? TrangThaiThanhToan.DaHoanTien
+                                           : TrangThaiThanhToan.ThatBai,
+                TrangThaiDonHang.DangGiaoHang =>
+                    phuongThucThanhToan == TrangThaiPhuongThucThanhToan.COD
+                        ? TrangThaiThanhToan.ChoXacNhan
+                        : TrangThaiThanhToan.ThanhCong,
+                _ => TrangThaiThanhToan.ChoXacNhan
+            };
+
+            donHang.TrangThaiThanhToan = _mapper.MapToString(trangThaiThanhToanMoi);
+
+            // 7️⃣ Lưu DB
             await _donHangRepo.CapNhatAsync(donHang);
             await _donHangRepo.LuuAsync();
 
+            // 8️⃣ Trả về response
             return MapToDonHangResponse(donHang);
         }
 
