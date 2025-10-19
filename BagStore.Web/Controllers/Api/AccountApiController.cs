@@ -58,22 +58,6 @@ namespace BagStore.Web.Controllers.Api
             });
         }
 
-        // PUT api/AccountApi/profile
-        //[HttpPut("profile")]
-        //public async Task<IActionResult> UpdateProfile([FromBody] ProfileEditModel model)
-        //{
-        //    //var userId = User.FindFirst("uid")?.Value;
-        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    if (userId == null) return Unauthorized();
-        //    model.Id = userId;
-
-        //    var result = await _userService.UpdateProfileAsync(model);
-        //    if (!result.Succeeded)
-        //        return BadRequest(result.Errors.Select(e => e.Description));
-
-        //    return Ok(new { message = "Cập nhật hồ sơ thành công" });
-        //}
-
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] ProfileEditModel model)
         {

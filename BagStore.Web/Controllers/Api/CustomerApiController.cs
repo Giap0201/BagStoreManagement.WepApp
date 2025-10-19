@@ -54,16 +54,6 @@ namespace BagStore.Web.Controllers.Api
             });
         }
 
-        // POST api/Admin/CustomerApi
-        //[HttpPost]
-        //public async Task<IActionResult> Create([FromBody] AdminCustomerViewModel model)
-        //{
-        //    if (!ModelState.IsValid) return BadRequest(ModelState);
-        //    var result = await _userService.CreateCustomerAsync(model);
-        //    if (!result.Succeeded)
-        //        return BadRequest(result.Errors.Select(e => e.Description));
-        //    return CreatedAtAction(nameof(GetById), new { id = model.UserName /* or return created id */ }, new { message = "Created" });
-        //}
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AdminCustomerViewModel model)
         {
@@ -80,19 +70,6 @@ namespace BagStore.Web.Controllers.Api
 
             return Ok(new { message = "Tạo khách hàng thành công!" });
         }
-
-
-        // PUT api/Admin/CustomerApi/{id}
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> Update(string id, [FromBody] AdminCustomerViewModel model)
-        //{
-        //    if (!ModelState.IsValid) return BadRequest(ModelState);
-        //    if (id != model.Id) return BadRequest("Id không khớp");
-        //    var result = await _userService.UpdateCustomerAsync(model);
-        //    if (!result.Succeeded)
-        //        return BadRequest(result.Errors.Select(e => e.Description));
-        //    return NoContent();
-        //}
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] AdminCustomerViewModel model)
