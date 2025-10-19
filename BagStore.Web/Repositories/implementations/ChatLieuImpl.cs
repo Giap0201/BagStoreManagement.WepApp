@@ -1,10 +1,9 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace BagStore.Web.Repositories.implementations
+namespace BagStore.Web.Repositories.Implementations
 {
     public class ChatLieuImpl : IChatLieuRepository
     {
@@ -15,57 +14,53 @@ namespace BagStore.Web.Repositories.implementations
             _context = context;
         }
 
-        public async Task<int> CreateAsync(ChatLieuDto request)
+        // Thêm mới chất liệu
+        public async Task<ChatLieu> AddAsync(ChatLieu entity)
         {
-            var entity = new ChatLieu
-            {
-                TenChatLieu = request.TenChatLieu,
-                MoTa = request.MoTa
-            };
             _context.ChatLieus.Add(entity);
             await _context.SaveChangesAsync();
-            return entity.MaChatLieu;
+            return entity;
         }
 
+        // Xóa chất liệu
         public async Task<bool> DeleteAsync(int maChatLieu)
         {
             var entity = await _context.ChatLieus.FindAsync(maChatLieu);
             if (entity == null) return false;
+
             _context.ChatLieus.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<List<ChatLieuDto>> GetAllAsync()
+        // Lấy tất cả chất liệu
+        public async Task<List<ChatLieu>> GetAllAsync()
         {
-            return await _context.ChatLieus.Select(x => new ChatLieuDto
-            {
-                MaChatLieu = x.MaChatLieu,
-                TenChatLieu = x.TenChatLieu,
-                MoTa = x.MoTa
-            }).ToListAsync();
+            return await _context.ChatLieus
+                        .AsNoTracking()
+                        .ToListAsync();
         }
 
-        public async Task<ChatLieuDto> GetByIdAsync(int maChatLieu)
+        // Lấy chất liệu theo ID
+        public async Task<ChatLieu> GetByIdAsync(int maChatLieu)
         {
-            var entity = await _context.ChatLieus.FindAsync(maChatLieu);
-            if (entity == null) return null;
-            return new ChatLieuDto
-            {
-                MaChatLieu = entity.MaChatLieu,
-                TenChatLieu = entity.TenChatLieu,
-                MoTa = entity.MoTa
-            };
+            return await _context.ChatLieus.FindAsync(maChatLieu);
         }
 
-        public async Task<bool> UpdateAsync(ChatLieuDto request)
+        // Lấy chất liệu theo tên
+        public async Task<ChatLieu> GetByNameAsync(string tenChatLieu)
         {
-            var entity = await _context.ChatLieus.FindAsync(request.MaChatLieu);
-            if (entity == null) return false;
-            entity.TenChatLieu = request.TenChatLieu;
-            entity.MoTa = request.MoTa;
+            return await _context.ChatLieus
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.TenChatLieu == tenChatLieu);
+        }
+
+        // Cập nhật chất liệu
+        public async Task<ChatLieu> UpdateAsync(ChatLieu entity)
+        {
+            _context.ChatLieus.Update(entity);
             await _context.SaveChangesAsync();
-            return true;
+            return entity;
         }
     }
 }
