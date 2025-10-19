@@ -5,6 +5,12 @@ namespace BagStore.Web.Areas.Admin.Controllers
     [Area("Admin")]
     public class DonHangController : Controller
     {
+        private readonly IHttpClientFactory _httpFactory;
+
+        public DonHangController(IHttpClientFactory httpFactory)
+        {
+            _httpFactory = httpFactory;
+        }
         // GET: /Admin/Orders
         public IActionResult Index()
         {

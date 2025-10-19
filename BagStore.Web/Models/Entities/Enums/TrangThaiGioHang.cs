@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BagStore.Domain.Enums
+namespace BagStore.Web.Models.Entities.Enums
 {
     public enum TrangThaiGioHang
     {

@@ -31,7 +31,7 @@
             },
             columns: [
                 { data: 'maDonHang' },
-                { data: 'tenKH' },
+                { data: 'tenKhachHang' },
                 { data: 'ngayDatHang', render: d => new Date(d).toLocaleString() },
                 { data: 'tongTien', render: d => d.toLocaleString() },
                 { data: 'trangThai' },
@@ -68,7 +68,7 @@
         }
 
         try {
-            const res = await fetch('/api/DonHangApi/CapNhatTrangThai', {
+            const res = await fetch('/api/DonHangApi/capnhat-trangthai', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ MaDonHang: maDonHang, TrangThai: trangThai })

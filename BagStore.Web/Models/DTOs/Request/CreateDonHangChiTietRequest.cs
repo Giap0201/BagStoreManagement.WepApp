@@ -1,8 +1,8 @@
 ﻿namespace BagStore.Web.Models.DTOs.Request
 {
-    public class DonHangChiTietTaoDTO
+    public class CreateDonHangChiTietRequest
     {
-        public int MaChiTietSP { get; set; }
+        public int MaChiTietSanPham { get; set; }
         public int SoLuong { get; set; }
         public decimal GiaBan { get; set; }
     }

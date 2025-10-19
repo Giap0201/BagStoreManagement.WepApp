@@ -1,5 +1,5 @@
 ﻿using BagStore.Data;
-using BagStore.Domain.Enums;
+using BagStore.Web.Models.Entities.Enums;
 using BagStore.Web.Models.DTOs.Request;
 using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Repositories.Interfaces;
@@ -24,70 +24,44 @@ namespace BagStore.Web.Services.Implementations
             _chiTietRepo = chiTietRepo;
         }
 
-        public async Task<IEnumerable<DonHangPhanHoiDTO>> LayTatCaDonHangAsync()
+        // ---------------- LẤY TẤT CẢ ĐƠN HÀNG ----------------
+        public async Task<IEnumerable<DonHangResponse>> LayTatCaDonHangAsync()
         {
             var donHangs = await _donHangRepo.LayTatCaDonHangAsync();
+
             if (!donHangs.Any())
-                return Enumerable.Empty<DonHangPhanHoiDTO>();
-            return donHangs.Select(d => new DonHangPhanHoiDTO
-            {
-                MaDonHang = d.MaDonHang,
-                TenKH = d.KhachHang?.TenKH ?? "Khách",
-                NgayDatHang = d.NgayDatHang,
-                TongTien = d.TongTien,
-                TrangThai = d.TrangThai,
-                PhuongThucThanhToan = d.PhuongThucThanhToan,
-                TrangThaiThanhToan = d.TrangThaiThanhToan,
-                ChiTietDonHangs = d.ChiTietDonHangs.Select(ct => new DonHangChiTietPhanHoiDTO
-                {
-                    MaChiTietDH = ct.MaChiTietDH,
-                    TenSP = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Sản phẩm",
-                    SoLuong = ct.SoLuong,
-                    GiaBan = ct.GiaBan
-                }).ToList()
-            }).ToList();
+                return Enumerable.Empty<DonHangResponse>();
+
+            return donHangs.Select(MapToDonHangResponse).ToList();
         }
 
-        public async Task<IEnumerable<DonHangPhanHoiDTO>> LayDonHangTheoKhachHangAsync(int maKhachHang)
+        // ---------------- LẤY ĐƠN HÀNG THEO KHÁCH HÀNG ----------------
+        public async Task<IEnumerable<DonHangResponse>> LayDonHangTheoKhachHangAsync(int maKhachHang)
         {
             var donHangs = await _donHangRepo.LayDonHangTheoKhachHangAsync(maKhachHang);
-            if (!donHangs.Any())
-                return Enumerable.Empty<DonHangPhanHoiDTO>();
 
-            return donHangs.Select(d => new DonHangPhanHoiDTO
-            {
-                MaDonHang = d.MaDonHang,
-                TenKH = d.KhachHang?.TenKH ?? "Khách",
-                NgayDatHang = d.NgayDatHang,
-                TongTien = d.TongTien,
-                TrangThai = d.TrangThai,
-                PhuongThucThanhToan = d.PhuongThucThanhToan,
-                TrangThaiThanhToan = d.TrangThaiThanhToan,
-                ChiTietDonHangs = d.ChiTietDonHangs.Select(ct => new DonHangChiTietPhanHoiDTO
-                {
-                    MaChiTietDH = ct.MaChiTietDH,
-                    TenSP = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Sản phẩm",
-                    SoLuong = ct.SoLuong,
-                    GiaBan = ct.GiaBan
-                }).ToList()
-            }).ToList();
+            if (!donHangs.Any())
+                return Enumerable.Empty<DonHangResponse>();
+
+            return donHangs.Select(MapToDonHangResponse).ToList();
         }
 
-        public async Task<DonHangPhanHoiDTO> TaoDonHangAsync(DonHangTaoDTO dto)
+        // ---------------- TẠO ĐƠN HÀNG ----------------
+        public async Task<DonHangResponse> TaoDonHangAsync(CreateDonHangRequest dto)
         {
-            if (dto == null || dto.ChiTietDonHangs == null || dto.ChiTietDonHangs.Count == 0)
+            if (dto == null || dto.ChiTietDonHang == null || dto.ChiTietDonHang.Count == 0)
                 throw new ArgumentException("Dữ liệu đơn hàng không hợp lệ.");
 
-            var khachHang = await _context.KhachHangs.FindAsync(dto.MaKH)
-                ?? throw new ArgumentException($"Khách hàng {dto.MaKH} không tồn tại.");
+            var khachHang = await _context.KhachHangs.FindAsync(dto.MaKhachHang)
+                ?? throw new ArgumentException($"Khách hàng {dto.MaKhachHang} không tồn tại.");
 
             var donHang = new Domain.Entities.DonHang
             {
-                MaKH = dto.MaKH,
+                MaKH = dto.MaKhachHang,
                 DiaChiGiaoHang = dto.DiaChiGiaoHang,
                 PhuongThucThanhToan = dto.PhuongThucThanhToan,
                 NgayDatHang = DateTime.Now,
-                TongTien = dto.ChiTietDonHangs.Sum(ct => ct.SoLuong * ct.GiaBan),
+                TongTien = dto.ChiTietDonHang.Sum(ct => ct.SoLuong * ct.GiaBan),
                 TrangThai = "Chờ xử lý",
                 TrangThaiThanhToan = "Chưa thanh toán",
                 PhiGiaoHang = 0
@@ -96,12 +70,12 @@ namespace BagStore.Web.Services.Implementations
             await _donHangRepo.ThemAsync(donHang);
             await _donHangRepo.LuuAsync();
 
-            foreach (var ct in dto.ChiTietDonHangs)
+            foreach (var ct in dto.ChiTietDonHang)
             {
                 var chiTietSanPham = await _context.ChiTietSanPhams
                     .Include(c => c.SanPham)
-                    .FirstOrDefaultAsync(p => p.MaChiTietSP == ct.MaChiTietSP)
-                    ?? throw new ArgumentException($"Sản phẩm {ct.MaChiTietSP} không tồn tại.");
+                    .FirstOrDefaultAsync(p => p.MaChiTietSP == ct.MaChiTietSanPham)
+                    ?? throw new ArgumentException($"Sản phẩm {ct.MaChiTietSanPham} không tồn tại.");
 
                 if (chiTietSanPham.SoLuongTon < ct.SoLuong)
                     throw new InvalidOperationException($"Sản phẩm {chiTietSanPham.MaChiTietSP} tồn kho không đủ.");
@@ -112,10 +86,11 @@ namespace BagStore.Web.Services.Implementations
                 var chiTiet = new Domain.Entities.ChiTietDonHang
                 {
                     MaDonHang = donHang.MaDonHang,
-                    MaChiTietSP = ct.MaChiTietSP,
+                    MaChiTietSP = ct.MaChiTietSanPham,
                     SoLuong = ct.SoLuong,
                     GiaBan = ct.GiaBan
                 };
+
                 await _chiTietRepo.ThemAsync(chiTiet);
             }
 
@@ -124,29 +99,33 @@ namespace BagStore.Web.Services.Implementations
             var chiTietDonHangPhanHoi = await _context.ChiTietDonHangs
                 .Where(c => c.MaDonHang == donHang.MaDonHang)
                 .Include(c => c.ChiTietSanPham).ThenInclude(sp => sp.SanPham)
-                .Select(c => new DonHangChiTietPhanHoiDTO
+                .Select(c => new DonHangChiTietResponse
                 {
-                    MaChiTietDH = c.MaChiTietDH,
-                    TenSP = c.ChiTietSanPham.SanPham.TenSP,
+                    MaChiTietDonHang = c.MaChiTietDH,
+                    TenSanPham = c.ChiTietSanPham.SanPham.TenSP,
                     SoLuong = c.SoLuong,
-                    GiaBan = c.GiaBan
+                    GiaBan = c.GiaBan,
+                    ThanhTien = c.SoLuong * c.GiaBan,
+                    AnhSanPham = ""
                 })
                 .ToListAsync();
 
-            return new DonHangPhanHoiDTO
+            return new DonHangResponse
             {
                 MaDonHang = donHang.MaDonHang,
-                TenKH = khachHang.TenKH,
+                TenKhachHang = khachHang.TenKH,
                 NgayDatHang = donHang.NgayDatHang,
                 TongTien = donHang.TongTien,
                 TrangThai = donHang.TrangThai,
                 PhuongThucThanhToan = donHang.PhuongThucThanhToan,
                 TrangThaiThanhToan = donHang.TrangThaiThanhToan,
-                ChiTietDonHangs = chiTietDonHangPhanHoi
+                DiaChiGiaoHang = donHang.DiaChiGiaoHang,
+                ChiTietDonHang = chiTietDonHangPhanHoi
             };
         }
 
-        public async Task<DonHangPhanHoiDTO> CapNhatTrangThaiAsync(DonHangCapNhatTrangThaiDTO dto)
+        // ---------------- CẬP NHẬT TRẠNG THÁI ----------------
+        public async Task<DonHangResponse> CapNhatTrangThaiAsync(UpdateDonHangStatusRequest dto)
         {
             var mapTrangThai = new Dictionary<string, TrangThaiDonHang>(StringComparer.OrdinalIgnoreCase)
             {
@@ -156,7 +135,7 @@ namespace BagStore.Web.Services.Implementations
                 { "Đã huỷ", TrangThaiDonHang.DaHuy }
             };
 
-            if (!mapTrangThai.TryGetValue(dto.TrangThai, out var trangThaiEnum))
+            if (!mapTrangThai.ContainsKey(dto.TrangThai))
                 throw new ArgumentException("Trạng thái đơn hàng không hợp lệ.");
 
             var donHang = await _context.DonHangs
@@ -170,27 +149,54 @@ namespace BagStore.Web.Services.Implementations
 
             var chiTietDonHangs = await _context.ChiTietDonHangs
                 .Where(ct => ct.MaDonHang == donHang.MaDonHang)
-                .Include(ct => ct.ChiTietSanPham)
-                    .ThenInclude(sp => sp.SanPham)
-                .Select(ct => new DonHangChiTietPhanHoiDTO
+                .Include(ct => ct.ChiTietSanPham).ThenInclude(sp => sp.SanPham)
+                .Select(ct => new DonHangChiTietResponse
                 {
-                    MaChiTietDH = ct.MaChiTietDH,
-                    TenSP = ct.ChiTietSanPham.SanPham.TenSP,
+                    MaChiTietDonHang = ct.MaChiTietDH,
+                    TenSanPham = ct.ChiTietSanPham.SanPham.TenSP,
                     SoLuong = ct.SoLuong,
-                    GiaBan = ct.GiaBan
+                    GiaBan = ct.GiaBan,
+                    ThanhTien = ct.SoLuong * ct.GiaBan,
+                    AnhSanPham = ""
                 })
                 .ToListAsync();
 
-            return new DonHangPhanHoiDTO
+            return new DonHangResponse
             {
                 MaDonHang = donHang.MaDonHang,
-                TenKH = donHang.KhachHang.TenKH,
+                TenKhachHang = donHang.KhachHang.TenKH,
                 NgayDatHang = donHang.NgayDatHang,
                 TongTien = donHang.TongTien,
                 TrangThai = donHang.TrangThai,
                 PhuongThucThanhToan = donHang.PhuongThucThanhToan,
                 TrangThaiThanhToan = donHang.TrangThaiThanhToan,
-                ChiTietDonHangs = chiTietDonHangs
+                DiaChiGiaoHang = donHang.DiaChiGiaoHang,
+                ChiTietDonHang = chiTietDonHangs
+            };
+        }
+
+        // ---------------- HÀM MAP ENTITY → DTO ----------------
+        private static DonHangResponse MapToDonHangResponse(Domain.Entities.DonHang d)
+        {
+            return new DonHangResponse
+            {
+                MaDonHang = d.MaDonHang,
+                TenKhachHang = d.KhachHang?.TenKH ?? "Khách",
+                NgayDatHang = d.NgayDatHang,
+                TongTien = d.TongTien,
+                TrangThai = d.TrangThai,
+                PhuongThucThanhToan = d.PhuongThucThanhToan,
+                TrangThaiThanhToan = d.TrangThaiThanhToan,
+                DiaChiGiaoHang = d.DiaChiGiaoHang,
+                ChiTietDonHang = d.ChiTietDonHangs?.Select(ct => new DonHangChiTietResponse
+                {
+                    MaChiTietDonHang = ct.MaChiTietDH,
+                    TenSanPham = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Sản phẩm",
+                    SoLuong = ct.SoLuong,
+                    GiaBan = ct.GiaBan,
+                    ThanhTien = ct.SoLuong * ct.GiaBan,
+                    AnhSanPham = ""
+                }).ToList() ?? new List<DonHangChiTietResponse>()
             };
         }
     }

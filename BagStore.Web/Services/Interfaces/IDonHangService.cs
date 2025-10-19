@@ -5,9 +5,9 @@ namespace BagStore.Web.Services.Interfaces
 {
     public interface IDonHangService
     {
-        Task<IEnumerable<DonHangPhanHoiDTO>> LayTatCaDonHangAsync();
-        Task<IEnumerable<DonHangPhanHoiDTO>> LayDonHangTheoKhachHangAsync(int maKhachHang);
-        Task<DonHangPhanHoiDTO> TaoDonHangAsync(DonHangTaoDTO dto);
-        Task<DonHangPhanHoiDTO> CapNhatTrangThaiAsync(DonHangCapNhatTrangThaiDTO dto);
+        Task<IEnumerable<DonHangResponse>> LayTatCaDonHangAsync();
+        Task<IEnumerable<DonHangResponse>> LayDonHangTheoKhachHangAsync(int maKhachHang);
+        Task<DonHangResponse> TaoDonHangAsync(CreateDonHangRequest dto);
+        Task<DonHangResponse> CapNhatTrangThaiAsync(UpdateDonHangStatusRequest dto);
     }
 }
