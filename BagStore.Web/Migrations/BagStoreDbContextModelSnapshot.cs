@@ -323,11 +323,11 @@ namespace BagStore.Web.Migrations
 
             modelBuilder.Entity("BagStore.Domain.Entities.GioHang", b =>
                 {
-                    b.Property<int>("MaGioHang")
+                    b.Property<int>("MaSP_GH")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaGioHang"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaSP_GH"));
 
                     b.Property<int>("MaChiTietSP")
                         .HasColumnType("int");
@@ -340,24 +340,16 @@ namespace BagStore.Web.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<string>("SessionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("SoLuong")
                         .HasColumnType("int");
 
-                    b.HasKey("MaGioHang");
+                    b.HasKey("MaSP_GH");
 
                     b.HasIndex("MaChiTietSP");
 
                     b.HasIndex("MaKH", "MaChiTietSP")
                         .IsUnique()
                         .HasFilter("[MaKH] IS NOT NULL");
-
-                    b.HasIndex("SessionID", "MaChiTietSP")
-                        .IsUnique()
-                        .HasFilter("[SessionID] IS NOT NULL");
 
                     b.ToTable("GioHang", null, t =>
                         {
