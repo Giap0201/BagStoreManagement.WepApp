@@ -1,19 +1,28 @@
 ﻿using BagStore.Data;
+using BagStore.Repositories;
+using BagStore.Services;
+using BagStore.Models.Common;
+using BagStore.Services.Implementations;
+using BagStore.Services.Interfaces;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
+using BagStore.Web.Repositories.Implementations;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using BagStore.Web.Services.Implementations;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Add DbContext
+// ============================
+// 1️⃣ Cấu hình DbContext
+// ============================
 builder.Services.AddDbContext<BagStoreDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BagStoreDbContext")));
 
@@ -83,8 +92,25 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 
 //End NguyenKhanhSon
+// ============================
+// 2️⃣ Cấu hình Identity
+// ============================
+// Quản lý user, role, authentication
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false; // không bắt xác nhận email
+})
+.AddEntityFrameworkStores<BagStoreDbContext>()
+.AddDefaultTokenProviders();
+
+// ============================
+// 3️⃣ Đăng ký Repositories & Services
+// ============================
+// Scoped: mỗi request tạo 1 instance
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
+builder.Services.AddScoped<IDanhMucLoaiTuiService, DanhMucLoaiTuiService>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
+builder.Services.AddScoped<IThuongHieuService, ThuongHieuService>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
 
 
@@ -131,44 +157,51 @@ using (var scope = app.Services.CreateScope())
 
 // Ví dụ trong Program.cs:
 app.UseExceptionHandler(appBuilder =>
+builder.Services.AddScoped<IChatLieuService, ChatLieuService>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
+
+builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
+builder.Services.AddScoped<IMauSacService, MauSacService>();
+builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
+builder.Services.AddScoped<IKichThuocService, KichThuocService>();
+builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
+builder.Services.AddScoped<ISanPhamService, SanPhamService>();
+builder.Services.AddScoped<IChiTietSanPhamRepository, ChiTietSanPhamImpl>();
+builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
+
+// ============================
+// 4️⃣ Add Controllers với View + Global Filter ValidateModel
+// ============================
+builder.Services.AddControllersWithViews(options =>
 {
-    appBuilder.Run(async context =>
-    {
-        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-        var exception = exceptionHandlerPathFeature?.Error;
-
-        // Log lỗi chi tiết tại đây (chỉ ghi log, không hiển thị ra ngoài)
-        // logger.LogError(exception, "An unhandled exception occurred.");
-
-        context.Response.ContentType = "application/problem+json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-
-        // Trả về lỗi 500 chung và an toàn (Problem Details)
-        await context.Response.WriteAsJsonAsync(new ProblemDetails
-        {
-            Status = context.Response.StatusCode,
-            Title = "Lỗi máy chủ nội bộ",
-            Detail = "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.",
-            Instance = context.Request.Path
-        });
-    });
+    options.Filters.Add<ValidateModelAttribute>(); // vẫn giữ
+})
+.ConfigureApiBehaviorOptions(options =>
+{
+    options.SuppressModelStateInvalidFilter = true; // ✅ quan trọng
 });
-//
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<BagStoreDbContext>();
-//    // Áp dụng các migration còn thiếu (nếu có)
-//    dbContext.Database.Migrate();
-//}
+
+// ============================
+// 5️⃣ Build app
+// ============================
+var app = builder.Build();
+
+// ============================
+// 6️⃣ Middleware xử lý lỗi toàn cục
+// ============================
+// Bắt tất cả lỗi runtime chưa handle và trả BaseResponse chuẩn
+app.UseMiddleware<ExceptionMiddleware>();
 
 
 
 // Configure the HTTP request pipeline.
+// ============================
+// 7️⃣ Middleware cơ bản
+// ============================
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseHsts(); // bảo mật, chỉ chạy trong production
 }
 
 //if (app.Environment.IsDevelopment())
@@ -183,7 +216,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseCors("AllowLocalhostFrontend"); // dùng CORS policy nếu cần (NKS)
