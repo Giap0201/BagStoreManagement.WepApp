@@ -7,14 +7,13 @@ namespace BagStore.Web.Repositories.implementations
 {
     public class ChiTietDonHangImpl : GenericImpl<ChiTietDonHang>, IChiTietDonHangRepository
     {
-        public ChiTietDonHangImpl(BagStoreDbContext context) : base(context)
-        {
-        }
+        public ChiTietDonHangImpl(BagStoreDbContext context) : base(context) { }
 
         public async Task<IEnumerable<ChiTietDonHang>> LayTheoDonHangAsync(int maDonHang)
         {
             return await _dbSet
                 .Include(ct => ct.ChiTietSanPham)
+                    .ThenInclude(sp => sp.SanPham)
                 .Where(ct => ct.MaDonHang == maDonHang)
                 .ToListAsync();
         }

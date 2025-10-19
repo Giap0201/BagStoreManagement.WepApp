@@ -1,5 +1,4 @@
 ﻿using BagStore.Data;
-using BagStore.Domain.Entities;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Interfaces;
@@ -100,13 +99,6 @@ app.UseRouting();
 
 app.UseAuthentication(); // ⚠️ Cần có vì dùng Identity
 app.UseAuthorization();
-
-app.Use(async (context, next) =>
-{
-    // Bỏ qua xác thực cho tất cả request
-    context.User = new System.Security.Claims.ClaimsPrincipal();
-    await next.Invoke();
-});
 
 // ==============================
 // 🔹 Định tuyến cho Areas (Admin / Client)
