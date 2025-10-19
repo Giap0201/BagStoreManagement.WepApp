@@ -1,18 +1,19 @@
 ﻿using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
 
 namespace BagStore.Web.Repositories.Interfaces
 {
     public interface IDanhMucLoaiTuiRepository
     {
-        Task<List<DanhMucLoaiTuiDto>> GetAllDanhMucLoaiTuiAsync();
+        Task<List<DanhMucLoaiTui>> GetAllAsync();
 
-        Task<DanhMucLoaiTuiDto> GetDanhMucLoaiTuiByIdAsync(int maLoaiTui);
+        Task<DanhMucLoaiTui> GetByIdAsync(int maLoaiTui);
 
-        Task<DanhMucLoaiTuiDto> CreateAsync(DanhMucLoaiTuiDto danhMucLoaiTuiDto);
+        Task<DanhMucLoaiTui> AddAsync(DanhMucLoaiTui entity);
 
-        Task<DanhMucLoaiTuiDto> UpdateAsync(DanhMucLoaiTuiDto danhMucLoaiTuiDto);
+        Task<DanhMucLoaiTui> UpdateAsync(DanhMucLoaiTui entity);
 
         Task<bool> DeleteAsync(int maLoaiTui);
+
+        Task<DanhMucLoaiTui> GetByNameAsync(string tenLoaiTui);
     }
 }
