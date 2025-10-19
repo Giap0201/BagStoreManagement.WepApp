@@ -46,6 +46,13 @@ namespace BagStore.Web.Repositories.implementations
             return await _context.ThuongHieux.FindAsync(maThuongHieu);
         }
 
+        public async Task<ThuongHieu> GetByNameAsync(string tenThuongHieu)
+        {
+            var entity = await _context.ThuongHieux.FirstOrDefaultAsync(x => x.TenThuongHieu == tenThuongHieu);
+            if (entity == null) return null;
+            return entity;
+        }
+
         // Cập nhật thương hiệu
         public async Task<ThuongHieu> UpdateAsync(ThuongHieu entity)
         {

@@ -36,13 +36,23 @@ namespace BagStore.Web.Repositories.Implementations
         // Lấy tất cả loại túi
         public async Task<List<DanhMucLoaiTui>> GetAllAsync()
         {
-            return await _context.DanhMucLoaiTuis.ToListAsync();
+            return await _context.DanhMucLoaiTuis
+                         .AsNoTracking()
+                         .ToListAsync();
         }
 
         // Lấy loại túi theo ID
         public async Task<DanhMucLoaiTui> GetByIdAsync(int maLoaiTui)
         {
             return await _context.DanhMucLoaiTuis.FindAsync(maLoaiTui);
+        }
+
+        public async Task<DanhMucLoaiTui> GetByNameAsync(string tenLoaiTui)
+        {
+            var entity = await _context.DanhMucLoaiTuis
+                         .FirstOrDefaultAsync(x => x.TenLoaiTui == tenLoaiTui);
+            if (entity == null) return null;
+            return entity;
         }
 
         // Cập nhật loại túi

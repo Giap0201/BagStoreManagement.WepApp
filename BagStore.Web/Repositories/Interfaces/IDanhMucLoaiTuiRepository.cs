@@ -1,5 +1,4 @@
 ﻿using BagStore.Domain.Entities;
-using BagStore.Web.Models.DTOs;
 
 namespace BagStore.Web.Repositories.Interfaces
 {
@@ -14,5 +13,7 @@ namespace BagStore.Web.Repositories.Interfaces
         Task<DanhMucLoaiTui> UpdateAsync(DanhMucLoaiTui entity);
 
         Task<bool> DeleteAsync(int maLoaiTui);
+
+        Task<DanhMucLoaiTui> GetByNameAsync(string tenLoaiTui);
     }
 }

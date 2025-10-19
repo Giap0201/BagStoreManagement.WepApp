@@ -1,17 +1,18 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Models.Common;
+using BagStore.Web.Models.DTOs;
 
 namespace BagStore.Web.Services.Interfaces
 {
     public interface IChatLieuService
     {
-        Task<ChatLieuDto> CreateAsync(ChatLieuDto dto);
+        Task<BaseResponse<ChatLieuDto>> CreateAsync(ChatLieuDto dto);
 
-        Task<ChatLieuDto> GetByIdAsync(int maChatLieu);
+        Task<BaseResponse<ChatLieuDto>> UpdateAsync(int maChatLieu, ChatLieuDto dto);
 
-        Task<List<ChatLieuDto>> GetAllAsync();
+        Task<BaseResponse<bool>> DeleteAsync(int maChatLieu);
 
-        Task<ChatLieuDto> UpdateAsync(int maChatLieu, ChatLieuDto dto);
+        Task<BaseResponse<ChatLieuDto>> GetByIdAsync(int maChatLieu);
 
-        Task<bool> DeleteAsync(int maChatLieu);
+        Task<BaseResponse<List<ChatLieuDto>>> GetAllAsync();
     }
 }

@@ -14,5 +14,7 @@ namespace BagStore.Web.Repositories.Interfaces
         Task<MauSac> UpdateAsync(MauSac entity);
 
         Task<bool> DeleteAsync(int maMauSac);
+
+        Task<MauSac> GetByNameAsync(string tenMauSac);
     }
 }

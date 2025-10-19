@@ -19,5 +19,7 @@ namespace BagStore.Web.Repositories.Interfaces
 
         // Xóa thương hiệu
         Task<bool> DeleteAsync(int maThuongHieu);
+
+        Task<ThuongHieu> GetByNameAsync(string tenThuongHieu);
     }
 }
