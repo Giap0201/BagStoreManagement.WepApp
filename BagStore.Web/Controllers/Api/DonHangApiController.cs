@@ -90,26 +90,35 @@ namespace BagStore.Web.Controllers.Api
         [HttpPut("capnhat-trangthai")]
         public async Task<ActionResult<DonHangResponse>> CapNhatTrangThai([FromBody] UpdateDonHangStatusRequest dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
-                var order = await _donHangService.CapNhatTrangThaiAsync(dto);
-                if (order == null)
-                    return NotFound("Không tìm thấy đơn hàng cần cập nhật.");
+                if (dto == null)
+                    return BadRequest(new { success = false, message = "Dữ liệu yêu cầu không hợp lệ." });
 
-                return Ok(order);
+                var result = await _donHangService.CapNhatTrangThaiAsync(dto);
+
+                return Ok(result);
             }
+            // ❌ Lỗi dữ liệu đầu vào
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Trạng thái cập nhật không hợp lệ");
                 return BadRequest(ex.Message);
             }
+            // ❌ Đơn hàng không tồn tại
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            // ❌ Cấm thao tác (ví dụ: đơn đã hoàn thành hoặc đã hủy)
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            // ❌ Lỗi không mong đợi
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi cập nhật trạng thái đơn hàng");
-                return StatusCode(500, "Đã xảy ra lỗi phía máy chủ.");
+                _logger.LogError(ex, "Lỗi không xác định khi cập nhật trạng thái đơn hàng.");
+                return StatusCode(500, "Lỗi không xác định");
             }
         }
     }
