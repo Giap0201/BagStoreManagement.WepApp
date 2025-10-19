@@ -1,0 +1,221 @@
+﻿@using BagStore.Web.Models.Entities
+
+@model IEnumerable<ApplicationUser>
+
+@{
+    ViewData["Title"] = "Danh sách khách hàng (API)";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@* <button id="btnLoadApi" class="btn btn-primary mb-3">Tải danh sách từ API</button> *@
+
+<table class="table table-bordered" id="tblCustomers">
+    <thead>
+        <tr>
+            <th>Tên đăng nhập</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>SĐT</th>
+            <th>Ngày sinh</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<button id="btnShowCreate" class="btn btn-success mb-3">➕ Thêm khách hàng</button>
+
+<!-- Modal Form -->
+<div id="modalCustomer" class="modal" tabindex="-1" style="display:none;">
+    <div class="modal-dialog">
+        <div class="modal-content p-3">
+            <h4 id="modalTitle"></h4>
+            <form id="formCustomer">
+                <input type="hidden" id="Id" />
+                <div class="mb-2">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="UserName" class="form-control" required />
+                </div>
+                <div class="mb-2">
+                    <label>Họ tên</label>
+                    <input type="text" id="FullName" class="form-control" />
+                </div>
+                <div class="mb-2">
+                    <label>Email</label>
+                    <input type="email" id="Email" class="form-control" required />
+                </div>
+                <div class="mb-2">
+                    <label>SĐT</label>
+                    <input type="text" id="PhoneNumber" class="form-control" />
+                </div>
+                <div class="mb-2">
+                    <label>Ngày sinh</label>
+                    <input type="date" id="NgaySinh" class="form-control" />
+                </div>
+                <div id="divPassword" class="mb-3">
+                    <label for="Password">Mật khẩu (khi thêm mới)</label>
+                    <input type="password" id="Password" name="Password" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Lưu</button>
+                <button type="button" id="btnCancel" class="btn btn-secondary mt-2">Hủy</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const apiUrl = "/api/Admin/CustomerApi";
+        const token = sessionStorage.getItem("jwtToken");
+
+                // ----------------- Load danh sách -----------------
+        function loadCustomers() {
+            $.ajax({
+                url: apiUrl + "/all",
+                headers: { "Authorization": "Bearer " + token },
+                success: function (res) {
+                    const tbody = $("#tblCustomers tbody");
+                    tbody.empty();
+                    $.each(res, function (i, c) {
+                        const row = `
+                            <tr>
+                                <td>${c.userName}</td>
+                                <td>${c.fullName ?? ""}</td>
+                                <td>${c.email}</td>
+                                <td>${c.phoneNumber ?? ""}</td>
+                                <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ""}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary btnEdit" data-id="${c.id}">Sửa</button>
+                                    <button class="btn btn-sm btn-danger btnDelete" data-id="${c.id}">Xoá</button>
+                                    <button class="btn btn-sm btn-warning btnReset" data-id="${c.id}">Đặt lại MK</button>
+                                </td>
+                            </tr>`;
+                        tbody.append(row);
+                    });
+                },
+                error: function (xhr) {
+                    console.error(xhr);
+                    alert("Không tải được danh sách.");
+                }
+            });
+        }
+
+        // ----------------- Hiện modal tạo mới -----------------
+        $("#btnShowCreate").click(function () {
+            $("#modalTitle").text("Thêm khách hàng");
+            $("#formCustomer")[0].reset();
+            $("#Id").val("");
+            $("#divPassword").show(); // khi thêm mới thì hiển thị
+            $("#modalCustomer").show();
+        });
+
+        // ----------------- Hủy -----------------
+        $("#btnCancel").click(function () {
+            $("#modalCustomer").hide();
+        });
+
+        // ----------------- Lưu (Thêm hoặc Sửa) -----------------
+        $("#formCustomer").submit(function (e) {
+            e.preventDefault();
+
+            const id = $("#Id").val();
+            const customer = {
+                id: id,
+                userName: $("#UserName").val(),
+                fullName: $("#FullName").val(),
+                email: $("#Email").val(),
+                phoneNumber: $("#PhoneNumber").val(),
+                ngaySinh: $("#NgaySinh").val() ? new Date($("#NgaySinh").val()).toISOString() : null,
+                // password: $("#Password")?.val() || null //nếu có field Password
+                password: $("#Password")?.val()
+            };
+
+            const method = id ? "PUT" : "POST";
+            const url = customer.id ? `${apiUrl}/${customer.id}` : apiUrl;
+
+            $.ajax({
+                url: url,
+                method: method,
+                headers: { "Authorization": "Bearer " + token },
+                contentType: "application/json",
+                data: JSON.stringify(customer),
+                success: function () {
+                    $("#modalCustomer").hide();
+                    loadCustomers();
+                    alert("Lưu thành công!");
+                },
+                error: function (xhr) {
+                    console.error("❌ Lỗi khi lưu:", xhr.responseText);
+                    alert("Lưu thất bại!");
+                }
+            });
+        });
+
+
+        // ----------------- Sửa -----------------
+        $(document).on("click", ".btnEdit", function () {
+            const id = $(this).data("id");
+            $.ajax({
+                url: apiUrl + "/" + id,
+                headers: { "Authorization": "Bearer " + token },
+                success: function (c) {
+                    $("#modalTitle").text("Sửa khách hàng");
+                    $("#Id").val(c.id);
+                    $("#UserName").val(c.userName);
+                    $("#FullName").val(c.fullName);
+                    $("#Email").val(c.email);
+                    $("#PhoneNumber").val(c.phoneNumber);
+                    $("#NgaySinh").val(c.ngaySinh ? c.ngaySinh.split("T")[0] : "");
+                    $("#divPassword").hide(); // khi sửa thì ẩn
+                    $("#modalCustomer").show();
+                },
+                error: function () {
+                    alert("Không lấy được dữ liệu khách hàng.");
+                }
+            });
+        });
+
+        // ----------------- Xoá -----------------
+        $(document).on("click", ".btnDelete", function () {
+            const id = $(this).data("id");
+            if (!confirm("Bạn chắc chắn muốn xoá?")) return;
+            $.ajax({
+                url: apiUrl + "/" + id,
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + token },
+                success: function () {
+                    loadCustomers();
+                    alert("Đã xoá!");
+                },
+                error: function () {
+                    alert("Lỗi khi xoá.");
+                }
+            });
+        });
+
+        // ----------------- Reset mật khẩu -----------------
+        $(document).on("click", ".btnReset", function () {
+            const id = $(this).data("id");
+            if (!confirm("Reset mật khẩu về Customer@123 ?")) return;
+            $.ajax({
+                url: apiUrl + "/resetpassword",
+                method: "POST",
+                headers: { "Authorization": "Bearer " + token },
+                contentType: "application/json",
+                data: JSON.stringify({ id: id, newPassword: "Customer@123" }),
+                success: function (res) {
+                    alert(res.message);
+                },
+                error: function (xhr) {
+                    alert("Lỗi reset mật khẩu: " + xhr.responseText);
+                }
+            });
+        });
+
+        $(document).ready(loadCustomers);
+    </script>
+}
+

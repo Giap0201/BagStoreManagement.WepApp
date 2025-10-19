@@ -1,0 +1,179 @@
+﻿@model BagStore.Web.Models.ViewModels.ProfileEditModel
+@{
+    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<h2>Hồ sơ</h2>
+
+@if (TempData["ProfileSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["ProfileSuccess"]</div>
+}
+
+<form id="formProfile">
+    <input type="hidden" id="Id" />
+
+    <div class="mb-3">
+        <label asp-for="UserName" class="form-label"></label>
+        <input asp-for="UserName" class="form-control" readonly />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label"></label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PhoneNumber" class="form-label"></label>
+        <input asp-for="PhoneNumber" class="form-control" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NgaySinh" class="form-label"></label>
+        <input asp-for="NgaySinh" class="form-control" type="date" />
+        <span asp-validation-for="NgaySinh" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+
+</form>
+</br>
+<a id="btnDelete" class="btn btn-outline-danger">Xóa tài khoản</a>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+
+        // const apiUrl = "https:localhost:7013/api/AccountApi";
+        // const token = sessionStorage.getItem("jwtToken");
+        
+
+        const apiUrl = "/api/AccountApi";
+        const token = sessionStorage.getItem("jwtToken");
+
+        console.log("Token hiện tại:", token);
+
+        if (!token) {
+            alert("Bạn chưa đăng nhập. Vui lòng đăng nhập lại!");
+            window.location.href = "/Client/Account/Login";
+        }
+
+        // ------------------ 1. Tải hồ sơ hiện tại ------------------
+        function loadProfile() {
+            $.ajax({
+                url: apiUrl + "/profile",
+                method: "GET",
+                headers: { "Authorization": "Bearer " + token },
+                success: function (data) {
+                    $("#Id").val(data.id);
+                    $("#UserName").val(data.userName);
+                    $("#FullName").val(data.fullName);
+                    $("#Email").val(data.email);
+                    $("#PhoneNumber").val(data.phoneNumber);
+                    if (data.ngaySinh)
+                        $("#NgaySinh").val(data.ngaySinh.split("T")[0]);
+                },
+                error: function (xhr) {
+                    console.error(xhr);
+                    alert("Không thể tải thông tin hồ sơ!");
+                }
+            });
+        }
+
+        // ------------------ 2. Gửi cập nhật hồ sơ ------------------
+        $("#formProfile").on("submit", function (e) {
+            e.preventDefault(); // quan trọng: ngăn form submit mặc định
+
+            // build payload; nếu ngày sinh rỗng -> use null (không gửi "")
+            const ngaySinhVal = $("#NgaySinh").val();
+            const payload = {
+                // không cần Id ở client; server sẽ lấy userId từ token và gán model.Id = userId
+                userName: $("#UserName").val(),
+                fullName: $("#FullName").val(),
+                email: $("#Email").val(),
+                phoneNumber: $("#PhoneNumber").val() || null,
+                ngaySinh: ngaySinhVal ? ngaySinhVal : null
+            };
+
+            $.ajax({
+                url: apiUrl + "/profile",
+                method: "PUT",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify(payload),
+                success: function (res) {
+                    console.log("Update success:", res);
+                    alert(res.message || "Cập nhật hồ sơ thành công");
+                },
+                error: function (xhr) {
+                    console.error("Lỗi update:", xhr.status, xhr.responseText);
+                    // show server modelstate nếu có
+                    try {
+                        const json = JSON.parse(xhr.responseText);
+                        if (json && json.errors) {
+                            console.error("Validation errors:", json.errors);
+                            alert("Lỗi: " + JSON.stringify(json.errors));
+                            return;
+                        }
+                    } catch (e) { /* ignore */ }
+                    alert("Không thể cập nhật hồ sơ!");
+                }
+            });
+        });
+
+        // ------------------ 3. Xoá tài khoản ------------------
+        // $("a.btn-outline-danger").click(function (e) {
+        //     e.preventDefault();
+        //     if (!confirm("Bạn có chắc muốn xoá tài khoản?")) return;
+        //     $.ajax({
+        //         url: apiUrl + "/delete",
+        //         method: "DELETE",
+        //         headers: { "Authorization": "Bearer " + token },
+        //         success: function () {
+        //             alert("Đã xoá tài khoản!");
+        //             sessionStorage.removeItem("jwtToken");
+        //             window.location.href = "/"; về trang chủ
+        //         },
+        //         error: function (xhr) {
+        //             alert("Lỗi khi xoá tài khoản: " + xhr.responseText);
+        //         }
+        //     });
+        // });
+
+        $("#btnDelete").click(function (e) {
+            e.preventDefault();
+            if (!confirm("Bạn có chắc chắn muốn xoá tài khoản?")) return;
+            $.ajax({
+                url: apiUrl + "/delete",
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + token },
+                success: function (res) {
+                    alert(res.message || "Tài khoản đã bị xóa");
+                    sessionStorage.removeItem("jwtToken");
+                    window.location.href = "/"; // về trang chủ
+                },
+                error: function (xhr) {
+                    console.error("Lỗi delete:", xhr);
+                    alert("Không thể xóa tài khoản");
+                }
+            });
+        });
+
+        $(document).ready(loadProfile);
+    </script>
+}
+
+
+
