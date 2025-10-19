@@ -8,9 +8,9 @@ namespace BagStore.Web.Services
     public interface IUserService
     {
         Task<IdentityResult> RegisterCustomerAsync(RegisterViewModel model);
-        Task<SignInResult> LoginAsync(LoginModel model);
+        Task<SignInResult> LoginAsync(LoginViewModel model);
         Task<ApplicationUser?> GetProfileAsync(string userId);
-        Task<IdentityResult> UpdateProfileAsync(ProfileEditModel model);
+        Task<IdentityResult> UpdateProfileAsync(ProfileEditViewModel model);
         Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword);
 
         Task LogoutAsync();

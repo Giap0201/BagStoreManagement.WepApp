@@ -59,7 +59,7 @@ namespace BagStore.Web.Controllers.Api
         }
 
         [HttpPut("profile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] ProfileEditModel model)
+        public async Task<IActionResult> UpdateProfile([FromBody] ProfileEditViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

@@ -41,7 +41,7 @@ namespace BagStore.Web.Areas.Client.Controllers
 
         //JWT Login
         [HttpPost]
-        public async Task<IActionResult> Login(LoginModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -87,7 +87,7 @@ namespace BagStore.Web.Areas.Client.Controllers
             if (user == null) return NotFound();
             //return View(user);
 
-            var model = new ProfileEditModel
+            var model = new ProfileEditViewModel
             {
                 Id = user.Id,
                 UserName = user.UserName,
@@ -103,7 +103,7 @@ namespace BagStore.Web.Areas.Client.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Profile(ProfileEditModel model)
+        public async Task<IActionResult> Profile(ProfileEditViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
