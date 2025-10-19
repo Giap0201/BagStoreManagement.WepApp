@@ -28,13 +28,4 @@ namespace BagStore.Web.Models.ViewModels
         [DataType(DataType.Password)]
         public string? Password { get; set; }
     }
-
-    //public class ResetPasswordViewModel
-    //{
-    //    public string Id { get; set; } = string.Empty;
-
-    //    [Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
-    //    [DataType(DataType.Password)]
-    //    public string NewPassword { get; set; } = string.Empty;
-    //}
 }
