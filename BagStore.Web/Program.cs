@@ -1,4 +1,6 @@
 ﻿using BagStore.Data;
+using BagStore.Web.AppConfig.Implementations;
+using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Interfaces;
@@ -40,12 +42,17 @@ builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
 builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
 builder.Services.AddScoped<IDonHangService, DonHangService>();
 
+// Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
+builder.Services.AddScoped<IEnumMapper, EnumMapper>();
+
 // Phần khác do team khác phụ trách — chỉ giữ lại nếu cần dùng chung
 //builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
 //builder.Services.AddScoped<IKhachHangRepository, KhachHangImpl>();
 builder.Services.AddScoped<IThuongHieuRepository, ThuongHieuImpl>();
 builder.Services.AddScoped<IChatLieuRepository, ChatLieuImpl>();
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
+
+
 
 // ==============================
 // 🔹 Cấu hình MVC + HttpClient
