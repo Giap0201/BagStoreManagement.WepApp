@@ -34,6 +34,16 @@ namespace BagStore.Web.Repositories.implementations
 
         public async Task<KichThuoc> GetByIdAsync(int maKichThuoc) => await _context.KichThuocs.FindAsync(maKichThuoc);
 
+        public async Task<KichThuoc> GetByNameAsync(string tenKichThuoc)
+        {
+            var entity = await _context.KichThuocs.FirstOrDefaultAsync(x => x.TenKichThuoc == tenKichThuoc);
+            if (entity == null)
+            {
+                return null;
+            }
+            return entity;
+        }
+
         public async Task<KichThuoc> UpdateAsync(KichThuoc entity)
         {
             _context.KichThuocs.Update(entity);

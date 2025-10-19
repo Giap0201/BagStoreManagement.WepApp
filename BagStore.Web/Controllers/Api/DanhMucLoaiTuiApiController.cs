@@ -1,12 +1,14 @@
-﻿using BagStore.Web.Models.DTOs;
-using BagStore.Web.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
+﻿using BagStore.Models.Common;
+using BagStore.Services.Interfaces;
+using BagStore.Web.Models.Common;
+using BagStore.Web.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ValidateModel] // Tự động bắt lỗi DataAnnotation và trả BaseResponse
     public class DanhMucLoaiTuiApiController : ControllerBase
     {
         private readonly IDanhMucLoaiTuiService _service;
@@ -16,112 +18,51 @@ namespace BagStore.Web.Controllers.Api
             _service = service;
         }
 
-        // GET: api/DanhMucLoaiTuiApi
+        // GET: /api/DanhMucLoaiTui
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var dtos = await _service.GetAllAsync();
-                return Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server khi lấy danh sách loại túi.", Details = ex.Message });
-            }
+            var response = await _service.GetAllAsync();
+            return Ok(response);
         }
 
-        // GET: api/DanhMucLoaiTuiApi/1
+        // GET: /api/DanhMucLoaiTui/{maLoaiTui}
         [HttpGet("{maLoaiTui}")]
         public async Task<IActionResult> GetById(int maLoaiTui)
         {
-            try
-            {
-                var dto = await _service.GetByIdAsync(maLoaiTui);
-                if (dto == null)
-                    return NotFound(new { message = $"Không tìm thấy Loại Túi với mã: {maLoaiTui}" });
-
-                return Ok(dto);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.GetByIdAsync(maLoaiTui);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // POST: api/DanhMucLoaiTuiApi
+        // POST: /api/DanhMucLoaiTui
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DanhMucLoaiTuiDto dto)
         {
-            if (dto == null)
-                return BadRequest(new { message = "Dữ liệu không hợp lệ" });
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var created = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { maLoaiTui = created.MaLoaiTui }, created);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi khi tạo loại túi.", Details = ex.Message });
-            }
+            var response = await _service.CreateAsync(dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // PUT: api/DanhMucLoaiTuiApi/1
+        // PUT: /api/DanhMucLoaiTui/{maLoaiTui}
         [HttpPut("{maLoaiTui}")]
         public async Task<IActionResult> Update(int maLoaiTui, [FromBody] DanhMucLoaiTuiDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             if (maLoaiTui != dto.MaLoaiTui)
-                return BadRequest(new { message = "Mã loại túi trong URL và Body không khớp." });
+            {
+                return BadRequest(BaseResponse<DanhMucLoaiTuiDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("MaLoaiTui", "ID không khớp") },
+                    "Cập nhật thất bại"));
+            }
 
-            try
-            {
-                var updated = await _service.UpdateAsync(maLoaiTui, dto);
-                if (updated == null)
-                    return NotFound(new { message = $"Không tìm thấy Loại Túi với mã: {maLoaiTui} để cập nhật." });
-
-                return Ok(updated);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.UpdateAsync(maLoaiTui, dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // DELETE: api/DanhMucLoaiTuiApi/1
+        // DELETE: /api/DanhMucLoaiTui/{maLoaiTui}
         [HttpDelete("{maLoaiTui}")]
         public async Task<IActionResult> Delete(int maLoaiTui)
         {
-            try
-            {
-                var success = await _service.DeleteAsync(maLoaiTui);
-                if (!success)
-                    return NotFound(new { message = $"Không tìm thấy Loại Túi với mã: {maLoaiTui} để xóa." });
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            var response = await _service.DeleteAsync(maLoaiTui);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
     }
 }
