@@ -2,7 +2,7 @@
 {
     public class CartItemResponse
     {
-        public int MaGioHang { get; set; }
+        public int MaSP_GH { get; set; }
         public string TenSP { get; set; } = string.Empty;
         public decimal GiaBan { get; set; }
         public int SoLuong { get; set; }
@@ -14,7 +14,7 @@
 
     public class CartResponse
     {
-        public int UserId { get; set; }
+        public int MaKH { get; set; }
         public List<CartItemResponse> Items { get; set; } = new();
         public decimal TongTien => Items.Sum(i => i.ThanhTien);
     }
