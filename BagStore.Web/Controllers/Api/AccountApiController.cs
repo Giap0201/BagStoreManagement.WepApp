@@ -21,6 +21,21 @@ namespace BagStore.Web.Controllers.Api
             _userService = userService;
         }
 
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _userService.RegisterCustomerAsync(model);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors.Select(e => e.Description));
+
+            return Ok(new { message = "Đăng ký tài khoản thành công" });
+        }
+
         // GET api/AccountApi/profile
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()

@@ -32,26 +32,26 @@ namespace BagStore.Web.Controllers.Api
         //    return BadRequest(result.Errors);
         //}
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        //{
+        //    try
+        //    {
+        //        if (!ModelState.IsValid)
+        //            return BadRequest(ModelState);
 
-                var result = await _userService.RegisterAsync(model);
+        //        var result = await _userService.RegisterAsync(model);
 
-                if (result.Succeeded)
-                    return Ok(new { message = "Đăng ký thành công!" });
+        //        if (result.Succeeded)
+        //            return Ok(new { message = "Đăng ký thành công!" });
 
-                return BadRequest(result.Errors);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message, stackTrace = ex.StackTrace });
-            }
-        }
+        //        return BadRequest(result.Errors);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = ex.Message, stackTrace = ex.StackTrace });
+        //    }
+        //}
 
         // 🟦 POST: /api/auth/login
         [HttpPost("login")]

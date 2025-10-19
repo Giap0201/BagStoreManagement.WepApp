@@ -1,81 +1,4 @@
-﻿@* @using BagStore.Web.Models.Entities
-
-@model IEnumerable<ApplicationUser>
-
-@{
-    ViewData["Title"] = "Danh sách khách hàng (API)";
-    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
-}
-
-<h2>@ViewData["Title"]</h2>
-
-<button id="btnLoadApi" class="btn btn-primary mb-3">Tải danh sách từ API</button>
-
-<table class="table table-bordered" id="tblCustomers">
-    <thead>
-        <tr>
-            <th>Tên đăng nhập</th>
-            <th>Họ tên</th>
-            <th>Email</th>
-            <th>SĐT</th>
-            <th>Ngày sinh</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
-
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        function loadCustomersFromApi() {
-            var token = sessionStorage.getItem("jwtToken");
-
-            if (!token) {
-                alert("Bạn chưa đăng nhập hoặc token không tồn tại.");
-                window.location.href = "/Account/Login";
-                return;
-            }
-
-            $.ajax({
-                url: "/api/Admin/CustomerApi/all",
-                method: "GET",
-                headers: {
-                    "Authorization": "Bearer " + token
-                },
-                success: function (res) {
-                    console.log("Dữ liệu nhận được:", res);
-
-                    var tbody = $("#tblCustomers tbody");
-                    tbody.empty();
-
-                    $.each(res, function (i, c) {
-                        var row = `
-                            <tr>
-                                <td>${c.userName}</td>
-                                <td>${c.fullName ?? ''}</td>
-                                <td>${c.email}</td>
-                                <td>${c.phoneNumber ?? ''}</td>
-                                <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ''}</td>
-                            </tr>`;
-                        tbody.append(row);
-                    });
-                },
-                error: function (xhr) {
-                    console.error("Lỗi khi gọi API:", xhr.status, xhr.responseText);
-                    alert("Không thể tải dữ liệu. Kiểm tra token hoặc quyền truy cập.");
-                }
-            });
-        }
-
-        $("#btnLoadApi").click(loadCustomersFromApi);
-        $(document).ready(loadCustomersFromApi);
-    </script>
-}
-
-
- *@
-
-@using BagStore.Web.Models.Entities
+﻿@using BagStore.Web.Models.Entities
 
 @model IEnumerable<ApplicationUser>
 
@@ -103,20 +26,6 @@
 </table>
 
 <button id="btnShowCreate" class="btn btn-success mb-3">➕ Thêm khách hàng</button>
-
-@* <table class="table table-bordered" id="tblCustomers">
-    <thead>
-        <tr>
-            <th>Tên đăng nhập</th>
-            <th>Họ tên</th>
-            <th>Email</th>
-            <th>SĐT</th>
-            <th>Ngày sinh</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table> *@
 
 <!-- Modal Form -->
 <div id="modalCustomer" class="modal" tabindex="-1" style="display:none;">
@@ -155,68 +64,6 @@
         </div>
     </div>
 </div>
-
-@* @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        function loadCustomersFromApi() {
-            const token = sessionStorage.getItem("jwtToken");
-
-            if (!token) {
-                alert("⚠️ Bạn chưa đăng nhập hoặc token không tồn tại. Vui lòng đăng nhập lại.");
-                window.location.href = "/Account/Login";
-                return;
-            }
-
-            console.log("🔑 Token hiện tại:", token);
-
-            $.ajax({
-                // ❗ Nếu controller nằm trong Areas/Admin/Controllers/CustomerApiController
-                // thì URL thật của API là /api/CustomerApi/all (KHÔNG có /Admin/)
-                url: "/api/CustomerApi/all",
-                method: "GET",
-                headers: {
-                    "Authorization": "Bearer " + token
-                },
-                success: function (res) {
-                    console.log("✅ Dữ liệu nhận được:", res);
-
-                    const tbody = $("#tblCustomers tbody");
-                    tbody.empty();
-
-                    if (!res || res.length === 0) {
-                        tbody.append("<tr><td colspan='5' class='text-center'>Không có khách hàng nào</td></tr>");
-                        return;
-                    }
-
-                    $.each(res, function (i, c) {
-                        const row = `
-                            <tr>
-                                <td>${c.userName}</td>
-                                <td>${c.fullName || ""}</td>
-                                <td>${c.email}</td>
-                                <td>${c.phoneNumber || ""}</td>
-                                <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString("vi-VN") : ""}</td>
-                            </tr>`;
-                        tbody.append(row);
-                    });
-                },
-                error: function (xhr) {
-                    console.error("❌ Lỗi khi gọi API:", xhr.status, xhr.responseText);
-
-                    if (xhr.status === 401)
-                        alert("Phiên đăng nhập hết hạn hoặc token không hợp lệ. Vui lòng đăng nhập lại.");
-                    else
-                        alert("Không thể tải dữ liệu. Kiểm tra token hoặc quyền truy cập.");
-                }
-            });
-        }
-
-        // 🟢 Gọi API tự động khi trang load hoặc khi bấm nút
-        $(document).ready(loadCustomersFromApi);
-        $("#btnLoadApi").click(loadCustomersFromApi);
-    </script>
-} *@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -1,85 +1,4 @@
-﻿@* @model BagStore.Web.Models.ViewModels.LoginModel
-
-@{
-    ViewData["Title"] = "Login";
-    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
-}
-
-<h2>Login</h2>
-
-<form asp-area="Client" asp-controller="Account" asp-action="Login" method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger"></div>
-
-    <div class="form-group">
-        <label asp-for="UserName"></label>
-        <input asp-for="UserName" class="form-control" />
-        <span asp-validation-for="UserName" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" type="password" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-primary">Login</button>
-</form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-} *@
-@* 
-@{
-    ViewData["Title"] = "Đăng nhập";
-    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
-} *@
-
-@* <h2>@ViewData["Title"]</h2>
-
-<form id="loginForm">
-    <div class="form-group">
-        <label for="UserName">Tên đăng nhập</label>
-        <input type="text" class="form-control" id="UserName" name="UserName" required />
-    </div>
-    <div class="form-group">
-        <label for="Password">Mật khẩu</label>
-        <input type="password" class="form-control" id="Password" name="Password" required />
-    </div>
-    <button type="submit" id="btnLogin" class="btn btn-primary mt-2">Đăng nhập</button>
-</form>
-
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $("#loginForm").submit(function (e) {
-            e.preventDefault();
-
-            var username = $("#UserName").val();
-            var password = $("#Password").val();
-
-            $.ajax({
-                url: "/api/auth/login",
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({ userName: username, password: password }),
-                success: function (res) {
-                    console.log("Token nhận được:", res.token);
-
-                    // Lưu token vào sessionStorage
-                    sessionStorage.setItem("jwtToken", res.token);
-
-                    // Chuyển hướng sang trang Admin
-                    window.location.href = "/Admin/Customer/Index";
-                },
-                error: function (xhr) {
-                    console.error("Lỗi login:", xhr.responseText);
-                    alert("Đăng nhập thất bại!");
-                }
-            });
-        });
-    </script>
-} *@
-
-@{
+﻿@{
     ViewData["Title"] = "Đăng nhập";
     Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
 }
@@ -126,18 +45,6 @@
                     userName: $("#UserName").val(),
                     password: $("#Password").val()
                 }),
-                // success: function (res) {
-                //     console.log("✅ Token nhận được:", res.token);
-
-                //     🧩 Lưu token vào sessionStorage
-                //     sessionStorage.setItem("jwtToken", res.token);
-
-                //     🟢 Hiện thông báo rồi chuyển trang
-                //     $("#loginMessage").css("color", "green").text("Đăng nhập thành công! Đang chuyển hướng...");
-                //     setTimeout(() => {
-                //         window.location.href = "/Admin/Customer/Index";
-                //     }, 1000);
-                // },
                 success: function (res) {
                     console.log("Token nhận được:", res.token);
 

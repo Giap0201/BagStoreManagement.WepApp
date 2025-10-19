@@ -11,50 +11,6 @@
     <div class="alert alert-success">@TempData["ProfileSuccess"]</div>
 }
 
-@* <form id="formProfile">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger"></div>
-
-    <input type="hidden" asp-for="Id" />
-
-    <div class="mb-3">
-        <label asp-for="UserName" class="form-label"></label>
-        <input asp-for="UserName" class="form-control" readonly />
-        <span asp-validation-for="UserName" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="FullName" class="form-label"></label>
-        <input asp-for="FullName" class="form-control" />
-        <span asp-validation-for="FullName" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Email" class="form-label"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="PhoneNumber" class="form-label"></label>
-        <input asp-for="PhoneNumber" class="form-control" />
-        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="NgaySinh" class="form-label"></label>
-        <input asp-for="NgaySinh" class="form-control" type="date" />
-        <span asp-validation-for="NgaySinh" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Lưu thay đổi</button> 
-
-</form>
-</br>
-<a asp-area="Client" asp-controller="Account" asp-action="Delete" class="btn btn-outline-danger">
-    Xóa tài khoản
-</a> *@
-
 <form id="formProfile">
     <input type="hidden" id="Id" />
 
@@ -135,32 +91,6 @@
         }
 
         // ------------------ 2. Gửi cập nhật hồ sơ ------------------
-        // $("#formProfile").submit(function (e) {
-        //     e.preventDefault();
-        //     const model = {
-        //         id: $("#Id").val(),
-        //         fullName: $("#FullName").val(),
-        //         email: $("#Email").val(),
-        //         phoneNumber: $("#PhoneNumber").val(),
-        //         ngaySinh: $("#NgaySinh").val()
-        //     };
-
-        //     $.ajax({
-        //         url: apiUrl + "/profile",
-        //         method: "PUT",
-        //         headers: { "Authorization": "Bearer " + token },
-        //         contentType: "application/json",
-        //         data: JSON.stringify(model),
-        //         success: function (res) {
-        //             alert(res.message || "Cập nhật hồ sơ thành công!");
-        //         },
-        //         error: function (xhr) {
-        //             console.error(xhr.responseText);
-        //             alert("Lỗi khi lưu hồ sơ!");
-        //         }
-        //     });
-        // });
-
         $("#formProfile").on("submit", function (e) {
             e.preventDefault(); // quan trọng: ngăn form submit mặc định
 
