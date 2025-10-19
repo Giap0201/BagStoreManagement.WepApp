@@ -4,11 +4,11 @@ namespace BagStore.Web.Models.DTOs.SanPhams
 {
     public class SanPhamUpdateDto
     {
-        public int MaSP { get; set; } // Bắt buộc để biết update sản phẩm nào
+        public int MaSanPham { get; set; } // Bắt buộc để biết update sản phẩm nào
 
         [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm.")]
         [StringLength(200, ErrorMessage = "Tên sản phẩm không được vượt quá 200 ký tự.")]
-        public string TenSP { get; set; }
+        public string TenSanPham { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập mô tả chi tiết.")]
         public string MoTaChiTiet { get; set; }

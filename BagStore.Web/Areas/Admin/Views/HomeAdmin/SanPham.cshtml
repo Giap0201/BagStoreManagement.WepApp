@@ -1,0 +1,340 @@
+﻿@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-white border-0 d-flex align-items-center pb-2">
+        <i class="mdi mdi-table text-primary fs-3 me-2"></i>
+        <h4 class="text-primary mb-0 fw-semibold">Quản lý sản phẩm</h4>
+    </div>
+
+    <div class="card-body pt-3">
+        <!-- Tìm kiếm -->
+        <div class="row g-2 align-items-center mb-3">
+            <div class="col-md-8">
+                <input type="text" id="searchInput" class="form-control" placeholder="Nhập tên sản phẩm...">
+            </div>
+            <div class="col-md-4 text-md-start text-end">
+                <button id="btnSearch" class="btn btn-outline-primary">
+                    <i class="mdi mdi-magnify me-1"></i> Tìm kiếm
+                </button>
+            </div>
+        </div>
+
+        <!-- Bảng -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle text-center mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã SP</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Loại túi</th>
+                        <th>Thương hiệu</th>
+                        <th>Chất liệu</th>
+                        <th>Ảnh chính</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-4">
+            <button id="btnAddNew" class="btn btn-primary px-4">
+                <i class="mdi mdi-plus-circle-outline me-1"></i> +Thêm sản phẩm
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa -->
+    <div class="modal fade" id="modalData" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Thêm mới sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="errorContainer" class="alert alert-danger d-none"></div>
+                    <form id="modalForm" enctype="multipart/form-data">
+                        <input type="hidden" id="inputId" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên sản phẩm</label>
+                            <input type="text" id="inputTenSP" class="form-control" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả chi tiết</label>
+                            <textarea id="inputMoTaChiTiet" class="form-control" rows="3" required></textarea>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Meta Title</label>
+                            <input type="text" id="inputMetaTitle" class="form-control" maxlength="200">
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Meta Description</label>
+                            <textarea id="inputMetaDescription" class="form-control" rows="2" maxlength="500"></textarea>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Loại túi</label>
+                            <select id="inputLoaiTui" class="form-select" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Thương hiệu</label>
+                            <select id="inputThuongHieu" class="form-select" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Chất liệu</label>
+                            <select id="inputChatLieu" class="form-select" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh sản phẩm (ảnh chính)</label>
+                            <input type="file" id="inputAnhChinh" class="form-control" accept="image/*" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" form="modalForm" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            const apiUrl = '/api/SanPhamApi';
+            const tableBody = $('#tableBody');
+            const modalDataInstance = new bootstrap.Modal(document.getElementById('modalData'));
+            const modalForm = $('#modalForm');
+            const modalLabel = $('#modalLabel');
+            const inputId = $('#inputId');
+            const inputTenSP = $('#inputTenSP');
+            const inputMoTaChiTiet = $('#inputMoTaChiTiet');
+            const inputMetaTitle = $('#inputMetaTitle');
+            const inputMetaDescription = $('#inputMetaDescription');
+            const inputLoaiTui = $('#inputLoaiTui');
+            const inputThuongHieu = $('#inputThuongHieu');
+            const inputChatLieu = $('#inputChatLieu');
+            const inputAnhChinh = $('#inputAnhChinh');
+            const errorContainer = $('#errorContainer');
+
+            let allProducts = [];
+
+            // Load dropdown LoaiTui, ThuongHieu, ChatLieu
+            function loadDropdowns() {
+                $.ajax({ url: '/api/DanhMucLoaiTuiApi', method: 'GET', success: function(res){
+                    if(res.status.toLowerCase()==='success'){
+                        inputLoaiTui.empty();
+                        res.data.forEach(c=>inputLoaiTui.append(`<option value="${c.maLoaiTui}">${c.tenLoaiTui}</option>`));
+                    }
+                }});
+                $.ajax({ url: '/api/ThuongHieuApi', method: 'GET', success: function(res){
+                    if(res.status.toLowerCase()==='success'){
+                        inputThuongHieu.empty();
+                        res.data.forEach(c=>inputThuongHieu.append(`<option value="${c.maThuongHieu}">${c.tenThuongHieu}</option>`));
+                    }
+                }});
+                $.ajax({ url: '/api/ChatLieuApi', method: 'GET', success: function(res){
+                    if(res.status.toLowerCase()==='success'){
+                        inputChatLieu.empty();
+                        res.data.forEach(c=>inputChatLieu.append(`<option value="${c.maChatLieu}">${c.tenChatLieu}</option>`));
+                    }
+                }});
+            }
+
+            function showError(response){
+                modalForm.find('.invalid-feedback').text('');
+                modalForm.find('input, textarea, select').removeClass('is-invalid');
+                errorContainer.addClass('d-none').empty();
+
+                let html = response.message || '';
+                if(response.errors && response.errors.length){
+                    html += '<ul>' + response.errors.map(e=>`<li>${e.message}</li>`).join('') + '</ul>';
+                    response.errors.forEach(e=>{
+                        const field = e.field;
+                        if(field==='TenSP') inputTenSP.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field==='MoTaChiTiet') inputMoTaChiTiet.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field==='MetaTitle') inputMetaTitle.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field==='MetaDescription') inputMetaDescription.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field==='MaLoaiTui') inputLoaiTui.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field==='MaThuongHieu') inputThuongHieu.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field==='MaChatLieu') inputChatLieu.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field==='AnhChinh') inputAnhChinh.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                    });
+                }
+                if(html) errorContainer.removeClass('d-none').html(html);
+                Swal.fire({title:'Lỗi!', html:html||'Có lỗi xảy ra', icon:'error'});
+            }
+
+            function loadData(){
+                tableBody.html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+                $.ajax({url: apiUrl, method:'GET', success: function(res){
+                    if(res.status && res.status.toLowerCase()==='success'){
+                        allProducts = res.data || [];
+                        renderTable(allProducts);
+                    } else {
+                        showError(res);
+                        tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                    }
+                }, error:function(xhr){
+                    Swal.fire('Lỗi!', 'Không thể tải dữ liệu.', 'error');
+                    tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                }});
+            }
+
+            function renderTable(data){
+                tableBody.empty();
+                if(!data.length){
+                    tableBody.html('<tr><td colspan="7" class="text-center text-info">Không có sản phẩm nào.</td></tr>');
+                    return;
+                }
+                data.forEach(item=>{
+                    tableBody.append(`
+                        <tr>
+                            <td>${item.maSP}</td>
+                            <td>${item.tenSP}</td>
+                            <td>${item.tenLoaiTui}</td>
+                            <td>${item.tenThuongHieu}</td>
+                            <td>${item.tenChatLieu}</td>
+                            <td><img src="${item.anhChinh}" style="max-width:50px;max-height:50px"/></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-warning btn-edit" data-id="${item.maSP}">Sửa</button>
+                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${item.maSP}">Xóa</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // Thêm mới
+            $('#btnAddNew').click(function(){
+                modalForm[0].reset();
+                inputId.val(0);
+                modalLabel.text('Thêm mới sản phẩm');
+                errorContainer.addClass('d-none').empty();
+                modalForm.find('input, textarea, select').removeClass('is-invalid');
+                modalDataInstance.show();
+            });
+
+            // Sửa
+            tableBody.on('click', '.btn-edit', function(){
+                const id = $(this).data('id');
+                $.ajax({
+                    url:`${apiUrl}/${id}`, method:'GET', success:function(res){
+                        if(res.status.toLowerCase()==='success'){
+                            const item = res.data;
+                            inputId.val(item.maSP);
+                            inputTenSP.val(item.tenSP);
+                            inputMoTaChiTiet.val(item.moTaChiTiet);
+                            inputMetaTitle.val(item.metaTitle);
+                            inputMetaDescription.val(item.metaDescription);
+                            inputLoaiTui.val(item.maLoaiTui);
+                            inputThuongHieu.val(item.maThuongHieu);
+                            inputChatLieu.val(item.maChatLieu);
+                            inputAnhChinh.val('');
+                            modalLabel.text('Cập nhật sản phẩm');
+                            errorContainer.addClass('d-none').empty();
+                            modalForm.find('input, textarea, select').removeClass('is-invalid');
+                            modalDataInstance.show();
+                        } else showError(res);
+                    },
+                    error:function(){ Swal.fire('Lỗi!', 'Không tìm thấy sản phẩm.', 'error'); }
+                });
+            });
+
+            // Xóa
+            tableBody.on('click', '.btn-delete', function(){
+                const id = $(this).data('id');
+                Swal.fire({
+                    title:'Bạn có chắc chắn xóa không?',
+                    icon:'warning',
+                    showCancelButton:true,
+                    confirmButtonText:'Xác nhận',
+                    cancelButtonText:'Hủy'
+                }).then(result=>{
+                    if(result.isConfirmed){
+                        $.ajax({
+                            url:`${apiUrl}/${id}`, method:'DELETE',
+                            success:function(res){
+                                if(res.status.toLowerCase()==='success'){
+                                    Swal.fire('Đã xóa!', res.message || 'Sản phẩm đã bị xóa.', 'success');
+                                    loadData();
+                                } else showError(res);
+                            },
+                            error:function(){ Swal.fire('Lỗi!', 'Không xóa được sản phẩm.', 'error'); }
+                        });
+                    }
+                });
+            });
+
+            // Lưu thay đổi (Thêm/Sửa)
+            modalForm.on('submit', function(e){
+                e.preventDefault();
+                modalForm.find('input, textarea, select').removeClass('is-invalid');
+                errorContainer.addClass('d-none').empty();
+
+                const formData = new FormData();
+                formData.append('MaSP', parseInt(inputId.val())||0);
+                formData.append('TenSP', inputTenSP.val().trim());
+                formData.append('MoTaChiTiet', inputMoTaChiTiet.val().trim());
+                formData.append('MetaTitle', inputMetaTitle.val().trim());
+                formData.append('MetaDescription', inputMetaDescription.val().trim());
+                formData.append('MaLoaiTui', inputLoaiTui.val());
+                formData.append('MaThuongHieu', inputThuongHieu.val());
+                formData.append('MaChatLieu', inputChatLieu.val());
+                if(inputAnhChinh[0].files[0]) formData.append('AnhChinh', inputAnhChinh[0].files[0]);
+
+                const isNew = parseInt(inputId.val()) === 0;
+                const url = isNew ? apiUrl : `${apiUrl}/${inputId.val()}`;
+                const method = isNew ? 'POST' : 'PUT';
+
+                $.ajax({
+                    url:url, method:method, processData:false, contentType:false,
+                    data:formData,
+                    success:function(res){
+                        if(res.status.toLowerCase()==='success'){
+                            modalDataInstance.hide();
+                            Swal.fire('Thành công!', res.message || (isNew?'Thêm mới thành công':'Cập nhật thành công'), 'success');
+                            loadData();
+                        } else showError(res);
+                    },
+                    error:function(xhr){ showError(xhr.responseJSON||{message:'Có lỗi xảy ra.'}); }
+                });
+            });
+
+            // Tìm kiếm
+            $('#searchInput').on('keyup', function(){
+                const term = $(this).val().toLowerCase().trim();
+                renderTable(term ? allProducts.filter(p=>p.tenSP.toLowerCase().includes(term)) : allProducts);
+            });
+            $('#btnSearch').click(()=>$('#searchInput').trigger('keyup'));
+
+            loadDropdowns();
+            loadData();
+        });
+    </script>
+}
