@@ -15,57 +15,50 @@ namespace BagStore.Web.Repositories.implementations
             _context = context;
         }
 
-        public async Task<int> CreateAsync(ThuongHieuDto request)
+        // Thêm mới thương hiệu
+        public async Task<ThuongHieu> AddAsync(ThuongHieu entity)
         {
-            var entity = new ThuongHieu
-            {
-                TenThuongHieu = request.TenThuongHieu,
-                QuocGia = request.QuocGia
-            };
             _context.ThuongHieux.Add(entity);
             await _context.SaveChangesAsync();
-            return entity.MaThuongHieu;
+            return entity;
         }
 
+        // Xóa thương hiệu
         public async Task<bool> DeleteAsync(int maThuongHieu)
         {
             var entity = await _context.ThuongHieux.FindAsync(maThuongHieu);
             if (entity == null) return false;
+
             _context.ThuongHieux.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<List<ThuongHieuDto>> GetAllAsync()
+        // Lấy tất cả thương hiệu
+        public async Task<List<ThuongHieu>> GetAllAsync()
         {
-            return await _context.ThuongHieux.Select(x => new ThuongHieuDto
-            {
-                MaThuongHieu = x.MaThuongHieu,
-                TenThuongHieu = x.TenThuongHieu,
-                QuocGia = x.QuocGia
-            }).ToListAsync();
+            return await _context.ThuongHieux.ToListAsync();
         }
 
-        public async Task<ThuongHieuDto> GetByIdAsync(int maThuongHieu)
+        // Lấy thương hiệu theo ID
+        public async Task<ThuongHieu> GetByIdAsync(int maThuongHieu)
         {
-            var entity = await _context.ThuongHieux.FindAsync(maThuongHieu);
+            return await _context.ThuongHieux.FindAsync(maThuongHieu);
+        }
+
+        public async Task<ThuongHieu> GetByNameAsync(string tenThuongHieu)
+        {
+            var entity = await _context.ThuongHieux.FirstOrDefaultAsync(x => x.TenThuongHieu == tenThuongHieu);
             if (entity == null) return null;
-            return new ThuongHieuDto
-            {
-                MaThuongHieu = entity.MaThuongHieu,
-                TenThuongHieu = entity.TenThuongHieu,
-                QuocGia = entity.QuocGia
-            };
+            return entity;
         }
 
-        public async Task<bool> UpdateAsync(ThuongHieuDto request)
+        // Cập nhật thương hiệu
+        public async Task<ThuongHieu> UpdateAsync(ThuongHieu entity)
         {
-            var entity = await _context.ThuongHieux.FindAsync(request.MaThuongHieu);
-            if (entity == null) return false;
-            entity.TenThuongHieu = request.TenThuongHieu;
-            entity.QuocGia = request.QuocGia;
+            _context.ThuongHieux.Update(entity);
             await _context.SaveChangesAsync();
-            return true;
+            return entity;
         }
     }
 }
