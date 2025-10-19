@@ -4,10 +4,11 @@ using BagStore.Web.Models.Common;
 using BagStore.Web.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ProductManagementApp.Controllers.Api
+namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ValidateModel] // Tự động bắt lỗi DataAnnotation và trả BaseResponse
     public class DanhMucLoaiTuiApiController : ControllerBase
     {
         private readonly IDanhMucLoaiTuiService _service;
@@ -17,40 +18,34 @@ namespace ProductManagementApp.Controllers.Api
             _service = service;
         }
 
-        //GET: Lấy tất cả
-        //GET: /api/DanhMucLoaiTui
+        // GET: /api/DanhMucLoaiTui
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var response = await _service.GetAllAsync();
-            return Ok(response); //BaseResponse<List<DanhMucLoaiTuiDto>>
+            return Ok(response);
         }
 
-        // Lấy loại túi theo ID
-        //GET: /api/DanhMucLoaiTui/{id}
+        // GET: /api/DanhMucLoaiTui/{maLoaiTui}
         [HttpGet("{maLoaiTui}")]
         public async Task<IActionResult> GetById(int maLoaiTui)
         {
             var response = await _service.GetByIdAsync(maLoaiTui);
-            return Ok(response);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        //Thêm mới loại túi
-        //POST: /api/DanhMucLoaiTui
+        // POST: /api/DanhMucLoaiTui
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DanhMucLoaiTuiDto dto)
         {
-            // Gọi service thêm mới và trả về BaseResponse<DanhMucLoaiTuiDto>
             var response = await _service.CreateAsync(dto);
-            return Ok(response);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        //Cập nhật loại túi theo ID
-        //PUT: /api/DanhMucLoaiTui/{id}
+        // PUT: /api/DanhMucLoaiTui/{maLoaiTui}
         [HttpPut("{maLoaiTui}")]
         public async Task<IActionResult> Update(int maLoaiTui, [FromBody] DanhMucLoaiTuiDto dto)
         {
-            // Kiểm tra ID trong URL có khớp với ID trong body không
             if (maLoaiTui != dto.MaLoaiTui)
             {
                 return BadRequest(BaseResponse<DanhMucLoaiTuiDto>.Error(
@@ -59,16 +54,15 @@ namespace ProductManagementApp.Controllers.Api
             }
 
             var response = await _service.UpdateAsync(maLoaiTui, dto);
-            return Ok(response); // Trả về BaseResponse<DanhMucLoaiTuiDto>
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        //Xóa loại túi theo ID
-        //DELETE: /api/DanhMucLoaiTui/{id}
+        // DELETE: /api/DanhMucLoaiTui/{maLoaiTui}
         [HttpDelete("{maLoaiTui}")]
         public async Task<IActionResult> Delete(int maLoaiTui)
         {
             var response = await _service.DeleteAsync(maLoaiTui);
-            return Ok(response); // Trả về BaseResponse<bool>
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
     }
 }

@@ -1,17 +1,18 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Models.Common;
+using BagStore.Web.Models.DTOs;
 
 namespace BagStore.Web.Services.Interfaces
 {
     public interface IKichThuocService
     {
-        Task<KichThuocDto> CreateAsync(KichThuocDto dto);
+        Task<BaseResponse<KichThuocDto>> CreateAsync(KichThuocDto dto);
 
-        Task<KichThuocDto> GetByIdAsync(int maKichThuoc);
+        Task<BaseResponse<KichThuocDto>> GetByIdAsync(int maKichThuoc);
 
-        Task<List<KichThuocDto>> GetAllAsync();
+        Task<BaseResponse<List<KichThuocDto>>> GetAllAsync();
 
-        Task<KichThuocDto> UpdateAsync(int maKichThuoc, KichThuocDto dto);
+        Task<BaseResponse<KichThuocDto>> UpdateAsync(int maKichThuoc, KichThuocDto dto);
 
-        Task<bool> DeleteAsync(int maKichThuoc);
+        Task<BaseResponse<bool>> DeleteAsync(int maKichThuoc);
     }
 }
