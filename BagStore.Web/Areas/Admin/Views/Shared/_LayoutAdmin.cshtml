@@ -58,7 +58,10 @@
                             </a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#">
-                                <i class="mdi mdi-logout me-2 text-primary"></i> Signout
+                                @* <i class="mdi mdi-logout me-2 text-primary"></i> Signout *@
+                                <form asp-area="Client" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-link nav-link">Đăng xuất</button>
+                                </form>
                             </a>
                         </div>
                     </li>
@@ -276,7 +279,7 @@
                 <!-- content-wrapper ends -->
                 <!-- partial:../../partials/_footer.html -->
 
-                <partial name="Footer"></partial>
+                @* <partial name="Footer"></partial> *@
                 <!-- partial -->
             </div>
             <!-- main-panel ends -->
@@ -296,9 +299,10 @@
     <script src="../../LayoutAdmin/lib/jquery/dist/jquery.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @RenderSection("Scripts", required: false)
+    @* @RenderSection("Scripts", required: false) *@
     <!-- endinject -->
     <!-- Custom js for this page -->
     <!-- End custom js for this page -->
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

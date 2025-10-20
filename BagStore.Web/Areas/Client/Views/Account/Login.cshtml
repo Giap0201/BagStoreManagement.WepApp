@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">@ViewData["Title"]</h2>
+
+    <form id="loginForm">
+        <div class="form-group mb-3">
+            <label for="UserName">Tên đăng nhập</label>
+            <input type="text" class="form-control" id="UserName" name="UserName" required />
+        </div>
+        <div class="form-group mb-3">
+            <label for="Password">Mật khẩu</label>
+            <input type="password" class="form-control" id="Password" name="Password" required />
+        </div>
+        <button type="submit" id="btnLogin" class="btn btn-primary">Đăng nhập</button>
+    </form>
+
+    <div id="loginMessage" class="mt-3 text-danger"></div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <script>
+        $("#loginForm").on("submit", function (e) {
+            e.preventDefault();
+
+            const username = $("#UserName").val().trim();
+            const password = $("#Password").val().trim();
+
+            if (!username || !password) {
+                $("#loginMessage").text("Vui lòng nhập đầy đủ thông tin.");
+                return;
+            }
+
+            $.ajax({
+                url: "/api/auth/login", // gọi API đăng nhập
+                method: "POST",
+                contentType: "application/json",
+                // data: JSON.stringify({ userName: username, password: password }),
+                data: JSON.stringify({
+                    userName: $("#UserName").val(),
+                    password: $("#Password").val()
+                }),
+                success: function (res) {
+                    console.log("Token nhận được:", res.token);
+
+                    // Lưu token vào sessionStorage
+                    sessionStorage.setItem("jwtToken", res.token);
+
+                    try {
+                        // Giải mã JWT để lấy role
+                        const decoded = jwt_decode(res.token);
+                        const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+                        if (role === "Admin")
+                            window.location.href = "/Admin/Customer/Index";
+                        else
+                            window.location.href = "/Client/Home/Index";
+                    } catch (err) {
+                        console.error("Lỗi giải mã token:", err);
+                        alert("Token không hợp lệ. Vui lòng đăng nhập lại.");
+                    }
+                },
+
+                error: function (xhr) {
+                    console.error("❌ Lỗi login:", xhr.responseText);
+                    $("#loginMessage").css("color", "red").text("Đăng nhập thất bại. Kiểm tra lại tài khoản/mật khẩu.");
+                }
+            });
+        });
+    </script>
+}
+
