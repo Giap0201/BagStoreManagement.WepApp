@@ -9,7 +9,7 @@
 
 <h2>@ViewData["Title"]</h2>
 
-@* <button id="btnLoadApi" class="btn btn-primary mb-3">Tải danh sách từ API</button> *@
+<button id="btnLoadApi" class="btn btn-primary mb-3">Tải danh sách từ API</button>
 
 <table class="table table-bordered" id="tblCustomers">
     <thead>
@@ -54,9 +54,18 @@
                     <label>Ngày sinh</label>
                     <input type="date" id="NgaySinh" class="form-control" />
                 </div>
-                <div id="divPassword" class="mb-3">
-                    <label for="Password">Mật khẩu (khi thêm mới)</label>
+                @* <div id="divPassword" class="mb-3">
+                    <label for="Password">Mật khẩu</label>
                     <input type="password" id="Password" name="Password" class="form-control" />
+                </div> *@
+                <div id="divPassword" class="mb-3 position-relative">
+                    <label for="Password" class="form-label">Mật khẩu</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="Password" name="Password" placeholder="Nhập mật khẩu" required />
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('Password')">
+                            <i id="icon-Password" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary mt-2">Lưu</button>
                 <button type="button" id="btnCancel" class="btn btn-secondary mt-2">Hủy</button>
@@ -67,6 +76,22 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
     <script>
         const apiUrl = "/api/Admin/CustomerApi";
         const token = sessionStorage.getItem("jwtToken");

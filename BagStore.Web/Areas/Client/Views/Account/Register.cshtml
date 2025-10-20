@@ -1,48 +1,4 @@
-﻿@* @model BagStore.Web.Models.ViewModels.RegisterModel
-
-@{
-    ViewData["Title"] = "Register";
-    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
-}
-
-<h2>Register</h2>
-
-<form method="post" asp-action="Register">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger"></div>
-
-    <div class="form-group">
-        <label asp-for="UserName"></label>
-        <input asp-for="UserName" class="form-control" />
-        <span asp-validation-for="UserName" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="FullName"></label>
-        <input asp-for="FullName" class="form-control" />
-        <span asp-validation-for="FullName" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" type="password" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="ConfirmPassword"></label>
-        <input asp-for="ConfirmPassword" class="form-control" type="password" />
-        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-success">Register</button>
-</form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-} *@
-
+﻿
 @{
     Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
     ViewData["Title"] = "Đăng ký tài khoản";
@@ -76,21 +32,53 @@
         <input type="date" id="NgaySinh" class="form-control" />
     </div>
 
-    <div class="mb-3">
+    @* <div class="mb-3">
         <label for="Password" class="form-label">Mật khẩu</label>
         <input type="password" id="Password" class="form-control" required />
+    </div> *@
+
+    <div class="mb-3 position-relative">
+        <label for="Password" class="form-label">Mật khẩu</label>
+        <div class="input-group">
+            <input type="password" class="form-control" id="Password" name="Password" placeholder="Nhập mật khẩu" required />
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('Password')">
+                <i id="icon-Password" class="fa-solid fa-eye"></i>
+            </button>
+        </div>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 position-relative">
         <label for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
-        <input type="password" id="ConfirmPassword" class="form-control" required />
+        <div class="input-group">
+            <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword" placeholder="Nhập lại mật khẩu" required />
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('ConfirmPassword')">
+                <i id="icon-ConfirmPassword" class="fa-solid fa-eye"></i>
+            </button>
+        </div>
     </div>
 
     <button type="submit" class="btn btn-primary">Đăng ký</button>
 </form>
 
+
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
     <script>
         $("#formRegister").on("submit", function (e) {
             e.preventDefault();

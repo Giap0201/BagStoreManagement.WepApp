@@ -11,9 +11,18 @@
             <label for="UserName">Tên đăng nhập</label>
             <input type="text" class="form-control" id="UserName" name="UserName" required />
         </div>
-        <div class="form-group mb-3">
+        @* <div class="form-group mb-3">
             <label for="Password">Mật khẩu</label>
             <input type="password" class="form-control" id="Password" name="Password" required />
+        </div> *@
+        <div class="mb-3 position-relative">
+            <label for="Password" class="form-label">Mật khẩu</label>
+            <div class="input-group">
+                <input type="password" class="form-control" id="Password" name="Password" placeholder="Nhập mật khẩu" required />
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('Password')">
+                    <i id="icon-Password" class="fa-solid fa-eye"></i>
+                </button>
+            </div>
         </div>
         <button type="submit" id="btnLogin" class="btn btn-primary">Đăng nhập</button>
     </form>
@@ -24,6 +33,22 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
     <script>
         $("#loginForm").on("submit", function (e) {
             e.preventDefault();
