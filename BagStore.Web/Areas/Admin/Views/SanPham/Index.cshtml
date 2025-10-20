@@ -1,0 +1,157 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-white border-0 d-flex align-items-center pb-2">
+        <i class="mdi mdi-table text-primary fs-3 me-2"></i>
+        <h4 class="text-primary mb-0 fw-semibold">Quản lý sản phẩm</h4>
+    </div>
+
+    <div class="card-body pt-3">
+        <!-- Tìm kiếm -->
+        <div class="row g-2 align-items-center mb-3">
+            <div class="col-md-8">
+                <input type="text" id="searchInput" class="form-control" placeholder="Nhập tên sản phẩm...">
+            </div>
+            <div class="col-md-4 text-md-start text-end">
+                <button id="btnSearch" class="btn btn-outline-primary">
+                    <i class="mdi mdi-magnify me-1"></i> Tìm kiếm
+                </button>
+            </div>
+        </div>
+
+        <!-- Bảng -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle text-center mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã SP</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Loại túi</th>
+                        <th>Thương hiệu</th>
+                        <th>Chất liệu</th>
+                        <th>Ảnh chính</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-4">
+            <a href="/Admin/SanPham/Create" class="btn btn-primary px-4">
+                <i class="mdi mdi-plus-circle-outline me-1"></i> +Thêm sản phẩm
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            const apiUrl = '/api/SanPhamApi';
+            const tableBody = $('#tableBody');
+            let allProducts = [];
+
+            function showError(response) {
+                let html = response.message || 'Có lỗi xảy ra';
+                if (response.errors && response.errors.length) {
+                    html += '<ul>' + response.errors.map(e => `<li>${e.message}</li>`).join('') + '</ul>';
+                }
+                Swal.fire({ title: 'Lỗi!', html: html, icon: 'error' });
+            }
+
+            function loadData() {
+                tableBody.html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+                $.ajax({
+                    url: apiUrl,
+                    method: 'GET',
+                    success: function (res) {
+                        if (res.status && res.status.toLowerCase() === 'success') {
+                            allProducts = res.data || [];
+                            renderTable(allProducts);
+                        } else {
+                            showError(res);
+                            tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Lỗi!', 'Không thể tải dữ liệu.', 'error');
+                        tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                    }
+                });
+            }
+
+            function renderTable(data) {
+                tableBody.empty();
+                if (!data.length) {
+                    tableBody.html('<tr><td colspan="7" class="text-center text-info">Không có sản phẩm nào.</td></tr>');
+                    return;
+                }
+                data.forEach(item => {
+                    tableBody.append(`
+                        <tr>
+                            <td>${item.maSP}</td>
+                            <td>${item.tenSP}</td>
+                            <td>${item.tenLoaiTui}</td>
+                            <td>${item.tenThuongHieu}</td>
+                            <td>${item.tenChatLieu}</td>
+                            <td><img src="${item.anhChinh}" style="max-width:50px;max-height:50px"/></td>
+                            <td>
+                                <a href="/Admin/SanPham/Edit/${item.maSP}" class="btn btn-sm btn-outline-warning">Sửa</a>
+                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${item.maSP}">Xóa</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // Xóa
+            tableBody.on('click', '.btn-delete', function () {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Bạn có chắc chắn xóa không?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xác nhận',
+                    cancelButtonText: 'Hủy'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `${apiUrl}/${id}`,
+                            method: 'DELETE',
+                            success: function (res) {
+                                if (res.status.toLowerCase() === 'success') {
+                                    Swal.fire('Đã xóa!', res.message || 'Sản phẩm đã bị xóa.', 'success');
+                                    loadData();
+                                } else {
+                                    showError(res);
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('Lỗi!', 'Không xóa được sản phẩm.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Tìm kiếm
+            $('#searchInput').on('keyup', function () {
+                const term = $(this).val().toLowerCase().trim();
+                renderTable(term ? allProducts.filter(p => p.tenSP.toLowerCase().includes(term)) : allProducts);
+            });
+            $('#btnSearch').click(() => $('#searchInput').trigger('keyup'));
+
+            loadData();
+        });
+    </script>
+}

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BagStore.Web.Migrations
 {
     [DbContext(typeof(BagStoreDbContext))]
-    [Migration("20251010101915_init")]
-    partial class init
+    [Migration("20251011165210_InitIdentity")]
+    partial class InitIdentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
