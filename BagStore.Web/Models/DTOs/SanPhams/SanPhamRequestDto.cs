@@ -2,13 +2,13 @@
 
 namespace BagStore.Web.Models.DTOs.SanPhams
 {
-    public class SanPhamUpdateDto
+    public class SanPhamRequestDto
     {
-        public int MaSanPham { get; set; } // Bắt buộc để biết update sản phẩm nào
+        public int MaSanPham { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm.")]
         [StringLength(200, ErrorMessage = "Tên sản phẩm không được vượt quá 200 ký tự.")]
-        public string TenSanPham { get; set; }
+        public string TenSP { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập mô tả chi tiết.")]
         public string MoTaChiTiet { get; set; }
@@ -30,5 +30,7 @@ namespace BagStore.Web.Models.DTOs.SanPhams
         [Required(ErrorMessage = "Vui lòng chọn chất liệu.")]
         [Range(1, int.MaxValue, ErrorMessage = "Chất liệu không hợp lệ.")]
         public int MaChatLieu { get; set; }
+
+        public IFormFile? AnhChinh { get; set; }
     }
 }
