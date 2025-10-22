@@ -182,8 +182,11 @@ namespace BagStore.Web.Services.Implementations
                 MoTaChiTiet = entity.MoTaChiTiet,
                 MetaTitle = entity.MetaTitle,
                 MetaDescription = entity.MetaDescription,
+                MaLoaiTui = entity.MaLoaiTui,
                 TenLoaiTui = danhMucLoaiTui?.TenLoaiTui ?? "N/A",
+                MaThuongHieu = entity.MaThuongHieu,
                 TenThuongHieu = thuongHieu?.TenThuongHieu ?? "N/A",
+                MaChatLieu = entity.MaChatLieu,
                 TenChatLieu = chatLieu?.TenChatLieu ?? "N/A",
                 NgayCapNhap = entity.NgayCapNhat,
                 AnhChinh = anhChinh?.DuongDan

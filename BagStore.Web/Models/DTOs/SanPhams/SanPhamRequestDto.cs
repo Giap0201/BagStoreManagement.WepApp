@@ -13,9 +13,11 @@ namespace BagStore.Web.Models.DTOs.SanPhams
         [Required(ErrorMessage = "Vui lòng nhập mô tả chi tiết.")]
         public string MoTaChiTiet { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng nhập Meta title.")]
         [StringLength(200, ErrorMessage = "Meta title không được vượt quá 200 ký tự.")]
         public string MetaTitle { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng nhập MetaDescription")]
         [StringLength(500, ErrorMessage = "Meta description không được vượt quá 500 ký tự.")]
         public string MetaDescription { get; set; }
 
