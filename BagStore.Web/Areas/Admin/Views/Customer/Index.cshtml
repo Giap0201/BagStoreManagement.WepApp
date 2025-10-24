@@ -18,7 +18,7 @@
     </div>
 
     <div class="card shadow-sm border-0">
-        <div class="card-body table-responsive">
+        <div class="card-body table-responsive mt-3">
             <table class="table table-hover align-middle" id="tblCustomers">
                 <thead class="table-dark">
                     <tr>
@@ -91,9 +91,59 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <!-- DataTables + Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
+
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+    <!-- Giao diện tiếng Việt -->
+    <script src="https://cdn.datatables.net/plug-ins/1.13.8/i18n/vi.json"></script>
+
     <script>
         const apiUrl = "/api/Admin/CustomerApi";
         const token = sessionStorage.getItem("jwtToken");
+
+        // ----------------- Load danh sách -----------------
+        // function loadCustomers() {
+        //     $.ajax({
+        //         url: apiUrl + "/all",
+        //         headers: { "Authorization": "Bearer " + token },
+        //         success: function (res) {
+        //             const tbody = $("#tblCustomers tbody");
+        //             tbody.empty();
+        //             $.each(res, function (i, c) {
+        //                 const row = `
+        //                     <tr>
+        //                         <td><i class="fa fa-user text-secondary me-1"></i>${c.userName}</td>
+        //                         <td>${c.fullName ?? ""}</td>
+        //                         <td>${c.email}</td>
+        //                         <td>${c.phoneNumber ?? ""}</td>
+        //                         <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ""}</td>
+        //                         <td class="text-center">
+        //                             <button class="btn btn-sm btn-outline-primary btnEdit me-1" data-id="${c.id}">
+        //                                 <i class="fa fa-edit"></i>
+        //                             </button>
+        //                             <button class="btn btn-sm btn-outline-danger btnDelete me-1" data-id="${c.id}">
+        //                                 <i class="fa fa-trash"></i>
+        //                             </button>
+        //                             <button class="btn btn-sm btn-outline-warning btnReset" data-id="${c.id}">
+        //                                 <i class="fa fa-key"></i>
+        //                             </button>
+        //                         </td>
+        //                     </tr>`;
+        //                 tbody.append(row);
+        //             });
+
+        //         },
+        //         error: function (xhr) {
+        //             console.error(xhr);
+        //             alert("Không tải được danh sách khách hàng.");
+        //         }
+        //     });
+        // }
 
         // ----------------- Load danh sách -----------------
         function loadCustomers() {
@@ -101,17 +151,20 @@
                 url: apiUrl + "/all",
                 headers: { "Authorization": "Bearer " + token },
                 success: function (res) {
-                    const tbody = $("#tblCustomers tbody");
-                    tbody.empty();
-                    $.each(res, function (i, c) {
-                        const row = `
-                            <tr>
-                                <td><i class="fa fa-user text-secondary me-1"></i>${c.userName}</td>
-                                <td>${c.fullName ?? ""}</td>
-                                <td>${c.email}</td>
-                                <td>${c.phoneNumber ?? ""}</td>
-                                <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ""}</td>
-                                <td class="text-center">
+
+                    // Nếu DataTable đã tồn tại thì chỉ cần clear + add lại
+                    if ($.fn.DataTable.isDataTable('#tblCustomers')) {
+                        const table = $('#tblCustomers').DataTable();
+                        table.clear();
+
+                        $.each(res, function (i, c) {
+                            table.row.add([
+                                `<i class="fa fa-user text-secondary me-1"></i>${c.userName}`,
+                                c.fullName ?? "",
+                                c.email,
+                                c.phoneNumber ?? "",
+                                c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : "",
+                                `<div class="text-center">
                                     <button class="btn btn-sm btn-outline-primary btnEdit me-1" data-id="${c.id}">
                                         <i class="fa fa-edit"></i>
                                     </button>
@@ -121,10 +174,41 @@
                                     <button class="btn btn-sm btn-outline-warning btnReset" data-id="${c.id}">
                                         <i class="fa fa-key"></i>
                                     </button>
-                                </td>
-                            </tr>`;
-                        tbody.append(row);
-                    });
+                                </div>`
+                            ]);
+                        });
+
+                        table.draw(false); // 👈 Cập nhật ngay, không reset trang hiện tại
+                    } else {
+                        // Nếu chưa khởi tạo DataTable thì tạo mới
+                        $('#tblCustomers').DataTable({
+                            data: res.map(c => [
+                                `<i class="fa fa-user text-secondary me-1"></i>${c.userName}`,
+                                c.fullName ?? "",
+                                c.email,
+                                c.phoneNumber ?? "",
+                                c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : "",
+                                `<div class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary btnEdit me-1" data-id="${c.id}">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btnDelete me-1" data-id="${c.id}">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning btnReset" data-id="${c.id}">
+                                        <i class="fa fa-key"></i>
+                                    </button>
+                                </div>`
+                            ]),
+                            responsive: true,
+                            autoWidth: false,
+                            pageLength: 5,
+                            lengthMenu: [5, 10, 20, 50],
+                            language: {
+                                url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/vi.json"
+                            }
+                        });
+                    }
                 },
                 error: function (xhr) {
                     console.error(xhr);
@@ -132,6 +216,7 @@
                 }
             });
         }
+
 
         // ----------------- Hiện modal tạo mới -----------------
         $("#btnShowCreate").click(function () {
@@ -215,7 +300,7 @@
                 },
                 error: function () {
                     alert("Lỗi khi xoá khách hàng.");
-                }
+                },
             });
         });
 
