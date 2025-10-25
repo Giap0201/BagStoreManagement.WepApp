@@ -35,25 +35,57 @@ namespace BagStore.Web.Services
         }
 
 
+        // ========================== CUSTOMER REGISTER ==========================
         public async Task<IdentityResult> RegisterCustomerAsync(RegisterViewModel model)
         {
-            var user = new ApplicationUser
-            {
-                UserName = model.UserName,
-                FullName = model.FullName,
-                Email = model.Email,
-                PhoneNumber = model.PhoneNumber,
-                NgaySinh = model.NgaySinh
-            };
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (result.Succeeded)
+            try
             {
-                await _userManager.AddToRoleAsync(user, "Customer");
+                var user = new ApplicationUser
+                {
+                    UserName = model.UserName,
+                    Email = model.Email,
+                    PhoneNumber = model.PhoneNumber,
+                    FullName = model.FullName,
+                    NgaySinh = model.NgaySinh
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (!result.Succeeded)
+                    return result;
+
+                await _userManager.AddToRoleAsync(user, "CUSTOMER");
+
+                // 👉 tạo khách hàng tương ứng
+                var kh = new KhachHang
+                {
+                    TenKH = user.FullName,
+                    SoDienThoai = user.PhoneNumber,
+                    DiaChiMacDinh = "Chưa cập nhật",  // ✅ thêm dòng này
+                    NgayDangKy = DateTime.Now,
+                    ApplicationUserId = user.Id
+                };
+
+                _dbContext.KhachHangs.Add(kh);
+                await _dbContext.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return result;
             }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
 
-            return result;
+                // Lấy thông tin lỗi chi tiết nhất (inner nhất)
+                var inner = ex;
+                while (inner.InnerException != null)
+                    inner = inner.InnerException;
+
+                throw new Exception($"Lỗi khi thêm khách hàng: {inner.Message}", inner);
+            }
         }
+
 
         public async Task<SignInResult> LoginAsync(LoginViewModel model)
         {
@@ -97,7 +129,22 @@ namespace BagStore.Web.Services
             // Lưu đơn giản:
             var result = await _userManager.UpdateAsync(user);
 
-            // Nếu thay đổi email and you want to re-confirm, you might need to manage EmailConfirmed flag & tokens.
+            if (!result.Succeeded)
+                return result;
+
+            // 3️⃣ Đồng bộ sang bảng KhachHang (nếu có)
+            var kh = await _dbContext.KhachHangs
+                .FirstOrDefaultAsync(k => k.ApplicationUserId == user.Id);
+
+            if (kh != null)
+            {
+                kh.TenKH = user.FullName ?? user.UserName;
+                kh.SoDienThoai = user.PhoneNumber ?? "";
+                //kh.DiaChiMacDinh = model.DiaChiMacDinh ?? kh.DiaChiMacDinh; // nếu form có địa chỉ thì cập nhật
+                _dbContext.KhachHangs.Update(kh);
+                await _dbContext.SaveChangesAsync();
+            }
+
             return result;
         }
 
@@ -185,33 +232,67 @@ namespace BagStore.Web.Services
                 NgaySinh = model.NgaySinh
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password!);
-            if (result.Succeeded)
-                await _userManager.AddToRoleAsync(user, "Customer");
+            var result = await _userManager.CreateAsync(user, model.Password ?? "Customer@123");
+            if (!result.Succeeded)
+                return result;
+
+            await _userManager.AddToRoleAsync(user, "Customer");
+
+            // ➕ Tạo khách hàng tương ứng
+            var kh = new KhachHang
+            {
+                TenKH = model.FullName,
+                SoDienThoai = model.PhoneNumber,
+                DiaChiMacDinh = "Chưa cập nhật",  // ✅ thêm dòng này
+                NgayDangKy = DateTime.Now,
+                ApplicationUserId = user.Id
+            };
+
+            _dbContext.KhachHangs.Add(kh);
+            await _dbContext.SaveChangesAsync();
 
             return result;
         }
 
+
         public async Task<IdentityResult> UpdateCustomerAsync(AdminCustomerViewModel model)
         {
             var user = await _userManager.FindByIdAsync(model.Id);
-            if (user == null) return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng" });
+            if (user == null)
+                return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng" });
 
             user.FullName = model.FullName;
             user.Email = model.Email;
             user.PhoneNumber = model.PhoneNumber;
             user.NgaySinh = model.NgaySinh;
 
-            return await _userManager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return result;
+
+            // ➕ Đồng bộ thông tin KhachHang
+            var kh = await _dbContext.KhachHangs.FirstOrDefaultAsync(k => k.ApplicationUserId == user.Id);
+            if (kh != null)
+            {
+                kh.TenKH = model.FullName;
+                kh.SoDienThoai = model.PhoneNumber;
+                await _dbContext.SaveChangesAsync();
+            }
+
+            return result;
         }
+
 
         public async Task<IdentityResult> DeleteAccountAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng" });
+            if (user == null)
+                return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng" });
 
+            // ➖ Khi xoá user, KhachHang sẽ tự xoá nhờ OnDelete(DeleteBehavior.Cascade)
             return await _userManager.DeleteAsync(user);
         }
+
 
         public async Task<IdentityResult> ResetPasswordAsync(string userId, string newPassword)
         {
