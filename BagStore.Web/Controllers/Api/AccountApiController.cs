@@ -25,15 +25,23 @@ namespace BagStore.Web.Controllers.Api
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
-            var result = await _userService.RegisterCustomerAsync(model);
+                var result = await _userService.RegisterCustomerAsync(model);
 
-            if (!result.Succeeded)
-                return BadRequest(result.Errors.Select(e => e.Description));
+                if (!result.Succeeded)
+                    return BadRequest(result.Errors.Select(e => e.Description));
 
-            return Ok(new { message = "Đăng ký tài khoản thành công" });
+                return Ok(new { message = "Đăng ký tài khoản thành công" });
+            }
+            catch (Exception ex)
+            {
+                // Trả về lỗi chi tiết ra để bạn xem trong Chrome console
+                return StatusCode(500, new { message = ex.Message, detail = ex.InnerException?.Message });
+            }
         }
 
         // GET api/AccountApi/profile
