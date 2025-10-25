@@ -1,7 +1,5 @@
 ﻿using BagStore.Models.Common;
-using BagStore.Web.Models.Common;
 using BagStore.Web.Models.DTOs.SanPhams;
-using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +7,7 @@ namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
-    [ValidateModel] // Tự động bắt lỗi DataAnnotation và trả BaseResponse
+    [ValidateModel] // Tự động validate DataAnnotation trên DTO, trả BaseResponse nếu lỗi
     public class SanPhamApiController : ControllerBase
     {
         private readonly ISanPhamService _service;
@@ -19,15 +17,20 @@ namespace BagStore.Web.Controllers.Api
             _service = service;
         }
 
-        // GET: /api/SanPhamApi
+        /// Lấy danh sách tất cả sản phẩm
+        /// GET: /api/SanPhamApi
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var response = await _service.GetAllAsync();
-            return Ok(response);
+            // Nếu thất bại thì BadRequest, thành công trả Ok
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // GET: /api/SanPhamApi/{maLoaiTui}
+        /// Lấy sản phẩm theo ID
+        /// GET: /api/SanPhamApi/{maSanPham}
+
         [HttpGet("{maSanPham}")]
         public async Task<IActionResult> GetById(int maSanPham)
         {
@@ -35,30 +38,32 @@ namespace BagStore.Web.Controllers.Api
             return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // POST: /api/SanPhamApi
+        /// Tạo mới sản phẩm
+        /// POST: /api/SanPhamApi
+        /// Sử dụng [FromForm] để bind IFormFile
+
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] SanPhamCreateDto dto)
+        public async Task<IActionResult> Create([FromForm] SanPhamRequestDto dto)
         {
             var response = await _service.CreateAsync(dto);
             return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // PUT: /api/SanPhamApi/{maSanPham}
+        /// Cập nhật sản phẩm
+        /// PUT: /api/SanPhamApi/{maSanPham}
+        /// Sử dụng [FromForm] để bind IFormFile (ảnh sản phẩm)
+        /// ID sản phẩm lấy từ URL, không lấy từ DTO
 
         [HttpPut("{maSanPham}")]
-        public async Task<IActionResult> Update(int maSanPham, [FromBody] SanPhamUpdateDto dto)
+        public async Task<IActionResult> Update(int maSanPham, [FromForm] SanPhamRequestDto dto)
         {
-            if (maSanPham != dto.MaSanPham)
-            {
-                return BadRequest(BaseResponse<SanPhamResponseDto>.Error(
-                   new List<ErrorDetail> { new ErrorDetail("MaSanPham", "ID không khớp") },
-                   "Cập nhật thất bại"));
-            }
             var response = await _service.UpdateAsync(maSanPham, dto);
             return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        // DELETE: /api/SanPhamApi/{maSanPham}
+        /// Xóa sản phẩm theo ID
+        /// DELETE: /api/SanPhamApi/{maSanPham}
+
         [HttpDelete("{maSanPham}")]
         public async Task<IActionResult> Delete(int maSanPham)
         {

@@ -1,14 +1,9 @@
 ﻿using BagStore.Data;
-using BagStore.Repositories;
-using BagStore.Services;
-using BagStore.Models.Common;
-using BagStore.Services.Implementations;
-using BagStore.Services.Interfaces;
+using BagStore.Domain.Entities;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;
 using BagStore.Web.Repositories.Interfaces;
-using BagStore.Web.Services;
 using BagStore.Web.Services.Implementations;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,6 +12,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using BagStore.Services.Interfaces;
+using BagStore.Services.Implementations;
+using BagStore.Repositories;
+using BagStore.Services;
+using BagStore.Web.AppConfig.Interface;
+using BagStore.Web.AppConfig.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,6 +100,14 @@ builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
 builder.Services.AddScoped<ISanPhamService, SanPhamService>();
 builder.Services.AddScoped<IChiTietSanPhamRepository, ChiTietSanPhamImpl>();
 builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
+builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
+builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
+builder.Services.AddScoped<IDonHangService, DonHangService>();
+builder.Services.AddScoped<IAnhSanPhamRepository, AnhSanPhamImpl>();
+builder.Services.AddScoped<IAnhSanPhamService, AnhSanPhamService>();
+
+// Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
+builder.Services.AddScoped<IEnumMapper, EnumMapper>();
 
 // ============================
 // 6️⃣ Controllers + Global Filter

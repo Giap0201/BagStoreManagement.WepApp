@@ -42,5 +42,11 @@ namespace BagStore.Web.Areas.Admin.Controllers
         {
             return View();
         }
+
+        [HttpGet("{x}")]
+        public IActionResult Test(int x)
+        {
+            return View();
+        }
     }
 }
