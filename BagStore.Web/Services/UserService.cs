@@ -101,54 +101,54 @@ namespace BagStore.Web.Services
             return result;
         }
 
-        public async Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng." });
+        //public async Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    if (user == null)
+        //        return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng." });
 
-            // 1) Kiểm tra mật khẩu
-            var pwValid = await _userManager.CheckPasswordAsync(user, currentPassword);
-            if (!pwValid)
-                return IdentityResult.Failed(new IdentityError { Description = "Mật khẩu không đúng." });
+        //    // 1) Kiểm tra mật khẩu
+        //    var pwValid = await _userManager.CheckPasswordAsync(user, currentPassword);
+        //    if (!pwValid)
+        //        return IdentityResult.Failed(new IdentityError { Description = "Mật khẩu không đúng." });
 
-            // 2) (TÙY) Xóa các dữ liệu liên quan thủ công nếu cần
-            // Ví dụ: xóa KhachHang, NhanVienProfile, GioHang, DonHang,... 
-            // Nếu bạn đã cấu hình cascade delete thì không cần đoạn này.
-            try
-            {
-                // Ví dụ xóa KhachHang liên quan:
-                var kh = await _dbContext.KhachHangs.FirstOrDefaultAsync(x => x.ApplicationUserId == user.Id);
-                if (kh != null)
-                {
-                    _dbContext.KhachHangs.Remove(kh);
-                }
+        //    // 2) (TÙY) Xóa các dữ liệu liên quan thủ công nếu cần
+        //    // Ví dụ: xóa KhachHang, NhanVienProfile, GioHang, DonHang,... 
+        //    // Nếu bạn đã cấu hình cascade delete thì không cần đoạn này.
+        //    try
+        //    {
+        //        // Ví dụ xóa KhachHang liên quan:
+        //        var kh = await _dbContext.KhachHangs.FirstOrDefaultAsync(x => x.ApplicationUserId == user.Id);
+        //        if (kh != null)
+        //        {
+        //            _dbContext.KhachHangs.Remove(kh);
+        //        }
 
-                var nv = await _dbContext.NhanVienProfiles.FirstOrDefaultAsync(x => x.ApplicationUserId == user.Id);
-                if (nv != null)
-                {
-                    _dbContext.NhanVienProfiles.Remove(nv);
-                }
+        //        var nv = await _dbContext.NhanVienProfiles.FirstOrDefaultAsync(x => x.ApplicationUserId == user.Id);
+        //        if (nv != null)
+        //        {
+        //            _dbContext.NhanVienProfiles.Remove(nv);
+        //        }
 
-                // TODO: xóa các bảng khác tuỳ schema của bạn (GioHang, DonHang, ...)
-                await _dbContext.SaveChangesAsync();
-            }
-            catch
-            {
-                // nếu có lỗi xóa quan hệ, bạn có thể log nhưng tiếp tục xóa user hoặc trả về lỗi
-            }
+        //        // TODO: xóa các bảng khác tuỳ schema của bạn (GioHang, DonHang, ...)
+        //        await _dbContext.SaveChangesAsync();
+        //    }
+        //    catch
+        //    {
+        //        // nếu có lỗi xóa quan hệ, bạn có thể log nhưng tiếp tục xóa user hoặc trả về lỗi
+        //    }
 
-            // 3) Xóa user (Identity)
-            var result = await _userManager.DeleteAsync(user);
+        //    // 3) Xóa user (Identity)
+        //    var result = await _userManager.DeleteAsync(user);
 
-            // 4) Nếu xóa user thành công, sign out (clear cookie)
-            if (result.Succeeded)
-            {
-                await _signInManager.SignOutAsync();
-            }
+        //    // 4) Nếu xóa user thành công, sign out (clear cookie)
+        //    if (result.Succeeded)
+        //    {
+        //        await _signInManager.SignOutAsync();
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public async Task<IdentityResult> ChangePasswordAsync(string userId, string oldPassword, string newPassword)
         {
