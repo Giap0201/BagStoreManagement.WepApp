@@ -1,397 +1,182 @@
 ﻿@model BagStore.Web.Models.ViewModels.SanPhamDetailViewModel
 
 @{
-    ViewData["Title"] = "Chi tiết sản phẩm";
+    ViewData["Title"] = "Quản lý sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header pb-0">
-                    <h3 class="text-primary mb-0"><i class="bi bi-eye"></i> Chi tiết sản phẩm: @Model.SanPham.TenSP</h3>
-                </div>
-                <div class="card-body">
-                    <!-- Thông tin sản phẩm -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3"><strong>Mã sản phẩm:</strong> @Model.SanPham.MaSP</div>
-                            <div class="mb-3"><strong>Tên sản phẩm:</strong> @Model.SanPham.TenSP</div>
-                            <div class="mb-3"><strong>Loại túi:</strong> @Model.SanPham.TenLoaiTui</div>
-                            <div class="mb-3"><strong>Thương hiệu:</strong> @Model.SanPham.TenThuongHieu</div>
-                            <div class="mb-3"><strong>Chất liệu:</strong> @Model.SanPham.TenChatLieu</div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3"><strong>Mô tả chi tiết:</strong> <p>@Model.SanPham.MoTaChiTiet</p></div>
-                            <div class="mb-3"><strong>Meta Title:</strong> @Model.SanPham.MetaTitle</div>
-                            <div class="mb-3"><strong>Meta Description:</strong> @Model.SanPham.MetaDescription</div>
-                            <div class="mb-3"><strong>Ngày cập nhật:</strong> @Model.SanPham.NgayCapNhap</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="container mt-4">
+    <h3 class="text-primary mb-3">
+        <i class="bi bi-info-circle"></i> Chi tiết sản phẩm
+    </h3>
 
-            <!-- Quản lý chi tiết sản phẩm -->
-            <div class="card mb-4">
-                <div class="card-header pb-0">
-                    <h5 class="mb-0">Chi tiết sản phẩm</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped text-center">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Mã chi tiết</th>
-                                    <th>Kích thước</th>
-                                    <th>Màu sắc</th>
-                                    <th>Số lượng tồn</th>
-                                    <th>Giá bán</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.ChiTietSanPhams == null || !Model.ChiTietSanPhams.Any())
-                                {
-                                    <tr><td colspan="7" class="text-center text-info">Không có chi tiết sản phẩm.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var ctsp in Model.ChiTietSanPhams)
-                                    {
-                                        <tr>
-                                            <td>@ctsp.MaChiTietSP</td>
-                                            <td>@ctsp.TenKichThuoc</td>
-                                            <td>@ctsp.TenMauSac</td>
-                                            <td>@ctsp.SoLuongTon</td>
-                                            <td>@ctsp.GiaBan.ToString("N0") VNĐ</td>
-                                            <td>@ctsp.NgayTao</td>
-                                            <td>
-                                                <button class="btn btn-warning btn-sm" onclick="editChiTiet(@ctsp.MaChiTietSP)"><i class="bi bi-pencil"></i> Sửa</button>
-                                                <button class="btn btn-danger btn-sm" onclick="deleteChiTiet(@ctsp.MaChiTietSP)"><i class="bi bi-trash"></i> Xóa</button>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Form thêm/sửa chi tiết sản phẩm -->
-                    <div id="chiTietForm" class="mt-4" style="display:none;">
-                        <h5 id="formTitle">Thêm chi tiết sản phẩm</h5>
-                        <form id="chiTietFormSubmit" enctype="multipart/form-data">
-                            <input type="hidden" id="MaChiTietSP" name="MaChiTietSP" value="0" />
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Kích thước <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="MaKichThuoc" name="MaKichThuoc" required>
-                                        <option value="">-- Chọn kích thước --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Màu sắc <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="MaMauSac" name="MaMauSac" required>
-                                        <option value="">-- Chọn màu sắc --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Số lượng tồn <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="SoLuongTon" name="SoLuongTon" required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Giá bán <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="GiaBan" name="GiaBan" step="0.01" required />
-                                </div>
-                                <div class="col-12 text-end">
-                                    <button type="submit" class="btn btn-primary">Lưu</button>
-                                    <button type="button" class="btn btn-secondary" onclick="cancelChiTietForm()">Hủy</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <button class="btn btn-success mt-3" onclick="showChiTietForm()">Thêm chi tiết</button>
-                </div>
-            </div>
-
-            <!-- Quản lý ảnh sản phẩm -->
-            <div class="card">
-                <div class="card-header pb-0">
-                    <h5 class="mb-0">Danh sách ảnh sản phẩm</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        @if (Model.AnhSanPhams != null && Model.AnhSanPhams.Any())
-                        {
-                            foreach (var anh in Model.AnhSanPhams)
-                            {
-                                <div class="col-md-3 mb-3">
-                                    <div class="card">
-                                        <img src="@anh.DuongDan" class="card-img-top" alt="Ảnh sản phẩm" style="max-height: 150px; object-fit: cover;">
-                                        <div class="card-body text-center">
-                                            <p>Thứ tự: @anh.ThuTuHienThi</p>
-                                            <p>Ảnh chính: @(anh.LaHinhChinh ? "Có" : "Không")</p>
-                                            <button class="btn btn-warning btn-sm" onclick="editAnh(@anh.MaAnh)">Sửa</button>
-                                            <button class="btn btn-danger btn-sm" onclick="deleteAnh(@anh.MaAnh)">Xóa</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <p class="text-info">Không có ảnh sản phẩm.</p>
-                        }
-                    </div>
-                    <!-- Form thêm/sửa ảnh -->
-                    <div id="anhForm" class="mt-4" style="display:none;">
-                        <h5 id="anhFormTitle">Thêm ảnh sản phẩm</h5>
-                        <form id="anhFormSubmit" enctype="multipart/form-data">
-                            <input type="hidden" id="MaAnh" name="MaAnh" value="0" />
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Chọn ảnh <span class="text-danger">*</span></label>
-                                    <input type="file" class="form-control" id="FileAnh" name="FileAnh" accept="image/*" required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Thứ tự hiển thị <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="ThuTuHienThi" name="ThuTuHienThi" required />
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Là ảnh chính?</label>
-                                    <select class="form-select" id="LaHinhChinh" name="LaHinhChinh">
-                                        <option value="true">Có</option>
-                                        <option value="false">Không</option>
-                                    </select>
-                                </div>
-                                <div class="col-12 text-end">
-                                    <button type="submit" class="btn btn-primary">Lưu</button>
-                                    <button type="button" class="btn btn-secondary" onclick="cancelAnhForm()">Hủy</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <button class="btn btn-success mt-3" onclick="showAnhForm()">Thêm ảnh</button>
-                </div>
-            </div>
-
-            <a href="/Admin/SanPham" class="btn btn-secondary mt-3"><i class="bi bi-arrow-left"></i> Quay lại</a>
+    <!-- Thông tin sản phẩm -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Thông tin sản phẩm</h5>
         </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4 text-center">
+                    <img id="AnhChinh" src="" class="img-thumbnail" style="max-width:200px; object-fit:cover;" alt="Ảnh sản phẩm" />
+                </div>
+                <div class="col-md-8">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr><th>Mã SP:</th><td id="MaSP"></td></tr>
+                            <tr><th>Tên sản phẩm:</th><td id="TenSP"></td></tr>
+                            <tr><th>Loại túi:</th><td id="TenLoaiTui"></td></tr>
+                            <tr><th>Thương hiệu:</th><td id="TenThuongHieu"></td></tr>
+                            <tr><th>Chất liệu:</th><td id="TenChatLieu"></td></tr>
+                            <tr><th>Mô tả chi tiết:</th><td id="MoTaChiTiet"></td></tr>
+                            <tr><th>Meta Title:</th><td id="MetaTitle"></td></tr>
+                            <tr><th>Meta Description:</th><td id="MetaDescription"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ảnh sản phẩm -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Ảnh sản phẩm</h5>
+        </div>
+        <div class="card-body">
+            <div id="anhSanPhamList" class="d-flex flex-wrap gap-3 justify-content-start">
+                <div class="text-muted">Đang tải ảnh...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chi tiết sản phẩm (biến thể) -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Chi tiết sản phẩm</h5>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã chi tiết</th>
+                        <th>Màu sắc</th>
+                        <th>Kích thước</th>
+                        <th>Số lượng tồn</th>
+                        <th>Giá bán</th>
+                    </tr>
+                </thead>
+                <tbody id="chiTietSanPhamTableBody">
+                    <tr><td colspan="5" class="text-muted">Đang tải...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-end">
+        <a href="/Admin/SanPham" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        let maSP = @Model.SanPham.MaSP;
+        $(document).ready(function () {
+            const maSP = @Model.SanPham.MaSP;
+            const apiBase = `/api/sanpham/${maSP}`;
 
-        function showChiTietForm(maChiTietSP = 0) {
-            $('#chiTietForm').show();
-            $('#MaChiTietSP').val(maChiTietSP);
-            $('#formTitle').text(maChiTietSP == 0 ? 'Thêm chi tiết sản phẩm' : 'Cập nhật chi tiết sản phẩm');
-
-            $.ajax({
-                url: '/api/KichThuoc',
-                method: 'GET',
-                success: function (response) {
-                    if (response.status === 'success') {
-                        let options = '<option value="">-- Chọn kích thước --</option>';
-                        response.data.forEach(item => {
-                            options += `<option value="${item.maKichThuoc}">${item.tenKichThuoc}</option>`;
-                        });
-                        $('#MaKichThuoc').html(options);
-                    }
-                }
-            });
-
-            $.ajax({
-                url: '/api/MauSac',
-                method: 'GET',
-                success: function (response) {
-                    if (response.status === 'success') {
-                        let options = '<option value="">-- Chọn màu sắc --</option>';
-                        response.data.forEach(item => {
-                            options += `<option value="${item.maMauSac}">${item.tenMauSac}</option>`;
-                        });
-                        $('#MaMauSac').html(options);
-                    }
-                }
-            });
-
-            if (maChiTietSP > 0) {
+            // --- 1️⃣ Lấy thông tin sản phẩm chính ---
+            function loadSanPhamInfo() {
                 $.ajax({
-                    url: `/api/sanpham/${maSP}/chitietSanPhamApi/${maChiTietSP}`,
+                    url: `/api/SanPhamApi/${maSP}`,
                     method: 'GET',
-                    success: function (response) {
-                        if (response.status === 'success') {
-                            $('#MaKichThuoc').val(response.data.maKichThuoc);
-                            $('#MaMauSac').val(response.data.maMauSac);
-                            $('#SoLuongTon').val(response.data.soLuongTon);
-                            $('#GiaBan').val(response.data.giaBan);
+                    success: function (res) {
+                        if (res.status === 'success' && res.data) {
+                            const sp = res.data;
+                            $('#MaSP').text(sp.maSP);
+                            $('#TenSP').text(sp.tenSP);
+                            $('#TenLoaiTui').text(sp.tenLoaiTui || 'N/A');
+                            $('#TenThuongHieu').text(sp.tenThuongHieu || 'N/A');
+                            $('#TenChatLieu').text(sp.tenChatLieu || 'N/A');
+                            $('#MoTaChiTiet').text(sp.moTaChiTiet);
+                            $('#MetaTitle').text(sp.metaTitle || '');
+                            $('#MetaDescription').text(sp.metaDescription || '');
+                            $('#AnhChinh').attr('src', sp.anhChinh || '/images/placeholder.png');
+                        } else {
+                            Swal.fire('Lỗi', 'Không tải được thông tin sản phẩm.', 'error');
                         }
+                    },
+                    error: function () {
+                        Swal.fire('Lỗi', 'Không thể kết nối máy chủ.', 'error');
                     }
                 });
             }
-        }
 
-        function cancelChiTietForm() {
-            $('#chiTietForm').hide();
-            $('#chiTietFormSubmit')[0].reset();
-        }
-
-        $('#chiTietFormSubmit').on('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-
-            const url = $('#MaChiTietSP').val() == 0
-                ? `/api/sanpham/${maSP}/chitietSanPhamApi`
-                : `/api/sanpham/${maSP}/chitietSanPhamApi/${$('#MaChiTietSP').val()}`;
-            const method = $('#MaChiTietSP').val() == 0 ? 'POST' : 'PUT';
-
-            $.ajax({
-                url: url,
-                type: method,
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.status === 'success') {
-                        Swal.fire('Thành công!', response.message, 'success');
-                        cancelChiTietForm();
-                        location.reload();
-                    } else {
-                        Swal.fire('Lỗi!', response.message, 'error');
-                    }
-                },
-                error: function () {
-                    Swal.fire('Lỗi!', 'Lỗi máy chủ.', 'error');
-                }
-            });
-        });
-
-        function deleteChiTiet(maChiTietSP) {
-            Swal.fire({
-                title: 'Xác nhận xóa?',
-                text: 'Bạn không thể hoàn tác!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/api/sanpham/${maSP}/chitietSanPhamApi/${maChiTietSP}`,
-                        method: 'DELETE',
-                        success: function (response) {
-                            if (response.status === 'success') {
-                                Swal.fire('Đã xóa!', response.message, 'success');
-                                location.reload();
-                            } else {
-                                Swal.fire('Lỗi!', response.message, 'error');
-                            }
-                        },
-                        error: function () {
-                            Swal.fire('Lỗi!', 'Lỗi khi xóa.', 'error');
-                        }
-                    });
-                }
-            });
-        }
-
-        function showAnhForm(maAnh = 0) {
-            $('#anhForm').show();
-            $('#MaAnh').val(maAnh);
-            $('#anhFormTitle').text(maAnh == 0 ? 'Thêm ảnh sản phẩm' : 'Cập nhật ảnh sản phẩm');
-
-            if (maAnh > 0) {
+            // --- 2️⃣ Lấy danh sách ảnh sản phẩm ---
+            function loadAnhSanPham() {
                 $.ajax({
-                    url: `/api/AnhSanPham/${maAnh}`,
+                    url: `${apiBase}/AnhSanPhamApi`,
                     method: 'GET',
-                    success: function (response) {
-                        if (response.status === 'success') {
-                            $('#ThuTuHienThi').val(response.data.thuTuHienThi);
-                            $('#LaHinhChinh').val(response.data.laHinhChinh.toString());
+                    success: function (res) {
+                        const container = $('#anhSanPhamList');
+                        container.empty();
+
+                        if (res.status === 'success' && res.data.length > 0) {
+                            res.data.forEach(a => {
+                                const html = `
+                                    <div class="card p-2 text-center" style="width:120px;">
+                                        <img src="${a.duongDanAnh}" class="img-thumbnail" alt="Ảnh SP">
+                                        <div class="small text-muted mt-1">${a.tenAnh || ''}</div>
+                                    </div>`;
+                                container.append(html);
+                            });
+                        } else {
+                            container.html('<div class="text-muted">Không có ảnh nào.</div>');
                         }
+                    },
+                    error: function () {
+                        $('#anhSanPhamList').html('<div class="text-danger">Lỗi tải ảnh sản phẩm.</div>');
                     }
                 });
             }
-        }
 
-        function cancelAnhForm() {
-            $('#anhForm').hide();
-            $('#anhFormSubmit')[0].reset();
-        }
+            // --- 3️⃣ Lấy danh sách chi tiết sản phẩm ---
+            function loadChiTietSanPham() {
+                $.ajax({
+                    url: `${apiBase}/ChiTietSanPhamApi`,
+                    method: 'GET',
+                    success: function (res) {
+                        const tbody = $('#chiTietSanPhamTableBody');
+                        tbody.empty();
 
-        $('#anhFormSubmit').on('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('MaSP', maSP);
-
-            const url = $('#MaAnh').val() == 0
-                ? '/api/AnhSanPham'
-                : `/api/AnhSanPham/${$('#MaAnh').val()}`;
-            const method = $('#MaAnh').val() == 0 ? 'POST' : 'PUT';
-
-            $.ajax({
-                url: url,
-                type: method,
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.status === 'success') {
-                        Swal.fire('Thành công!', response.message, 'success');
-                        cancelAnhForm();
-                        location.reload();
-                    } else {
-                        Swal.fire('Lỗi!', response.message, 'error');
-                    }
-                },
-                error: function () {
-                    Swal.fire('Lỗi!', 'Lỗi máy chủ.', 'error');
-                }
-            });
-        });
-
-        function deleteAnh(maAnh) {
-            Swal.fire({
-                title: 'Xác nhận xóa?',
-                text: 'Bạn không thể hoàn tác!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/api/AnhSanPham/${maAnh}`,
-                        method: 'DELETE',
-                        success: function (response) {
-                            if (response.status === 'success') {
-                                Swal.fire('Đã xóa!', response.message, 'success');
-                                location.reload();
-                            } else {
-                                Swal.fire('Lỗi!', response.message, 'error');
-                            }
-                        },
-                        error: function () {
-                            Swal.fire('Lỗi!', 'Lỗi khi xóa.', 'error');
+                        if (res.status === 'success' && res.data.length > 0) {
+                            res.data.forEach(ct => {
+                                tbody.append(`
+                                    <tr>
+                                        <td>${ct.maChiTietSP}</td>
+                                        <td>${ct.mauSac || 'N/A'}</td>
+                                        <td>${ct.kichThuoc || 'N/A'}</td>
+                                        <td>${ct.soLuongTon}</td>
+                                        <td>${ct.giaBan.toLocaleString()} đ</td>
+                                    </tr>
+                                `);
+                            });
+                        } else {
+                            tbody.html('<tr><td colspan="5" class="text-muted">Không có chi tiết sản phẩm nào.</td></tr>');
                         }
-                    });
-                }
-            });
-        }
+                    },
+                    error: function () {
+                        $('#chiTietSanPhamTableBody').html('<tr><td colspan="5" class="text-danger">Lỗi tải dữ liệu chi tiết sản phẩm.</td></tr>');
+                    }
+                });
+            }
 
-        function editChiTiet(maChiTietSP) {
-            showChiTietForm(maChiTietSP);
-        }
-
-        function editAnh(maAnh) {
-            showAnhForm(maAnh);
-        }
+            // Gọi tất cả khi trang load
+            loadSanPhamInfo();
+            loadAnhSanPham();
+            loadChiTietSanPham();
+        });
     </script>
 }
