@@ -409,8 +409,8 @@
             $(document).on('click', '.btnViewDetail', function () {
             const id = $(this).data('id');
             // Chuyển hướng sang trang chi tiết
-            window.location.href = `/Admin/SanPham/Detail/`;
-        });
+             window.location.href = `/Admin/SanPham/Detail/${id}`;
+            });
 
             // Tải danh sách sản phẩm khi trang được load
             loadProducts();
