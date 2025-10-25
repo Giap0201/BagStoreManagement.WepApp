@@ -12,8 +12,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using BagStore.Web.Services.Interfaces;
 
-namespace BagStore.Web.Services
+namespace BagStore.Web.Services.Implementations
 {
     public class UserService : IUserService
     {
@@ -33,7 +34,6 @@ namespace BagStore.Web.Services
             _dbContext = dbContext;
             _configuration = configuration;
         }
-
 
         public async Task<IdentityResult> RegisterCustomerAsync(RegisterViewModel model)
         {
@@ -113,7 +113,7 @@ namespace BagStore.Web.Services
                 return IdentityResult.Failed(new IdentityError { Description = "Mật khẩu không đúng." });
 
             // 2) (TÙY) Xóa các dữ liệu liên quan thủ công nếu cần
-            // Ví dụ: xóa KhachHang, NhanVienProfile, GioHang, DonHang,... 
+            // Ví dụ: xóa KhachHang, NhanVienProfile, GioHang, DonHang,...
             // Nếu bạn đã cấu hình cascade delete thì không cần đoạn này.
             try
             {
@@ -159,7 +159,6 @@ namespace BagStore.Web.Services
             var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
             return result;
         }
-
 
         //ADMIN
 
@@ -226,7 +225,6 @@ namespace BagStore.Web.Services
         {
             return await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == username);
         }
-
 
         //JWT Token
         private string CreateJwtToken(ApplicationUser user, IList<string> roles)
@@ -305,7 +303,5 @@ namespace BagStore.Web.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-
     }
 }

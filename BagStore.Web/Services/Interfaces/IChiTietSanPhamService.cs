@@ -1,4 +1,5 @@
 ﻿using BagStore.Domain.Entities;
+using BagStore.Models.Common;
 using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Models.ViewModels.SanPhams;
 
@@ -6,15 +7,16 @@ namespace BagStore.Web.Services.Interfaces
 {
     public interface IChiTietSanPhamService
     {
-        Task<ChiTietSanPhamResponseDto?> AddAsync(int MaSP, ChiTietSanPhamCreateDto dto);
+        Task<BaseResponse<ChiTietSanPhamResponseDto>> CreateAsync(ChiTietSanPhamRequestDto dto);
 
-        Task<ChiTietSanPhamResponseDto?> GetByIdAsync(int maChiTietSanPham);
+        Task<BaseResponse<ChiTietSanPhamResponseDto>> UpdateAsync(int maChiTietSP, ChiTietSanPhamRequestDto dto);
 
-        Task<ChiTietSanPhamResponseDto> UpdateAsync(int maChiTietSanPham, ChiTietSanPhamCreateDto dto);
+        Task<BaseResponse<bool>> DeleteAsync(int maChiTietSP);
 
-        Task<bool> DeleteAsync(int maChiTietSanPham);
+        Task<BaseResponse<ChiTietSanPhamResponseDto>> GetByIdAsync(int maChiTietSP);
 
-        // Lay danh sach bien the cua mot san pham
-        Task<List<ChiTietSanPham>> GetBySanPhamIdAsync(int maSP);
+        Task<BaseResponse<List<ChiTietSanPhamResponseDto>>> GetBySanPhamIdAsync(int maSP);
+
+        Task<BaseResponse<List<ChiTietSanPhamResponseDto>>> GetAllAsync();
     }
 }
