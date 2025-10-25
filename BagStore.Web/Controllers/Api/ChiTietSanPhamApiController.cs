@@ -1,14 +1,13 @@
-﻿using BagStore.Web.Models.DTOs;
+﻿using BagStore.Models.Common;
 using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace BagStore.Web.Controllers.Api
 {
-    [Route("api/[controller]")]
+    [Route("api/sanpham/{maSanPham}/[controller]")]
     [ApiController]
+    [ValidateModel] // Tự động validate DataAnnotation trên DTO
     public class ChiTietSanPhamApiController : ControllerBase
     {
         private readonly IChiTietSanPhamService _service;
@@ -18,82 +17,62 @@ namespace BagStore.Web.Controllers.Api
             _service = service;
         }
 
-        // phuong thuc tao moi chi tiet san pham
-        //https://localhost:7013/api/ChiTietSanPhamApi
-        [HttpPost("{maSP}")]
-        public async Task<IActionResult> Add(int maSP, [FromBody] ChiTietSanPhamCreateDto dto)
+        /// Lấy danh sách tất cả biến thể của một sản phẩm
+        /// GET: /api/sanpham/{maSanPham}/ChiTietSanPhamApi
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll(int maSanPham)
         {
-            if (dto == null)
-                return BadRequest(new { message = "Dữ liệu không hợp lệ" });
-            try
-            {
-                var result = await _service.AddAsync(maSP, dto);
-                return CreatedAtAction(nameof(GetByIdAsync), new { maChiTietSanPham = result.MaChiTietSP }, result);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Đã xảy ra lỗi khi thêm biến thể.", Details = ex.Message });
-            }
+            var response = await _service.GetBySanPhamIdAsync(maSanPham);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        //https://localhost:7013/api/ChiTietSanPhamApi/1
+        /// Lấy chi tiết biến thể theo ID
+        /// GET: /api/sanpham/{maSanPham}/ChiTietSanPhamApi/{maChiTietSP}
 
-        [HttpGet("{maChiTietSanPham}")]
-        public async Task<IActionResult> GetByIdAsync(int maChiTietSanPham)
+        [HttpGet("{maChiTietSP}")]
+        public async Task<IActionResult> GetById(int maSanPham, int maChiTietSP)
         {
-            try
-            {
-                var result = await _service.GetByIdAsync(maChiTietSanPham);
-                if (result == null) return NotFound(new { Message = $"Không tìm thấy biến thể có id = {maChiTietSanPham}" });
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server : " + ex.Message });
-            }
+            // Có thể validate xem biến thể có thuộc sản phẩm maSanPham không nếu muốn
+            var response = await _service.GetByIdAsync(maChiTietSP);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        [HttpPut("{maChiTietSanPham}")]
-        public async Task<IActionResult> Update(int maChiTietSanPham, [FromBody] ChiTietSanPhamCreateDto dto)
+        /// Tạo mới biến thể cho sản phẩm
+        /// POST: /api/sanpham/{maSanPham}/ChiTietSanPhamApi
+
+        [HttpPost]
+        public async Task<IActionResult> Create(int maSanPham, [FromForm] ChiTietSanPhamRequestDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest();
-            try
-            {
-                var result = await _service.UpdateAsync(maChiTietSanPham, dto);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            // Gán MaSanPhan từ URL để tránh client gửi sai
+            dto.MaSanPhan = maSanPham;
+
+            var response = await _service.CreateAsync(dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        [HttpDelete("{maChiTietSanPham}")]
-        public async Task<IActionResult> Delete(int maChiTietSanPham)
+        /// Cập nhật biến thể
+        /// PUT: /api/sanpham/{maSanPham}/ChiTietSanPhamApi/{maChiTietSP}
+
+        [HttpPut("{maChiTietSP}")]
+        public async Task<IActionResult> Update(int maSanPham, int maChiTietSP, [FromForm] ChiTietSanPhamRequestDto dto)
         {
-            try
-            {
-                var success = await _service.DeleteAsync(maChiTietSanPham);
-                if (!success)
-                    return NotFound(new { message = "Biến thể không tồn tại" });
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
-            }
+            // Gán MaSanPhan từ URL để đảm bảo tính nhất quán
+            dto.MaSanPhan = maSanPham;
+
+            var response = await _service.UpdateAsync(maChiTietSP, dto);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
+        }
+
+        /// Xóa biến thể sản phẩm
+        /// DELETE: /api/sanpham/{maSanPham}/ChiTietSanPhamApi/{maChiTietSP}
+
+        [HttpDelete("{maChiTietSP}")]
+        public async Task<IActionResult> Delete(int maSanPham, int maChiTietSP)
+        {
+            // Có thể validate xem biến thể có thuộc sản phẩm maSanPham không nếu muốn
+            var response = await _service.DeleteAsync(maChiTietSP);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
     }
 }
