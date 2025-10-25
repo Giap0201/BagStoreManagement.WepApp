@@ -11,7 +11,7 @@ namespace BagStore.Web.Services
         Task<SignInResult> LoginAsync(LoginViewModel model);
         Task<ApplicationUser?> GetProfileAsync(string userId);
         Task<IdentityResult> UpdateProfileAsync(ProfileEditViewModel model);
-        Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword);
+        //Task<IdentityResult> DeleteAccountAsync(string userId, string currentPassword);
 
         Task LogoutAsync();
 
