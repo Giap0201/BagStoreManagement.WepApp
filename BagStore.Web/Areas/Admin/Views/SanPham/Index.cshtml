@@ -1,0 +1,419 @@
+﻿@model List<BagStore.Web.Models.ViewModels.SanPhams.SanPhamResponseDto>
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container mt-4">
+    <h3 class="text-primary mb-3"><i class="bi bi-box"></i> Quản lý sản phẩm</h3>
+
+    <!-- Search & Add New Product Button -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-7">
+            <input type="text" id="searchInput" class="form-control" placeholder="Nhập tên sản phẩm...">
+        </div>
+        <div class="col-md-3">
+            <button id="btnSearch" class="btn btn-primary w-100"><i class="bi bi-search"></i> Tìm kiếm</button>
+        </div>
+        <div class="col-md-2 text-end">
+            <button id="btnAddNewProduct" class="btn btn-success w-100"><i class="bi bi-plus-circle"></i> Thêm mới</button>
+        </div>
+    </div>
+
+    <!-- Alert tổng quan cho bảng -->
+    <div id="tableAlertMessage" class="mt-3"></div>
+
+    <!-- Product Table -->
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered table-striped text-center align-middle" id="tblSanPham">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã SP</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Loại túi</th>
+                    <th>Thương hiệu</th>
+                    <th>Chất liệu</th>
+                    <th>Ảnh</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                @if (Model == null || !Model.Any())
+                {
+                    <tr><td colspan="7" class="text-center text-info">Không có sản phẩm nào.</td></tr>
+                }
+                else
+                {
+                    @foreach (var sp in Model)
+                    {
+                        <tr data-id="@sp.MaSP">
+                            <td>@sp.MaSP</td>
+                            <td>@sp.TenSP</td>
+                            <td>@sp.TenLoaiTui</td>
+                            <td>@sp.TenThuongHieu</td>
+                            <td>@sp.TenChatLieu</td>
+                            <td><img src="@sp.AnhChinh" alt="Ảnh SP" style="max-width:50px; max-height:50px; object-fit: cover;" /></td>
+                            <td>
+                                <button class="btn btn-info btn-sm btnViewDetail" data-id="@sp.MaSP"><i class="bi bi-eye"></i> Xem chi tiết</button>
+                                <button class="btn btn-warning btn-sm btnEdit" data-id="@sp.MaSP"><i class="bi bi-pencil"></i> Sửa</button>
+                                <button class="btn btn-danger btn-sm btnDelete" data-id="@sp.MaSP"><i class="bi bi-trash"></i> Xoá</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0" id="formTitle">Thêm mới sản phẩm</h5>
+        </div>
+        <div class="card-body">
+            <!-- Alert tổng quan cho form -->
+            <div id="formAlertMessage" class="alert alert-danger d-none"></div>
+
+            <form id="productForm" enctype="multipart/form-data">
+                <input type="hidden" id="MaSP" name="MaSP" value="0" />
+                <input type="hidden" id="AnhChinhHienTai" name="AnhChinhHienTai" /> @* Lưu đường dẫn ảnh hiện tại *@
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="TenSP" class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="TenSP" name="TenSP" required />
+                        <div class="text-danger small field-error" id="error-TenSP"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="MaLoaiTui" class="form-label">Loại túi <span class="text-danger">*</span></label>
+                        <select class="form-select" id="MaLoaiTui" name="MaLoaiTui" required>
+                            <option value="">-- Chọn loại túi --</option>
+                            @foreach (var item in ViewBag.LoaiTuiList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                        <div class="text-danger small field-error" id="error-MaLoaiTui"></div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="MoTaChiTiet" class="form-label">Mô tả chi tiết <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="MoTaChiTiet" name="MoTaChiTiet" rows="3" required></textarea>
+                        <div class="text-danger small field-error" id="error-MoTaChiTiet"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="MaThuongHieu" class="form-label">Thương hiệu <span class="text-danger">*</span></label>
+                        <select class="form-select" id="MaThuongHieu" name="MaThuongHieu" required>
+                            <option value="">-- Chọn thương hiệu --</option>
+                            @foreach (var item in ViewBag.ThuongHieuList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                        <div class="text-danger small field-error" id="error-MaThuongHieu"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="MaChatLieu" class="form-label">Chất liệu <span class="text-danger">*</span></label>
+                        <select class="form-select" id="MaChatLieu" name="MaChatLieu" required>
+                            <option value="">-- Chọn chất liệu --</option>
+                            @foreach (var item in ViewBag.ChatLieuList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                        <div class="text-danger small field-error" id="error-MaChatLieu"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="MetaTitle" class="form-label">Meta Title</label>
+                        <input type="text" class="form-control" id="MetaTitle" name="MetaTitle" maxlength="200" />
+                        <div class="text-danger small field-error" id="error-MetaTitle"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="MetaDescription" class="form-label">Meta Description</label>
+                        <textarea class="form-control" id="MetaDescription" name="MetaDescription" rows="2" maxlength="500"></textarea>
+                        <div class="text-danger small field-error" id="error-MetaDescription"></div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="AnhChinhFile" class="form-label">Ảnh sản phẩm (chọn để thay đổi)</label>
+                        <input type="file" class="form-control" id="AnhChinhFile" name="AnhChinhFile" accept="image/*" />
+                        <small class="form-text text-muted">Chỉ chọn file ảnh nếu bạn muốn thay đổi ảnh hiện tại.</small>
+                        <div class="text-center mt-2">
+                            <img id="previewImage" src="" alt="Ảnh sản phẩm hiện tại" class="img-thumbnail" style="max-width: 150px; display: none;" />
+                        </div>
+                        <div class="text-danger small field-error" id="error-AnhChinhFile"></div>
+                    </div>
+
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary px-4 me-2"><i class="bi bi-save"></i> <span id="btnSubmitText">Thêm mới</span></button>
+                        <button type="button" class="btn btn-secondary px-4" id="btnResetForm"><i class="bi bi-arrow-counterclockwise"></i> Làm mới</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Đường dẫn API
+            const apiUrl = '/api/SanPhamApi';
+
+            // Lưu trữ các phần tử HTML thường dùng
+            const tableBody = $('#tableBody');
+            const productForm = $('#productForm');
+            const formTitle = $('#formTitle');
+            const btnSubmitText = $('#btnSubmitText');
+            const formAlertMessage = $('#formAlertMessage');
+            const previewImage = $('#previewImage');
+            const AnhChinhFile = $('#AnhChinhFile');
+            const AnhChinhHienTai = $('#AnhChinhHienTai');
+
+            // Lưu trữ dữ liệu sản phẩm để tìm kiếm
+            let allProducts = @Html.Raw(Json.Serialize(Model));
+
+            /**
+             * Xóa lỗi trên form
+             */
+            function clearFormErrors() {
+                $('.field-error').text(''); // Xóa thông báo lỗi
+                $('.form-control, .form-select').removeClass('is-invalid'); // Xóa viền đỏ
+                formAlertMessage.addClass('d-none').empty(); // Ẩn thông báo lỗi chung
+            }
+
+            /**
+             * Reset form về trạng thái "Thêm mới"
+             */
+            function resetForm() {
+                productForm[0].reset(); // Xóa toàn bộ dữ liệu form
+                $('#MaSP').val(0); // Đặt MaSP về 0 (thêm mới)
+                formTitle.text('Thêm mới sản phẩm');
+                btnSubmitText.text('Thêm mới');
+                previewImage.attr('src', '').hide(); // Ẩn ảnh xem trước
+                AnhChinhHienTai.val(''); // Xóa đường dẫn ảnh hiện tại
+                clearFormErrors(); // Xóa lỗi
+            }
+
+            /**
+             * Hiển thị danh sách sản phẩm vào bảng
+             *  {Array} products - Danh sách sản phẩm
+             */
+            function showProducts(products) {
+                tableBody.empty(); // Xóa bảng cũ
+                if (!products || products.length === 0) {
+                    tableBody.html('<tr><td colspan="7" class="text-center text-info">Không có sản phẩm nào.</td></tr>');
+                    return;
+                }
+
+                products.forEach(product => {
+                    const imageUrl = product.anhChinh || '/images/placeholder.png'; // Ảnh mặc định nếu không có
+                    tableBody.append(`
+                        <tr data-id="${product.maSP}">
+                            <td>${product.maSP}</td>
+                            <td class="text-start">${product.tenSP}</td>
+                            <td>${product.tenLoaiTui || 'N/A'}</td>
+                            <td>${product.tenThuongHieu || 'N/A'}</td>
+                            <td>${product.tenChatLieu || 'N/A'}</td>
+                            <td><img src="${imageUrl}" alt="Ảnh SP" style="max-width:50px; max-height:50px; object-fit: cover;" /></td>
+                            <td>
+                                <button class="btn btn-info btn-sm btnViewDetail" data-id="${product.maSP}"><i class="bi bi-eye"></i> Xem chi tiết</button>
+                                <button class="btn btn-warning btn-sm btnEdit" data-id="${product.maSP}"><i class="bi bi-pencil"></i> Sửa</button>
+                                <button class="btn btn-danger btn-sm btnDelete" data-id="${product.maSP}"><i class="bi bi-trash"></i> Xoá</button>
+
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+
+            /**
+             * Tải danh sách sản phẩm từ API
+             */
+            function loadProducts() {
+                tableBody.html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+                $.ajax({
+                    url: apiUrl,
+                    method: 'GET',
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            allProducts = response.data || [];
+                            showProducts(allProducts);
+                        } else {
+                            tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                        }
+                    },
+                    error: function () {
+                        tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối máy chủ.</td></tr>');
+                    }
+                });
+            }
+
+            /**
+             * Điền dữ liệu sản phẩm vào form để chỉnh sửa
+             *  {Object} product - Sản phẩm cần chỉnh sửa
+             */
+            function fillFormForEdit(product) {
+                clearFormErrors();
+                $('#MaSP').val(product.maSP);
+                $('#TenSP').val(product.tenSP);
+                $('#MoTaChiTiet').val(product.moTaChiTiet);
+                $('#MetaTitle').val(product.metaTitle);
+                $('#MetaDescription').val(product.metaDescription);
+
+                // Gán giá trị cho dropdown, đảm bảo kiểu chuỗi
+                $('#MaLoaiTui').val(String(product.maLoaiTui));
+                $('#MaThuongHieu').val(String(product.maThuongHieu));
+                $('#MaChatLieu').val(String(product.maChatLieu));
+
+                // Hiển thị ảnh hiện tại
+                if (product.anhChinh) {
+                    previewImage.attr('src', product.anhChinh).show();
+                    AnhChinhHienTai.val(product.anhChinh);
+                } else {
+                    previewImage.attr('src', '').hide();
+                    AnhChinhHienTai.val('');
+                }
+
+                formTitle.text(`Cập nhật sản phẩm: ${product.tenSP}`);
+                btnSubmitText.text('Cập nhật');
+            }
+
+            // --- Sự kiện ---
+
+            // Nhấn nút "Thêm mới"
+            $('#btnAddNewProduct').on('click', resetForm);
+
+            // Xem trước ảnh khi chọn file
+            AnhChinhFile.on('change', function () {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewImage.attr('src', e.target.result).show();
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                } else {
+                    previewImage.attr('src', '').hide();
+                }
+            });
+
+            // Submit form (Thêm mới / Cập nhật)
+            productForm.on('submit', function (e) {
+                e.preventDefault();
+                clearFormErrors();
+
+                const formData = new FormData(this);
+                const isNew = $('#MaSP').val() == 0;
+                const url = isNew ? apiUrl : `${apiUrl}/${$('#MaSP').val()}`;
+                const method = isNew ? 'POST' : 'PUT';
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            Swal.fire('Thành công!', response.message, 'success');
+                            resetForm();
+                            loadProducts();
+                        } else {
+                            formAlertMessage.removeClass('d-none').html(`<div class="alert alert-danger">${response.message || 'Lỗi xử lý.'}</div>`);
+                        }
+                    },
+                    error: function () {
+                        formAlertMessage.removeClass('d-none').html('<div class="alert alert-danger">Lỗi máy chủ.</div>');
+                    }
+                });
+            });
+
+            // Nhấn nút "Sửa"
+            $(document).on('click', '.btnEdit', function () {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `${apiUrl}/${id}`,
+                    method: 'GET',
+                    success: function (response) {
+                        if (response.status === 'success' && response.data) {
+                            console.log(response.data);
+                            fillFormForEdit(response.data);
+                        } else {
+                            Swal.fire('Lỗi!', 'Không tìm thấy sản phẩm.', 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Lỗi!', 'Lỗi tải chi tiết sản phẩm.', 'error');
+                    }
+                });
+            });
+
+            // Nhấn nút "Xóa"
+            $(document).on('click', '.btnDelete', function () {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Xác nhận xóa?',
+                    text: 'Bạn không thể hoàn tác!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xóa',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `${apiUrl}/${id}`,
+                            method: 'DELETE',
+                            success: function (response) {
+                                if (response.status === 'success') {
+                                    Swal.fire('Đã xóa!', response.message, 'success');
+                                    loadProducts();
+                                } else {
+                                    Swal.fire('Lỗi!', 'Không xóa được sản phẩm.', 'error');
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('Lỗi!', 'Lỗi khi xóa sản phẩm.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Nhấn nút "Làm mới"
+            $('#btnResetForm').on('click', resetForm);
+
+            // Tìm kiếm sản phẩm
+            $('#searchInput').on('keyup', function () {
+                const searchTerm = $(this).val().toLowerCase().trim();
+                const filteredProducts = allProducts.filter(p =>
+                    (p.tenSP && p.tenSP.toLowerCase().includes(searchTerm)) ||
+                    (p.maSP && p.maSP.toString().includes(searchTerm))
+                );
+                showProducts(filteredProducts);
+            });
+
+            // Nhấn nút "Tìm kiếm"
+            $('#btnSearch').on('click', function () {
+                $('#searchInput').trigger('keyup');
+            });
+            
+            
+            $(document).on('click', '.btnViewDetail', function () {
+            const id = $(this).data('id');
+            // Chuyển hướng sang trang chi tiết
+             window.location.href = `/Admin/SanPham/Detail/${id}`;
+            });
+
+            // Tải danh sách sản phẩm khi trang được load
+            loadProducts();
+        });
+    </script>
+}

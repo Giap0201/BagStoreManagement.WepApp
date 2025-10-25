@@ -2,9 +2,10 @@
 
 namespace BagStore.Web.Models.DTOs.SanPhams
 {
-    public class ChiTietSanPhamCreateDto
+    public class ChiTietSanPhamRequestDto
     {
-        //public int MaChiTietSP { get; set; } // 0 cho create
+        public int MaSanPhan { get; set; }
+        public int MaChiTietSP { get; set; } // 0 cho create
 
         [Required(ErrorMessage = "Vui lòng chọn kích thước.")]
         [Range(1, int.MaxValue, ErrorMessage = "Kích thước không hợp lệ.")]
