@@ -1,4 +1,4 @@
-﻿using BagStore.Web.Models.DTOs.Request;
+﻿using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -39,20 +39,20 @@ namespace BagStore.Web.Controllers.Api
         /// <summary>
         /// Lấy danh sách đơn hàng của một khách hàng
         /// </summary>
-        [HttpGet("khachhang/{maKhachHang:int}")]
-        public async Task<ActionResult<IEnumerable<DonHangResponse>>> LayDonHangTheoKhachHang(int maKhachHang)
+        [HttpGet("khachhang/{userId}")]
+        public async Task<ActionResult<IEnumerable<DonHangResponse>>> LayDonHangTheoKhachHang(string userId)
         {
             try
             {
-                var orders = await _donHangService.LayDonHangTheoKhachHangAsync(maKhachHang);
+                var orders = await _donHangService.LayDonHangTheoUserAsync(userId);
                 if (orders == null || !orders.Any())
-                    return NotFound("Không tìm thấy đơn hàng nào cho khách hàng này.");
+                    return NotFound("Bạn chưa có đơn hàng nào!");
 
                 return Ok(orders);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lấy đơn hàng cho khách hàng {maKhachHang}", maKhachHang);
+                _logger.LogError(ex, "Lỗi khi lấy đơn hàng cho user {userId}", userId);
                 return StatusCode(500, "Đã xảy ra lỗi phía máy chủ.");
             }
         }
