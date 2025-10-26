@@ -1,4 +1,5 @@
-﻿using BagStore.Domain.Entities;
+﻿using BagStore.Data;
+using BagStore.Domain.Entities;
 using BagStore.Models.Common;
 using BagStore.Web.Helpers;
 using BagStore.Web.Models.Common;
@@ -6,6 +7,7 @@ using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BagStore.Web.Services.Implementations
 {
@@ -16,20 +18,25 @@ namespace BagStore.Web.Services.Implementations
         private readonly IThuongHieuRepository _repoThuongHieu;
         private readonly IChatLieuRepository _repoChatLieu;
         private readonly IWebHostEnvironment _env;
+        private readonly BagStoreDbContext _context;
+
 
         public SanPhamService(
+            BagStoreDbContext context,
             ISanPhamRepository repo,
             IWebHostEnvironment env,
             IDanhMucLoaiTuiRepository repoLoaiTui,
             IThuongHieuRepository repoThuongHieu,
             IChatLieuRepository repoChatLieu)
         {
+            _context = context; // ✅ đúng
             _repo = repo;
             _env = env;
             _repoLoaiTui = repoLoaiTui;
             _repoThuongHieu = repoThuongHieu;
             _repoChatLieu = repoChatLieu;
         }
+
 
         public async Task<BaseResponse<SanPhamResponseDto>> CreateAsync(SanPhamCreateDto dto)
         {
@@ -159,5 +166,69 @@ namespace BagStore.Web.Services.Implementations
                 AnhChinh = anhChinh?.DuongDan
             };
         }
+        public async Task<BaseResponse<PagedResult<SanPhamResponseDto>>> GetAllPagedAsync(
+            int page, int pageSize, string? keyword,
+            int? maLoaiTui = null, int? maThuongHieu = null, int? maChatLieu = null)
+        {
+            var query = _context.SanPhams
+                .Include(sp => sp.DanhMucLoaiTui)
+                .Include(sp => sp.ThuongHieu)
+                .Include(sp => sp.ChatLieu)
+                .Include(sp => sp.AnhSanPhams)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+                query = query.Where(x => x.TenSP.Contains(keyword));
+
+            if (maLoaiTui.HasValue)
+                query = query.Where(x => x.MaLoaiTui == maLoaiTui.Value);
+
+            if (maThuongHieu.HasValue)
+                query = query.Where(x => x.MaThuongHieu == maThuongHieu.Value);
+
+            if (maChatLieu.HasValue)
+                query = query.Where(x => x.MaChatLieu == maChatLieu.Value);
+
+            var totalItems = await query.CountAsync();
+            var skip = (page - 1) * pageSize;
+
+            var items = await query
+                .OrderByDescending(x => x.NgayCapNhat)
+                .Skip(skip)
+                .Take(pageSize)
+                .Select(sp => new SanPhamResponseDto
+                {
+                    MaSP = sp.MaSP,
+                    TenSP = sp.TenSP,
+                    MoTaChiTiet = sp.MoTaChiTiet,
+                    MetaTitle = sp.MetaTitle,
+                    MetaDescription = sp.MetaDescription,
+                    TenLoaiTui = sp.DanhMucLoaiTui.TenLoaiTui,
+                    TenThuongHieu = sp.ThuongHieu.TenThuongHieu,
+                    TenChatLieu = sp.ChatLieu.TenChatLieu,
+                    AnhChinh = sp.AnhSanPhams
+                        .Where(a => a.LaHinhChinh)
+                        .Select(a => a.DuongDan)
+                        .FirstOrDefault()
+                        ?? sp.AnhSanPhams.OrderBy(a => a.ThuTuHienThi).Select(a => a.DuongDan).FirstOrDefault(),
+                    NgayCapNhap = sp.NgayCapNhat
+                })
+                .ToListAsync();
+
+            var result = new PagedResult<SanPhamResponseDto>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            return BaseResponse<PagedResult<SanPhamResponseDto>>.Success(result, "Lấy danh sách sản phẩm thành công");
+        }
+
+
+
+
+
     }
 }

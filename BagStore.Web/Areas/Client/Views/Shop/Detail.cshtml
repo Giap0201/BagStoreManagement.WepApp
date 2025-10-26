@@ -1,0 +1,48 @@
+﻿(function ($) {
+    $(function () {
+        // khi checkbox filter thay đổi
+        $(document).on('change', '.filter-input', function () {
+            applyFilter();
+        });
+
+        // pagination click (AJAX)
+        $(document).on('click', '.pagination a', function (e) {
+            e.preventDefault();
+            var page = $(this).data('page');
+            applyFilter(page);
+        });
+    });
+
+    function collectFilters() {
+        var filters = {};
+        // support multiple selected values per filter -> pass comma-separated values OR only first selected (choose policy)
+        // here we send only first chosen value for each filter to keep backend simple; you can extend to arrays.
+        $('.filter-input:checked').each(function () {
+            var type = $(this).data('type');
+            var val = $(this).val();
+            // if already set and you want multi-values, you'd do arrays. For now single preference:
+            filters[type] = val;
+        });
+        return filters;
+    }
+
+    window.applyFilter = function (page) {
+        page = page || 1;
+        var filters = collectFilters();
+        filters.page = page;
+
+        $.ajax({
+            url: '/Client/Shop/Filter',
+            data: filters,
+            type: 'GET',
+            success: function (html) {
+                $('#product-list').html(html);
+                // scroll to product-list top
+                $('html, body').animate({ scrollTop: $('#product-list').offset().top - 100 }, 300);
+            },
+            error: function () {
+                console.error('Error loading products');
+            }
+        });
+    };
+})(jQuery);

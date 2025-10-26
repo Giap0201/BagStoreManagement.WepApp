@@ -1,0 +1,31 @@
+﻿@model BagStore.Domain.Entities.SanPham
+
+@{
+    // tìm ảnh chính (nếu DuongDan lưu là "wwwroot/uploads/abc.png", ta remove "wwwroot")
+    var img = Model.AnhSanPhams?.FirstOrDefault(a => a.LaHinhChinh)?.DuongDan ?? "/uploads/no-image.png";
+    img = img.Replace("wwwroot", "").Replace("\\", "/");
+    var mainVariant = Model.ChiTietSanPhams?.OrderBy(c => c.GiaBan).FirstOrDefault();
+}
+
+<div class="card product-item border-0 mb-4">
+    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+        <img class="img-fluid w-100" src="@(Url.Content(img))" alt="@Model.TenSP" />
+    </div>
+    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+        <h6 class="text-truncate mb-3">@Model.TenSP</h6>
+        <div class="d-flex justify-content-center">
+            @if (mainVariant != null)
+            {
+                <h6>@string.Format("{0:N0} ₫", mainVariant.GiaBan)</h6>
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-between bg-light border">
+        <a asp-area="Client" asp-controller="Shop" asp-action="Detail" asp-route-id="@(mainVariant?.MaChiTietSP ?? 0)" class="btn btn-sm text-dark p-0">
+            <i class="fas fa-eye text-primary mr-1"></i>View Detail
+        </a>
+        <a href="#" class="btn btn-sm text-dark p-0 add-to-cart" data-variant="@(mainVariant?.MaChiTietSP ?? 0)">
+            <i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart
+        </a>
+    </div>
+</div>
