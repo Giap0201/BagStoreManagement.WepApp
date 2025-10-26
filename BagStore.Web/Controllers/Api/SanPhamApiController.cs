@@ -2,6 +2,7 @@
 using BagStore.Web.Models.Common;
 using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Models.ViewModels.SanPhams;
+using BagStore.Web.Services.Implementations;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +15,7 @@ namespace BagStore.Web.Controllers.Api
     {
         private readonly ISanPhamService _service;
 
+        //Dependency Injection
         public SanPhamApiController(ISanPhamService service)
         {
             _service = service;
@@ -26,6 +28,20 @@ namespace BagStore.Web.Controllers.Api
             var response = await _service.GetAllAsync();
             return Ok(response);
         }
+        [HttpGet("GetAllPaged")]
+        public async Task<IActionResult> GetAllPaged(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 6,
+            [FromQuery] string? keyword = null,
+            [FromQuery] int? maLoaiTui = null,
+            [FromQuery] int? maThuongHieu = null,
+            [FromQuery] int? maChatLieu = null)
+        {
+            var result = await _service.GetAllPagedAsync(page, pageSize, keyword, maLoaiTui, maThuongHieu, maChatLieu);
+            return Ok(result);
+        }
+
+
 
         // GET: /api/SanPhamApi/{maLoaiTui}
         [HttpGet("{maSanPham}")]

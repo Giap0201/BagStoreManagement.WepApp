@@ -1,7 +1,8 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using BagStore.Web.Models.Entities
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
+﻿﻿@*
+    Layout chính cho giao diện Client (BagStore)
+    Cấu trúc chia rõ: Navbar – Sidebar – Main Content – Footer
+    Sử dụng Bootstrap, Font Awesome và file CSS hiện có.
+*@
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -9,67 +10,75 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - BagStore</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Owl Carousel -->
+    <link href="~/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Custom Style -->
+    <link href="~/css/style.css" rel="stylesheet" />
+
+    @RenderSection("Styles", required: false)
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" asp-area="Client" asp-controller="Home" asp-action="Index">BagStore</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Client" asp-controller="Home" asp-action="Index">Home</a>
-                    </li>
-                </ul>
+    <div class="container-scroller d-flex flex-column min-vh-100">
 
-                <ul class="navbar-nav">
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <li class="nav-item">
-                            <span class="navbar-text text-light me-2">
-                                Xin chào, @(UserManager.GetUserName(User))
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Client" asp-controller="Account" asp-action="Profile">Hồ sơ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Client" asp-controller="Account" asp-action="ChangePassword">Đổi mật khẩu</a>
-                        </li>
-                        <li class="nav-item">
-                            <form asp-area="Client" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                <button type="submit" class="btn btn-link nav-link">Đăng xuất</button>
-                            </form>
-                        </li>
-                    }
-                    else
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Client" asp-controller="Account" asp-action="Register">Đăng ký</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Client" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                        </li>
-                    }
-                </ul>
+        <!-- ========================== -->
+        <!-- 🔹 NAVBAR -->
+        <!-- ========================== -->
+        <partial name="_ClientNavbar" />
+        <!-- tạo khoảng trống dưới navbar cố định -->
+        <div style="margin-top: 80px;"></div>
+
+        <!-- ========================== -->
+        <!-- 🔹 SIDEBAR + MAIN CONTENT -->
+        <!-- ========================== -->
+        <div class="container-fluid flex-grow-1">
+            <div class="row">
+                <!-- Sidebar -->
+                <partial name="_ClientSidebar" />
+                <!-- Main Content -->
+                <div class="col-md-9 col-lg-10 py-4">
+                    <main role="main">
+                        @RenderBody()
+                    </main>
+                </div>
             </div>
         </div>
-    </nav>
 
-    <div>
-        <a href="/Client/Home/Index">Trang chủ</a> |
-        <a href="/Client/Account/Register">Đăng ký</a> |
-        <a href="/Client/Account/Login">Đăng nhập</a> |
-        <a href="/Client/Account/Profile">Hồ sơ</a>
+        <!-- ========================== -->
+        <!-- 🔹 FOOTER -->
+        <!-- ========================== -->
+        <footer class="bg-dark text-light mt-auto py-3">
+            <div class="container text-center small">
+                <p class="mb-0">&copy; 2025 - BagStore | Thiết kế bởi <strong>Đăng Trung</strong></p>
+            </div>
+        </footer>
+
+        <!-- Nút trở lên đầu trang -->
+        <a href="#" class="btn btn-primary back-to-top position-fixed bottom-0 end-0 m-4">
+            <i class="fa fa-angle-double-up"></i>
+        </a>
     </div>
 
-    <hr />
+    <!-- ========================== -->
+    <!-- 🔹 Scripts -->
+    <!-- ========================== -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/easing/easing.min.js"></script>
+    <script src="~/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="~/js/main.js"></script>
 
-    <div class="container">
-        @RenderBody()
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>
