@@ -1,6 +1,7 @@
 ﻿using BagStore.Web.Models.Entities;
 using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Services;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
