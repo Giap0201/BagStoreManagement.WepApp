@@ -1,4 +1,5 @@
-﻿using BagStore.Domain.Entities;
+﻿using BagStore.Data;
+using BagStore.Domain.Entities;
 using BagStore.Web.AppConfig.Implementations;
 using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.Models.DTOs.Requests;
@@ -6,6 +7,7 @@ using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Models.Entities.Enums;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BagStore.Web.Services.Implementations
 {
@@ -14,19 +16,22 @@ namespace BagStore.Web.Services.Implementations
         private readonly IDonHangRepository _donHangRepo;
         private readonly IChiTietDonHangRepository _chiTietRepo;
         private readonly IEnumMapper _mapper;
+        private readonly BagStoreDbContext _dbContext;
         //private readonly IChiTietSanPhamRepository _chiTietSanPhamRepo;
         //private readonly IKhachHangRepository _khachHangRepo;
 
         public DonHangService(
             IDonHangRepository donHangRepo,
             IChiTietDonHangRepository chiTietRepo,
-            IEnumMapper mapper)
+            IEnumMapper mapper,
+            BagStoreDbContext dbContext)
             //IChiTietSanPhamRepository chiTietSanPhamRepo,
             //IKhachHangRepository khachHangRepo)
         {
             _donHangRepo = donHangRepo;
             _chiTietRepo = chiTietRepo;
             _mapper = mapper;
+            _dbContext = dbContext;
             //_chiTietSanPhamRepo = chiTietSanPhamRepo;
             //_khachHangRepo = khachHangRepo;
         }
@@ -61,21 +66,23 @@ namespace BagStore.Web.Services.Implementations
             if (dto == null || dto.ChiTietDonHang == null || dto.ChiTietDonHang.Count == 0)
                 throw new ArgumentException("Dữ liệu đơn hàng không hợp lệ.");
 
-            // ---------------------------
-            // TẠM THỜI: test cứng MaKH = 2
-            // ---------------------------
-            int maKhachHangTest = 2;
+            //// ---------------------------
+            //// TẠM THỜI: test cứng MaKH = 2
+            //// ---------------------------
 
             // Nếu muốn khôi phục lấy MaKH từ DTO (hoặc từ auth/token), bỏ comment dòng dưới
-            // var khachHang = await _khachHangRepo.LayTheoIdAsync(dto.MaKhachHang)
-            //     ?? throw new ArgumentException($"Khách hàng {dto.MaKhachHang} không tồn tại.");
+            //var khachHang = await _khachHangRepo.LayTheoIdAsync(dto.MaKhachHang)
+            //    ?? throw new ArgumentException($"Khách hàng {dto.MaKhachHang} không tồn tại.");
+
+            var kh = await _dbContext.KhachHangs
+                .FirstOrDefaultAsync(k => k.ApplicationUserId == "ad6eb301-6a39-489c-8253-375e7620ecaa");
 
             // Thay bằng lookup khách hàng cho MaKH = 2 để kiểm tra phản hồi
 
             var donHang = new DonHang
             {
                 // Lưu MaKH test
-                MaKH = maKhachHangTest,
+                MaKH = kh.MaKH,
                 DiaChiGiaoHang = dto.DiaChiGiaoHang,
                 PhuongThucThanhToan = dto.PhuongThucThanhToan,
                 NgayDatHang = DateTime.Now,

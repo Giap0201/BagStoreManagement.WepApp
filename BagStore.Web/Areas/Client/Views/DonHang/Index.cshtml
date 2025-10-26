@@ -10,7 +10,7 @@
         <h1 class="font-weight-semi-bold text-uppercase mb-3">Danh sách đơn hàng</h1>
         <div class="d-inline-flex">
             <p class="m-0"><a href="/">Home</a></p>
-        </div>
+        </div>  
     </div>
 </div>
 
@@ -46,6 +46,8 @@
                 $('#ordersTable tbody').html(`<tr><td colspan="5">${t}</td></tr>`);
                 return;
             }
+
+            const data = await res.json();
 
             const rows = data.map(o => `
                 <tr>
