@@ -18,6 +18,7 @@ using BagStore.Repositories;
 using BagStore.Services;
 using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.AppConfig.Implementations;
+using BagStore.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
