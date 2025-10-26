@@ -1,12 +1,14 @@
 ﻿using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DonHangApiController : ControllerBase
     {
         private readonly IDonHangService _donHangService;
@@ -22,6 +24,7 @@ namespace BagStore.Web.Controllers.Api
         /// Lấy tất cả đơn hàng (chỉ Admin)
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<DonHangResponse>>> LayTatCaDonHang()
         {
             try
