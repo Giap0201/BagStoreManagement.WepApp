@@ -1,11 +1,9 @@
 ﻿@{
     ViewData["Title"] = "Quản lý đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <h2>Quản lý đơn hàng</h2>
 
@@ -22,70 +20,76 @@
     </thead>
 </table>
 
-<script>
-    $(function () {
-        var table = $('#adminOrders').DataTable({
-            ajax: {
-                url: '/api/DonHangApi', // ensure API supports GET all
-                dataSrc: ''
-            },
-            columns: [
-                { data: 'maDonHang' },
-                { data: 'tenKhachHang' },
-                { data: 'ngayDatHang', render: d => new Date(d).toLocaleString() },
-                { data: 'tongTien', render: d => d.toLocaleString() },
-                { data: 'trangThai' },
-                {
-                    data: null,
-                    orderable: false,
-                    render: function (row) {
-                        // render dropdown with current status selected
-                        const statuses = ['Chờ xử lý', 'Đang giao hàng', 'Hoàn thành', 'Đã huỷ'];
-                        let options = statuses.map(s => `<option value="${s}" ${s === row.trangThai ? 'selected' : ''}>${s}</option>`).join('');
-                        return `<select onchange="updateStatus(${row.maDonHang}, this.value)">${options}</select>`;
+@section Scripts {
+    <!-- DataTables (load SAU khi layout đã load vendor/jquery) -->
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(function () {
+            var table = $('#adminOrders').DataTable({
+                ajax: {
+                    url: '/api/DonHangApi', // ensure API supports GET all
+                    xhrFields: { withCredentials: true }, // nếu cần gửi cookie
+                    dataSrc: '',
+                },
+                columns: [
+                    { data: 'maDonHang' },
+                    { data: 'tenKhachHang' },
+                    { data: 'ngayDatHang', render: d => new Date(d).toLocaleString() },
+                    { data: 'tongTien', render: d => d.toLocaleString() },
+                    { data: 'trangThai' },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function (row) {
+                            // render dropdown with current status selected
+                            const statuses = ['Chờ xử lý', 'Đang giao hàng', 'Hoàn thành', 'Đã huỷ'];
+                            let options = statuses.map(s => `<option value="${s}" ${s === row.trangThai ? 'selected' : ''}>${s}</option>`).join('');
+                            return `<select onchange="updateStatus(${row.maDonHang}, this.value)">${options}</select>`;
+                        }
                     }
-                }
-            ]
-        });
-
-        // Expose reload function
-        window.reloadOrders = function() {
-            table.ajax.reload(null, false);
-        };
-    });
-
-    async function updateStatus(maDonHang, trangThai) {
-        const confirmRes = await Swal.fire({
-            title: 'Xác nhận',
-            text: `Bạn muốn đổi trạng thái sang "${trangThai}"?`,
-            icon: 'question',
-            showCancelButton: true
-        });
-        if (!confirmRes.isConfirmed) {
-            // optional: reload table to revert selection if cancelled
-            window.reloadOrders();
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/DonHangApi/capnhat-trangthai', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ MaDonHang: maDonHang, TrangThai: trangThai })
+                ]
             });
 
-            if (res.ok) {
-                const data = await res.json();
-                await Swal.fire('Thành công', 'Cập nhật trạng thái thành công', 'success');
+            // Expose reload function
+            window.reloadOrders = function() {
+                table.ajax.reload(null, false);
+            };
+        });
+
+            async function updateStatus(maDonHang, trangThai) {
+            const confirmRes = await Swal.fire({
+                title: 'Xác nhận',
+                text: `Bạn muốn đổi trạng thái sang "${trangThai}"?`,
+                icon: 'question',
+                showCancelButton: true
+            });
+            if (!confirmRes.isConfirmed) {
+                // optional: reload table to revert selection if cancelled
                 window.reloadOrders();
-            } else {
-                const txt = await res.text();
-                await Swal.fire('Lỗi', txt, 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/DonHangApi/capnhat-trangthai', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ MaDonHang: maDonHang, TrangThai: trangThai })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    await Swal.fire('Thành công', 'Cập nhật trạng thái thành công', 'success');
+                    window.reloadOrders();
+                } else {
+                    const txt = await res.text();
+                    await Swal.fire('Lỗi', txt, 'error');
+                    window.reloadOrders();
+                }
+            } catch (err) {
+                await Swal.fire('Lỗi', err.message || 'Lỗi mạng', 'error');
                 window.reloadOrders();
             }
-        } catch (err) {
-            await Swal.fire('Lỗi', err.message || 'Lỗi mạng', 'error');
-            window.reloadOrders();
         }
-    }
-</script>
+    </script>
+}
