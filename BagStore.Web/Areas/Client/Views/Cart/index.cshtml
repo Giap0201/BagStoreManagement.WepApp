@@ -54,7 +54,9 @@
                                     </thead>
                                     <tbody class="align-middle">`;
 
+                        let subtotal = 0;
                         cart.items.forEach(item => {
+                            subtotal += item.thanhTien || 0;
                             html += `
                             <tr data-product-id="${item.maChiTietSP}">
                                 <td class="align-middle"><img src="${item.duongDanAnh}" alt="${item.tenSP}" style="width: 50px;"> ${item.tenSP}</td>
@@ -72,6 +74,8 @@
                                 </td>
                             </tr>`;
                         });
+                        const shipping = 35000; 
+                        const total = subtotal + shipping;
 
                         html += `
                                     </tbody>
@@ -85,17 +89,17 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between mb-3 pt-1">
                                             <h6 class="font-weight-medium">Subtotal</h6>
-                                            <h6 class="font-weight-medium">$150</h6>
+                                            <h6 class="font-weight-medium">${subtotal.toLocaleString()} ₫</h6>
                                         </div>
                                         <div class="d-flex justify-content-between">
                                             <h6 class="font-weight-medium">Shipping</h6>
-                                            <h6 class="font-weight-medium">$10</h6>
+                                            <h6 class="font-weight-medium">${shipping.toLocaleString()} ₫</h6>
                                         </div>
                                     </div>
                                     <div class="card-footer border-secondary bg-transparent">
                                         <div class="d-flex justify-content-between mt-2">
                                             <h5 class="font-weight-bold">Total</h5>
-                                            <h5 class="font-weight-bold">$160</h5>
+                                            <h5 class="font-weight-bold">${total.toLocaleString()} ₫</h5>
                                         </div>
                                         <button class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</button>
                                     </div>
@@ -138,11 +142,10 @@
                     success: function(res) {
                         console.log("🗑️ Xóa thành công:", res);
                         alert(res.message || "Đã xóa sản phẩm khỏi giỏ hàng.");
-                        // Cách 1: load lại toàn bộ giỏ hàng
-                        //loadCart();
+                      
+                        loadCart();
 
-                        // Hoặc Cách 2: chỉ xoá dòng trong bảng cho nhanh
-                         row.remove();
+                        
                     },
                     error: function(xhr) {
                         console.error("❌ Lỗi khi xóa:", xhr);
