@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
 
 <h2>Quản lý đơn hàng</h2>
-
-<table id="adminOrders" class="display" style="width:100%">
+<div class="table-responsive">
+<table id="adminOrders" class="table table-bordered table-striped align-middle text-nowrap" style="width:100%">
     <thead>
         <tr>
             <th>Mã</th>
@@ -19,6 +19,7 @@
         </tr>
     </thead>
 </table>
+</div>
 
 @section Scripts {
     <!-- DataTables (load SAU khi layout đã load vendor/jquery) -->
@@ -27,6 +28,8 @@
     <script>
         $(function () {
             var table = $('#adminOrders').DataTable({
+                responsive: true,
+                autoWidth: false,
                 ajax: {
                     url: '/api/DonHangApi', // ensure API supports GET all
                     xhrFields: { withCredentials: true }, // nếu cần gửi cookie
