@@ -31,7 +31,8 @@ namespace BagStore.Repositories
                     DuongDanAnh = g.ChiTietSanPham.SanPham.AnhSanPhams
                         .Select(a => a.DuongDan)
                         .FirstOrDefault() ?? "/images/no-image.png",
-                    ThanhTien = g.SoLuong * g.ChiTietSanPham.GiaBan
+                    ThanhTien = g.SoLuong * g.ChiTietSanPham.GiaBan,
+                    MaChiTietSP = g.MaChiTietSP
                 })
                 .ToListAsync();
 
