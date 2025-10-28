@@ -6,16 +6,10 @@ namespace BagStore.Web.Areas.Client.Controllers
     [Route("Client/[controller]")]
     public class CartController : Controller
     {
-        [HttpGet("")]
-        public IActionResult Index()
-        {
-            return View();
-        }
 
         [HttpGet("{id:int}")]
-        public IActionResult getCart(int id)
+        public IActionResult Index (int id)
         {
-            Console.WriteLine($"📦 [CartController] userId nhận được: {id}");
             ViewBag.UserId = id;
             return View();
         }
