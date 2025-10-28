@@ -1,6 +1,6 @@
-﻿﻿@{
-Layout = "~/Views/Shared/_ClientLayout.cshtml";
-ViewData["Title"] = "Đơn hàng của tôi";
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Đơn hàng của tôi";
 }
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -9,11 +9,10 @@ ViewData["Title"] = "Đơn hàng của tôi";
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
         <h1 class="font-weight-semi-bold text-uppercase mb-3">Danh sách đơn hàng</h1>
         <div class="d-inline-flex">
-            <p class="m-0"><a href="">Home</a></p>
+            <p class="m-0"><a href="/">Home</a></p>
         </div>
     </div>
 </div>
-
 
 <table id="ordersTable" class="table table-bordered">
     <thead>
@@ -30,44 +29,57 @@ ViewData["Title"] = "Đơn hàng của tôi";
 
 <script>
     $(async function () {
-        const maKH = @ViewBag.MaKH;;
+        // ⚙️ Lấy userId từ ViewBag (controller đã set trong action Index)
+        const userId = '@ViewBag.UserId';
+
+        if (!userId) {
+            // Nếu chưa đăng nhập, điều hướng về trang login
+            window.location.href = '/Client/Account/Login';
+            return;
+        }
 
         try {
-            const res = await fetch(`/api/DonHangApi/KhachHang/${maKH}`);
+            // ⚙️ Gọi API theo userId mới
+            const res = await fetch(`/api/DonHangApi/khachhang/${userId}`);
             if (!res.ok) {
                 const t = await res.text();
-                $('#ordersTable tbody').html(`<tr><td colspan="5">Lỗi: ${t}</td></tr>`);
+                $('#ordersTable tbody').html(`<tr><td colspan="5">${t}</td></tr>`);
                 return;
             }
-            const data = await res.json();
-            if (!data || data.length === 0) {
-                $('#ordersTable tbody').html('<tr><td colspan="5">Bạn chưa có đơn hàng.</td></tr>');
-                return;
-            }
-            const rows = data.map(o => `<tr>
-                <td>${o.maDonHang}</td>
-                <td>${new Date(o.ngayDatHang).toLocaleString('vi-VN')}</td>
-                <td>${o.tongTien.toLocaleString()}</td>
-                <td>${o.trangThai}</td>
-                <td>
-                    <button class="btn btn-sm btn-link" data-details='${JSON.stringify(o.chiTietDonHangs)}'>Xem</button>
-                </td>
-            </tr>`).join('');
+
+            const rows = data.map(o => `
+                <tr>
+                    <td>${o.maDonHang}</td>
+                    <td>${new Date(o.ngayDatHang).toLocaleString('vi-VN')}</td>
+                    <td>${o.tongTien.toLocaleString('vi-VN')}</td>
+                    <td>${o.trangThai}</td>
+                    <td>
+                        <button class="btn btn-sm btn-link" data-details='${JSON.stringify(o.chiTietDonHangs)}'>Xem</button>
+                    </td>
+                </tr>
+            `).join('');
+
             $('#ordersTable tbody').html(rows);
 
-            // optional: click xem chi tiết
+            // 🧩 Sự kiện xem chi tiết
             $('#ordersTable').on('click', 'button', function () {
                 const arr = $(this).data('details');
+                if (!arr || !arr.length) {
+                    Swal.fire('Thông báo', 'Đơn hàng không có chi tiết.', 'info');
+                    return;
+                }
+
                 let html = '<ul>';
                 arr.forEach(i => {
-                    html += `<li>${i.tenSP} — ${i.soLuong} x ${i.giaBan.toLocaleString()} = ${(i.soLuong * i.giaBan).toLocaleString()}</li>`;
+                    html += `<li>${i.tenSP} — ${i.soLuong} x ${i.giaBan.toLocaleString('vi-VN')} = ${(i.soLuong * i.giaBan).toLocaleString('vi-VN')}</li>`;
                 });
                 html += '</ul>';
-                Swal.fire({ title: 'Chi tiết', html });
+
+                Swal.fire({ title: 'Chi tiết đơn hàng', html });
             });
 
         } catch (err) {
-            $('#ordersTable tbody').html(`<tr><td colspan="5">Lỗi: ${err.message}</td></tr>`);
+            $('#ordersTable tbody').html(`<tr><td colspan="5">${err.message}</td></tr>`);
         }
     });
 </script>

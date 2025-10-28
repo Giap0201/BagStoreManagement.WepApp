@@ -1,7 +1,7 @@
 ﻿using BagStore.Domain.Entities;
 using BagStore.Web.AppConfig.Implementations;
 using BagStore.Web.AppConfig.Interface;
-using BagStore.Web.Models.DTOs.Request;
+using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Models.Entities.Enums;
 using BagStore.Web.Repositories.Interfaces;
@@ -35,6 +35,19 @@ namespace BagStore.Web.Services.Implementations
         {
             var donHangs = await _donHangRepo.LayTatCaDonHangAsync();
             return donHangs.Select(MapToDonHangResponse);
+        }
+
+        public async Task<IEnumerable<DonHangResponse>> LayDonHangTheoUserAsync(string userId)
+        {
+            var entities = await _donHangRepo.LayDonHangTheoUserAsync(userId);
+
+            if (entities == null || !entities.Any())
+            {
+                
+                return Enumerable.Empty<DonHangResponse>();
+            }
+
+            return entities.Select(MapToDonHangResponse);
         }
 
         public async Task<IEnumerable<DonHangResponse>> LayDonHangTheoKhachHangAsync(int maKhachHang)

@@ -4,7 +4,6 @@ using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;
 using BagStore.Web.Repositories.Interfaces;
-using BagStore.Web.Services;
 using BagStore.Web.Services.Implementations;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +18,7 @@ using BagStore.Repositories;
 using BagStore.Services;
 using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.AppConfig.Implementations;
+using BagStore.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +104,8 @@ builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
 builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
 builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
 builder.Services.AddScoped<IDonHangService, DonHangService>();
+builder.Services.AddScoped<IAnhSanPhamRepository, AnhSanPhamImpl>();
+builder.Services.AddScoped<IAnhSanPhamService, AnhSanPhamService>();
 
 // Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
 builder.Services.AddScoped<IEnumMapper, EnumMapper>();

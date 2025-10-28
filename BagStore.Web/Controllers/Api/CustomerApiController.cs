@@ -1,6 +1,7 @@
 ﻿using BagStore.Web.Models.Entities;
 using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Services;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,7 @@ namespace BagStore.Web.Controllers.Api
     public class CustomerApiController : ControllerBase
     {
         private readonly IUserService _userService;
+
         public CustomerApiController(IUserService userService)
         {
             _userService = userService;
@@ -26,7 +28,8 @@ namespace BagStore.Web.Controllers.Api
         {
             var users = await _userService.GetAllCustomersAsync();
             // map to simple DTO to avoid leaking sensitive fields
-            var list = users.Select(u => new {
+            var list = users.Select(u => new
+            {
                 id = u.Id,
                 userName = u.UserName,
                 fullName = u.FullName,
@@ -86,7 +89,6 @@ namespace BagStore.Web.Controllers.Api
 
             return Ok(new { message = "Cập nhật thành công!" });
         }
-
 
         // DELETE api/Admin/CustomerApi/{id}
         [HttpDelete("{id}")]
