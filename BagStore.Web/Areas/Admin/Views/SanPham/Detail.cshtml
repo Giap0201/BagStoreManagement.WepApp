@@ -40,8 +40,9 @@
 
     <!-- Ảnh sản phẩm -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-light">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Ảnh sản phẩm</h5>
+            <button class="btn btn-sm btn-primary" id="btnAddAnh"><i class="bi bi-plus"></i> Thêm ảnh</button>
         </div>
         <div class="card-body">
             <div id="anhSanPhamList" class="d-flex flex-wrap gap-3 justify-content-start">
@@ -50,10 +51,11 @@
         </div>
     </div>
 
-    <!-- Chi tiết sản phẩm (biến thể) -->
+    <!-- Chi tiết sản phẩm -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-light">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Chi tiết sản phẩm</h5>
+            <button class="btn btn-sm btn-primary" id="btnAddChiTiet"><i class="bi bi-plus"></i> Thêm chi tiết</button>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-bordered align-middle text-center">
@@ -64,10 +66,11 @@
                         <th>Kích thước</th>
                         <th>Số lượng tồn</th>
                         <th>Giá bán</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="chiTietSanPhamTableBody">
-                    <tr><td colspan="5" class="text-muted">Đang tải...</td></tr>
+                    <tr><td colspan="6" class="text-muted">Đang tải...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -78,102 +81,191 @@
     </div>
 </div>
 
+<!-- Modal Thêm/Sửa Chi tiết sản phẩm -->
+<div class="modal fade" id="chiTietModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="chiTietForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chi tiết sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="MaChiTietSP" name="MaChiTietSP" value="0" />
+                    <div class="mb-3">
+                        <label for="MaMauSac" class="form-label">Màu sắc</label>
+                        <select class="form-select" id="MaMauSac" name="MaMauSac" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="MaKichThuoc" class="form-label">Kích thước</label>
+                        <select class="form-select" id="MaKichThuoc" name="MaKichThuoc" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="SoLuongTon" class="form-label">Số lượng tồn</label>
+                        <input type="number" class="form-control" id="SoLuongTon" name="SoLuongTon" min="0" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="GiaBan" class="form-label">Giá bán</label>
+                        <input type="number" class="form-control" id="GiaBan" name="GiaBan" step="0.01" min="0.01" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        $(document).ready(function () {
+        $(function() {
             const maSP = @Model.SanPham.MaSP;
             const apiBase = `/api/sanpham/${maSP}`;
 
-            // --- 1️⃣ Lấy thông tin sản phẩm chính ---
+            // --- Load dữ liệu ---
             function loadSanPhamInfo() {
-                $.ajax({
-                    url: `/api/SanPhamApi/${maSP}`,
-                    method: 'GET',
-                    success: function (res) {
-                        if (res.status === 'success' && res.data) {
-                            const sp = res.data;
-                            $('#MaSP').text(sp.maSP);
-                            $('#TenSP').text(sp.tenSP);
-                            $('#TenLoaiTui').text(sp.tenLoaiTui || 'N/A');
-                            $('#TenThuongHieu').text(sp.tenThuongHieu || 'N/A');
-                            $('#TenChatLieu').text(sp.tenChatLieu || 'N/A');
-                            $('#MoTaChiTiet').text(sp.moTaChiTiet);
-                            $('#MetaTitle').text(sp.metaTitle || '');
-                            $('#MetaDescription').text(sp.metaDescription || '');
-                            $('#AnhChinh').attr('src', sp.anhChinh || '/images/placeholder.png');
-                        } else {
-                            Swal.fire('Lỗi', 'Không tải được thông tin sản phẩm.', 'error');
-                        }
-                    },
-                    error: function () {
-                        Swal.fire('Lỗi', 'Không thể kết nối máy chủ.', 'error');
+                $.get(`/api/SanPhamApi/${maSP}`, function(res) {
+                    if (res.status === 'success') {
+                        const sp = res.data;
+                        $('#MaSP').text(sp.maSP);
+                        $('#TenSP').text(sp.tenSP);
+                        $('#TenLoaiTui').text(sp.tenLoaiTui || 'N/A');
+                        $('#TenThuongHieu').text(sp.tenThuongHieu || 'N/A');
+                        $('#TenChatLieu').text(sp.tenChatLieu || 'N/A');
+                        $('#MoTaChiTiet').text(sp.moTaChiTiet || '');
+                        $('#MetaTitle').text(sp.metaTitle || '');
+                        $('#MetaDescription').text(sp.metaDescription || '');
+                        $('#AnhChinh').attr('src', sp.anhChinh || '/images/placeholder.png');
                     }
-                });
+                }).fail(() => Swal.fire('Lỗi', 'Không thể tải sản phẩm', 'error'));
             }
 
-            // --- 2️⃣ Lấy danh sách ảnh sản phẩm ---
             function loadAnhSanPham() {
-                $.ajax({
-                    url: `${apiBase}/AnhSanPhamApi`,
-                    method: 'GET',
-                    success: function (res) {
-                        const container = $('#anhSanPhamList');
-                        container.empty();
-
-                        if (res.status === 'success' && res.data.length > 0) {
-                            res.data.forEach(a => {
-                                const html = `
-                                    <div class="card p-2 text-center" style="width:120px;">
-                                        <img src="${a.duongDanAnh}" class="img-thumbnail" alt="Ảnh SP">
-                                        <div class="small text-muted mt-1">${a.tenAnh || ''}</div>
-                                    </div>`;
-                                container.append(html);
-                            });
-                        } else {
-                            container.html('<div class="text-muted">Không có ảnh nào.</div>');
-                        }
-                    },
-                    error: function () {
-                        $('#anhSanPhamList').html('<div class="text-danger">Lỗi tải ảnh sản phẩm.</div>');
+                $.get(`${apiBase}/AnhSanPhamApi`, function(res) {
+                    const container = $('#anhSanPhamList');
+                    container.empty();
+                    if (res.status === 'success' && res.data.length) {
+                        res.data.forEach(a => {
+                            const html = `<div class="card p-2 text-center position-relative" style="width:120px;">
+                                <img src="${a.duongDan}" class="img-thumbnail" alt="Ảnh SP">
+                                <div class="small text-muted mt-1">${a.tenAnh || ''}</div>
+                                <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 btnDeleteAnh" data-id="${a.maAnh}">&times;</button>
+                            </div>`;
+                            container.append(html);
+                        });
+                    } else {
+                        container.html('<div class="text-muted">Không có ảnh nào.</div>');
                     }
                 });
             }
 
-            // --- 3️⃣ Lấy danh sách chi tiết sản phẩm ---
             function loadChiTietSanPham() {
-                $.ajax({
-                    url: `${apiBase}/ChiTietSanPhamApi`,
-                    method: 'GET',
-                    success: function (res) {
-                        const tbody = $('#chiTietSanPhamTableBody');
-                        tbody.empty();
-
-                        if (res.status === 'success' && res.data.length > 0) {
-                            res.data.forEach(ct => {
-                                tbody.append(`
-                                    <tr>
-                                        <td>${ct.maChiTietSP}</td>
-                                        <td>${ct.mauSac || 'N/A'}</td>
-                                        <td>${ct.kichThuoc || 'N/A'}</td>
-                                        <td>${ct.soLuongTon}</td>
-                                        <td>${ct.giaBan.toLocaleString()} đ</td>
-                                    </tr>
-                                `);
-                            });
-                        } else {
-                            tbody.html('<tr><td colspan="5" class="text-muted">Không có chi tiết sản phẩm nào.</td></tr>');
-                        }
-                    },
-                    error: function () {
-                        $('#chiTietSanPhamTableBody').html('<tr><td colspan="5" class="text-danger">Lỗi tải dữ liệu chi tiết sản phẩm.</td></tr>');
+                $.get(`${apiBase}/ChiTietSanPhamApi`, function(res) {
+                    const tbody = $('#chiTietSanPhamTableBody');
+                    tbody.empty();
+                    if (res.status === 'success' && res.data.length) {
+                        res.data.forEach(ct => {
+                            tbody.append(`<tr>
+                                <td>${ct.maChiTietSP}</td>
+                                <td>${ct.tenMauSac}</td>
+                                <td>${ct.tenKichThuoc}</td>
+                                <td>${ct.soLuongTon}</td>
+                                <td>${ct.giaBan.toLocaleString()} đ</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary btnEditChiTiet" data-id="${ct.maChiTietSP}">Sửa</button>
+                                    <button class="btn btn-sm btn-danger btnDeleteChiTiet" data-id="${ct.maChiTietSP}">Xóa</button>
+                                </td>
+                            </tr>`);
+                        });
+                    } else {
+                        tbody.html('<tr><td colspan="6" class="text-muted">Không có chi tiết sản phẩm.</td></tr>');
                     }
                 });
             }
 
-            // Gọi tất cả khi trang load
+            // --- Các sự kiện ---
+            $('#btnAddChiTiet').click(() => {
+                $('#chiTietForm')[0].reset();
+                $('#MaChiTietSP').val(0);
+                $('#chiTietModal').modal('show');
+            });
+
+            // Submit form chi tiết sản phẩm
+            $('#chiTietForm').submit(function(e) {
+                e.preventDefault();
+                const data = $(this).serialize();
+                const id = $('#MaChiTietSP').val();
+                const url = id == 0 ? `${apiBase}/ChiTietSanPhamApi` : `${apiBase}/ChiTietSanPhamApi/${id}`;
+                const method = id == 0 ? 'POST' : 'PUT';
+
+                $.ajax({ url, method, data, success(res) {
+                    if(res.status==='success'){
+                        $('#chiTietModal').modal('hide');
+                        loadChiTietSanPham();
+                        Swal.fire('Thành công', 'Lưu chi tiết sản phẩm thành công', 'success');
+                    } else Swal.fire('Lỗi', res.message || 'Không lưu được', 'error');
+                }, error(){ Swal.fire('Lỗi', 'Không thể lưu', 'error'); }});
+            });
+
+            // Chỉnh sửa chi tiết
+            $(document).on('click', '.btnEditChiTiet', function() {
+                const id = $(this).data('id');
+                $.get(`${apiBase}/ChiTietSanPhamApi/${id}`, function(res){
+                    if(res.status==='success'){
+                        const ct = res.data;
+                        $('#MaChiTietSP').val(ct.maChiTietSP);
+                        $('#MaMauSac').val(ct.maMauSac);
+                        $('#MaKichThuoc').val(ct.maKichThuoc);
+                        $('#SoLuongTon').val(ct.soLuongTon);
+                        $('#GiaBan').val(ct.giaBan);
+                        $('#chiTietModal').modal('show');
+                    }
+                });
+            });
+
+            // Xóa chi tiết
+            $(document).on('click', '.btnDeleteChiTiet', function() {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Xóa chi tiết?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xóa'
+                }).then(res => {
+                    if(res.isConfirmed){
+                        $.ajax({
+                            url:`${apiBase}/ChiTietSanPhamApi/${id}`, method:'DELETE',
+                            success(r){ if(r.status==='success'){ loadChiTietSanPham(); Swal.fire('Đã xóa','','success'); } }
+                        });
+                    }
+                });
+            });
+
+            // Xóa ảnh
+            $(document).on('click', '.btnDeleteAnh', function() {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Xóa ảnh?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xóa'
+                }).then(res => {
+                    if(res.isConfirmed){
+                        $.ajax({
+                            url:`${apiBase}/AnhSanPhamApi/${id}`, method:'DELETE',
+                            success(r){ if(r.status==='success'){ loadAnhSanPham(); Swal.fire('Đã xóa','','success'); } }
+                        });
+                    }
+                });
+            });
+
+            // Load ban đầu
             loadSanPhamInfo();
             loadAnhSanPham();
             loadChiTietSanPham();
