@@ -132,59 +132,48 @@
 </div>
 
 @section Scripts {
-    @*
-    KHÔNG thêm các script CDN jQuery, Bootstrap, SweetAlert2 ở đây.
-    Chúng phải được tải MỘT LẦN DUY NHẤT trong _LayoutAdmin.cshtml.
-    Đảm bảo dòng `<script src="~/LayoutAdmin/lib/jquery/dist/jquery.js"></script>` đã bị XÓA trong Layout.
-    *@
 
     <script>
-        // --- ĐỊNH NGHĨA HÀM (BÊN NGOÀI DOCUMENT.READY) ---
+        // --- ĐỊNH NGHĨA HÀM ---
         const apiUrl = '/api/SanPhamApi';
-        let allProducts = []; // Dữ liệu sẽ được load bằng AJAX
 
-        // Hàm tiện ích hiển thị thông báo chung (cho bảng hoặc form)
+        // Hàm tiện ích hiển thị thông báo chung
         function showAlert(selector, message, isSuccess) {
             const alertElement = $(selector);
             alertElement.html(`<div class="alert alert-${isSuccess ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
-                                ${message}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                              </div>`)
+                                    ${message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>`)
                         .removeClass('d-none');
-             // Tự động ẩn sau 5 giây cho thông báo thành công
-            if (isSuccess) {
-                setTimeout(() => {
-                    alertElement.find('.alert').alert('close');
-                }, 5000);
-            }
         }
 
-        // Xóa tất cả các loại lỗi trên form
+        // HÀM QUAN TRỌNG: Xóa tất cả các loại lỗi trên form
         function clearFormErrors() {
             $('.field-error').text('');
             $('.form-control, .form-select').removeClass('is-invalid');
-            $('#formAlertMessage').empty().addClass('d-none'); // Ẩn và xóa thông báo lỗi chung của form
+            $('#formAlertMessage').empty().addClass('d-none');
         }
 
-        // Reset form về trạng thái ban đầu (Thêm mới) và ẩn đi
+        // Reset form về trạng thái ban đầu và ẩn đi
         function resetAndHideForm() {
             $('#productForm')[0].reset();
             $('#MaSP').val(0);
             $('#formTitle').text('Thêm mới sản phẩm');
-            $('#btnSubmitText').text('Lưu'); // Đổi thành Lưu cho cả thêm/sửa
+            $('#btnSubmitText').text('Lưu');
             $('#previewImage').attr('src', '');
-            $('#anhPreviewContainer').hide();
+            $('#anhPreviewContainer').hide(); // Ẩn preview
             $('#AnhChinhHienTai').val('');
-            clearFormErrors();
-            $('#productFormCard').slideUp(); // Ẩn form đi
+
+            clearFormErrors(); // Gọi hàm xóa lỗi chi tiết
+
+            // TỐI GIẢN: Dùng .hide() thay vì .slideUp()
+            $('#productFormCard').hide();
         }
 
-        // Hiển thị form và cuộn tới đó
+        // Hiển thị form
         function showAndScrollToForm() {
-             $('#productFormCard').slideDown();
-             $('html, body').animate({
-                 scrollTop: $("#productFormCard").offset().top - 70 // trừ đi chiều cao navbar nếu cần
-             }, 500);
+            // TỐI GIẢN: Dùng .show() thay vì .slideDown() và bỏ .animate()
+            $('#productFormCard').show();
         }
 
         // Hiển thị danh sách sản phẩm vào bảng
@@ -198,17 +187,9 @@
 
             products.forEach(product => {
                 let imgHtml = '(Không có ảnh)';
-                // Ưu tiên ảnh chính, nếu không có thì lấy ảnh đầu tiên trong danh sách ảnh (nếu có)
-                let imageUrl = product.anhChinh;
-
-                if (imageUrl) {
-                    // Kiểm tra xem URL có cần thêm tiền tố không (nếu API không trả về URL đầy đủ)
-                    if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
-                         imageUrl = '/' + imageUrl; // Giả sử ảnh nằm trong wwwroot
-                    }
-                    imgHtml = `<img src="${imageUrl}" alt="Ảnh SP ${product.tenSP}" style="max-width:50px; max-height:50px; object-fit: cover;" onerror="this.style.display='none'; this.nextSibling.style.display='inline';" /><span style="display:none;">(Ảnh lỗi)</span>`;
+                if (product.anhChinh) {
+                    imgHtml = `<img src="${product.anhChinh}" alt="SP" style="max-width:50px; max-height:50px; object-fit: cover;">`;
                 }
-
 
                 tableBody.append(`
                     <tr data-id="${product.maSP}">
@@ -219,44 +200,38 @@
                         <td>${product.tenChatLieu || 'N/A'}</td>
                         <td>${imgHtml}</td>
                         <td>
-                            <button class="btn btn-info btn-sm btnViewDetail" data-id="${product.maSP}" title="Xem chi tiết"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-warning btn-sm btnEdit" data-id="${product.maSP}" title="Sửa"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-danger btn-sm btnDelete" data-id="${product.maSP}" title="Xoá"><i class="bi bi-trash"></i></button>
+                             <button class="btn btn-info btn-sm btnViewDetail" data-id="${product.maSP}"><i class="bi bi-eye"></i> Xem chi tiết</button>
+                             <button class="btn btn-warning btn-sm btnEdit" data-id="${product.maSP}"><i class="bi bi-pencil"></i> Sửa</button>
+                             <button class="btn btn-danger btn-sm btnDelete" data-id="${product.maSP}"><i class="bi bi-trash"></i> Xoá</button>
+
                         </td>
                     </tr>
                 `);
             });
         }
 
-        // Tải danh sách sản phẩm từ API
+        // Tải danh sách sản phẩm từ API (Dùng $.ajax{})
         function loadProducts() {
             const tableBody = $('#tableBody');
-            tableBody.html('<tr><td colspan="7" class="text-center text-muted"><div class="spinner-border spinner-border-sm" role="status"></div> Đang tải...</td></tr>');
-            $('#tableAlertMessage').empty().addClass('d-none'); // Xóa thông báo cũ
+            tableBody.html('<tr><td colspan="7" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div> Đang tải...</td></tr>');
+            $('#tableAlertMessage').empty().addClass('d-none');
 
             $.ajax({
                 url: apiUrl,
                 method: 'GET',
-                data: { tenSp: $("#searchInput").val() || '' }, // Gửi luôn từ khóa tìm kiếm
+                data: { tenSp: $("#searchInput").val() || '' },
                 success: function (response) {
-                    // API của bạn trả về BaseResponse<List<DTO>> hoặc List<DTO> trực tiếp?
-                    // Giả sử API trả về BaseResponse (có status và data)
                     if (response && response.status === 'success') {
-                         allProducts = response.data || [];
-                         renderTable(allProducts);
-                     } else if ($.isArray(response)) {
-                         // Nếu API trả về List<DTO> trực tiếp
-                         allProducts = response;
-                         renderTable(allProducts);
+                        renderTable(response.data || []);
                     }
-                     else {
-                         showAlert('#tableAlertMessage', response.message || 'Lỗi tải dữ liệu sản phẩm.', false);
-                         tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                    else {
+                        showAlert('#tableAlertMessage', response.message || 'Lỗi tải dữ liệu.', false);
+                        tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
                     }
                 },
                 error: function (xhr) {
-                     showAlert('#tableAlertMessage', `Lỗi kết nối máy chủ (${xhr.status}): ${xhr.statusText}`, false);
-                     tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối máy chủ.</td></tr>');
+                    showAlert('#tableAlertMessage', `Lỗi kết nối (${xhr.status}): ${xhr.statusText}`, false);
+                    tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối.</td></tr>');
                 }
             });
         }
@@ -273,61 +248,46 @@
             $('#MaThuongHieu').val(String(product.maThuongHieu));
             $('#MaChatLieu').val(String(product.maChatLieu));
 
-            // Hiển thị ảnh hiện tại nếu có
             if (product.anhChinh) {
-                let imageUrl = product.anhChinh;
-                 if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
-                     imageUrl = '/' + imageUrl;
-                 }
-                $('#previewImage').attr('src', imageUrl);
+                $('#previewImage').attr('src', product.anhChinh);
                 $('#anhPreviewContainer').show();
-                $('#AnhChinhHienTai').val(product.anhChinh); // Lưu lại đường dẫn cũ
+                $('#AnhChinhHienTai').val(product.anhChinh);
             } else {
                 $('#previewImage').attr('src', '');
                 $('#anhPreviewContainer').hide();
                 $('#AnhChinhHienTai').val('');
             }
-            $('#formTitle').text(`Cập nhật sản phẩm: ${product.tenSP} (Mã: ${product.maSP})`);
-            $('#btnSubmitText').text('Cập nhật'); // Đổi chữ nút submit
-            showAndScrollToForm(); // Hiển thị form và cuộn tới
+            $('#formTitle').text(`Cập nhật: ${product.tenSP} (Mã: ${product.maSP})`);
+            $('#btnSubmitText').text('Cập nhật');
+            showAndScrollToForm(); // Hiển thị form
         }
 
-        // Xử lý và hiển thị lỗi validation từ server (đọc từ mảng lỗi)
+        // Xử lý và hiển thị lỗi validation chi tiết
         function handleValidationErrors(errors) {
             let errorMessagesHtml = '';
-            // errors là MẢNG [ {field: "...", message: "..."} ] từ ValidateModelAttribute
-
             errors.forEach(function(error) {
                 let fieldName = error.field || error.fieldName || error.FieldName;
                 let errorMessage = error.message || error.errorMessage || error.ErrorMessage;
 
                 if (!fieldName) {
-                    console.warn("Lỗi validation không có tên trường:", error);
-                    errorMessagesHtml += `<li>Lỗi không xác định: ${errorMessage || JSON.stringify(error)}</li>`;
+                    errorMessagesHtml += `<li>Lỗi không xác định: ${errorMessage}</li>`;
                     return;
                 }
 
-                 // Hiển thị lỗi ngay dưới trường input/select
-                 // Chuẩn hóa tên: MaLoaiTui -> error-MaLoaiTui
                 let errorFieldId = "error-" + fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
                 var errorElement = $(errorFieldId);
                 if (errorElement.length) {
                     errorElement.text(errorMessage);
-                    // Thêm class is-invalid vào input/select phía trước div lỗi
                     errorElement.prev('.form-control, .form-select').addClass('is-invalid');
                 } else {
-                    // Nếu không tìm thấy chỗ hiển thị lỗi cụ thể, ghi vào danh sách chung
-                     console.warn(`Không tìm thấy phần tử hiển thị lỗi: #${errorFieldId}`);
-                     errorMessagesHtml += `<li><strong>${fieldName}:</strong> ${errorMessage}</li>`;
+                    errorMessagesHtml += `<li><strong>${fieldName}:</strong> ${errorMessage}</li>`;
                 }
             });
 
-            // Hiển thị thông báo lỗi chung trên đầu form nếu có lỗi không hiển thị được ở từng field
             if(errorMessagesHtml) {
-                 showAlert('#formAlertMessage', 'Vui lòng kiểm tra lại dữ liệu:<ul class="mb-0">' + errorMessagesHtml + '</ul>', false);
+                showAlert('#formAlertMessage', 'Vui lòng kiểm tra lại dữ liệu:<ul class="mb-0">' + errorMessagesHtml + '</ul>', false);
             } else {
-                 // Nếu tất cả lỗi đã hiển thị dưới field, chỉ cần 1 thông báo chung đơn giản
-                 showAlert('#formAlertMessage', 'Vui lòng sửa các lỗi được đánh dấu bên dưới.', false);
+                showAlert('#formAlertMessage', 'Vui lòng sửa các lỗi được đánh dấu bên dưới.', false);
             }
         }
 
@@ -335,154 +295,112 @@
         // --- SỰ KIỆN (BÊN TRONG DOCUMENT.READY) ---
         $(document).ready(function () {
 
-            // 1. Nhấn nút "Thêm mới" -> Hiển thị form trống
+            // 1. Nhấn nút "Thêm mới"
             $('#btnAddNewProduct').on('click', function() {
-                resetAndHideForm(); // Đảm bảo form sạch sẽ
+                resetAndHideForm();
                 $('#formTitle').text('Thêm mới sản phẩm');
                 $('#btnSubmitText').text('Lưu');
                 showAndScrollToForm();
             });
 
-            // 2. Nhấn nút "Hủy" trên form -> Reset và ẩn form
+            // 2. Nhấn nút "Hủy"
             $('#btnCancelForm').on('click', resetAndHideForm);
 
-            // 3. Xem trước ảnh khi chọn file mới
-            $('#AnhChinh').on('change', function () {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#previewImage').attr('src', e.target.result);
-                        $('#anhPreviewContainer').show();
-                    };
-                    reader.readAsDataURL(this.files[0]);
-                } else {
-                     // Nếu hủy chọn file, kiểm tra xem có ảnh cũ không để hiển thị lại
-                     const anhCu = $('#AnhChinhHienTai').val();
-                     if (anhCu) {
-                         let imageUrl = anhCu;
-                         if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
-                            imageUrl = '/' + imageUrl;
-                         }
-                         $('#previewImage').attr('src', imageUrl);
-                         $('#anhPreviewContainer').show();
-                     } else {
-                        $('#previewImage').attr('src', '');
-                        $('#anhPreviewContainer').hide();
-                     }
-                }
-            });
-
-            // 4. Submit form (Thêm mới / Cập nhật) - Dùng Event Delegation
+            // 4. Submit form (Thêm mới / Cập nhật)
             $(document).on('submit', '#productForm', function (e) {
                 e.preventDefault();
-                clearFormErrors();
+                clearFormErrors(); // Xóa lỗi chi tiết cũ
 
                 const formData = new FormData(this);
-                const maSP = $('#MaSP').val(); // Lấy MaSP từ hidden input
-                const isNew = (maSP == 0); // Kiểm tra là thêm mới hay cập nhật
+                const maSP = $('#MaSP').val();
+                const isNew = (maSP == 0);
                 const url = isNew ? apiUrl : `${apiUrl}/${maSP}`;
                 const method = isNew ? 'POST' : 'PUT';
-
-                // Log để kiểm tra file trước khi gửi
-                console.log("Chuẩn bị gửi FormData. File:", formData.get("AnhChinh"));
-
-                // Hiển thị loading (ví dụ: vô hiệu hóa nút submit)
                 const submitButton = $(this).find('button[type="submit"]');
                 const originalButtonText = $('#btnSubmitText').text();
                 submitButton.prop('disabled', true);
-                $('#btnSubmitText').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang lưu...');
-
+                $('#btnSubmitText').html('<span class="spinner-border spinner-border-sm"></span> Đang lưu...');
 
                 $.ajax({
                     url: url,
                     type: method,
                     data: formData,
-                    processData: false, // Bắt buộc khi gửi FormData
-                    contentType: false, // Bắt buộc khi gửi FormData
+                    processData: false,
+                    contentType: false,
                     success: function (response) {
-                        // Giả sử API trả về BaseResponse { status: 'success'/'error', message: '...', data: ... }
                         if (response && response.status === 'success') {
-                            showAlert('#tableAlertMessage', response.message || (isNew ? 'Thêm sản phẩm thành công!' : 'Cập nhật sản phẩm thành công!'), true);
+                            showAlert('#tableAlertMessage', response.message || (isNew ? 'Thêm thành công!' : 'Cập nhật!'), true);
                             resetAndHideForm();
-                            loadProducts(); // Tải lại bảng dữ liệu
+                            loadProducts();
                         } else {
-                            // Lỗi nghiệp vụ từ API (status 200 nhưng báo lỗi)
-                            showAlert('#formAlertMessage', response.message || 'Có lỗi xảy ra trong quá trình xử lý.', false);
+                            // Lỗi nghiệp vụ (từ server)
+                            showAlert('#formAlertMessage', response.message || 'Có lỗi xảy ra.', false);
                         }
                     },
                     error: function (xhr) {
-                        // Xử lý lỗi HTTP (400, 500, etc.)
+                        // HÀM XỬ LÝ LỖI CHI TIẾT
                         if (xhr.responseJSON) {
                             var errorResponse = xhr.responseJSON;
-                            // Lỗi Validation (từ ValidateModelAttribute - trả về BaseResponse có errors)
                             if (errorResponse.errors && Array.isArray(errorResponse.errors)) {
+                                // 1. Lỗi Validation
                                 handleValidationErrors(errorResponse.errors);
                             }
-                            // Lỗi nghiệp vụ khác trả về 400 (BaseResponse có message)
                             else if (errorResponse.message) {
+                                // 2. Lỗi nghiệp vụ khác
                                 showAlert('#formAlertMessage', errorResponse.message, false);
                             }
-                            // Lỗi không rõ cấu trúc
                             else {
+                                // 3. Lỗi không rõ
                                 showAlert('#formAlertMessage', 'Lỗi không xác định từ server.', false);
-                                console.error("Lỗi AJAX không rõ cấu trúc:", errorResponse);
                             }
                         } else {
-                            // Lỗi không phải JSON (VD: 500 Internal Server Error không có body JSON)
-                            showAlert('#formAlertMessage', `Lỗi ${xhr.status}: ${xhr.statusText}. Không thể kết nối hoặc server gặp sự cố.`, false);
-                            console.error("Lỗi AJAX:", xhr);
+                            // 4. Lỗi server (500)
+                            showAlert('#formAlertMessage', `Lỗi ${xhr.status}: ${xhr.statusText}.`, false);
                         }
                     },
                     complete: function() {
-                         // Khôi phục lại nút submit sau khi hoàn thành (thành công hoặc lỗi)
-                         submitButton.prop('disabled', false);
-                         $('#btnSubmitText').text(originalButtonText);
+                        // Luôn khôi phục nút
+                        submitButton.prop('disabled', false);
+                        $('#btnSubmitText').text(originalButtonText);
                     }
                 });
             });
 
-            // 5. Nhấn nút "Sửa" trên bảng -> Tải dữ liệu và hiển thị form
+            // 5. Nhấn nút "Sửa"
             $('#tableBody').on('click', '.btnEdit', function () {
                 const id = $(this).data('id');
-                resetAndHideForm(); // Reset trước khi tải dữ liệu mới
-                $('#tableAlertMessage').empty().addClass('d-none'); // Xóa thông báo bảng nếu có
+                resetAndHideForm();
+                $('#tableAlertMessage').empty().addClass('d-none');
 
-                 // Hiển thị loading tạm thời trên form
-                $('#formTitle').text('Đang tải dữ liệu...');
-                showAndScrollToForm();
-
+                // Dùng $.ajax{} để tải chi tiết
                 $.ajax({
                     url: `${apiUrl}/${id}`,
                     method: 'GET',
                     success: function (response) {
-                         // Giả sử API trả về BaseResponse { status: 'success', data: product }
                         if (response && response.status === 'success' && response.data) {
                             fillFormForEdit(response.data);
                         } else {
-                            showAlert('#tableAlertMessage', response.message || 'Không tìm thấy dữ liệu sản phẩm.', false);
-                            resetAndHideForm(); // Ẩn form nếu lỗi
+                            showAlert('#tableAlertMessage', response.message || 'Không tìm thấy dữ liệu.', false);
+                            resetAndHideForm();
                         }
                     },
                     error: function (xhr) {
-                        showAlert('#tableAlertMessage', `Lỗi ${xhr.status} khi tải chi tiết sản phẩm.`, false);
-                        resetAndHideForm(); // Ẩn form nếu lỗi
+                        showAlert('#tableAlertMessage', `Lỗi ${xhr.status} khi tải chi tiết.`, false);
+                        resetAndHideForm();
                     }
                 });
             });
 
-            // 6. Nhấn nút "Xóa" trên bảng
+            // 6. Nhấn nút "Xóa"
             $('#tableBody').on('click', '.btnDelete', function () {
                 const id = $(this).data('id');
-                const row = $(this).closest('tr');
-                const tenSP = row.find('td:eq(1)').text(); // Lấy tên SP từ cột thứ 2
+                const tenSP = $(this).closest('tr').find('td:eq(1)').text();
 
                 Swal.fire({
                     title: 'Xác nhận xóa?',
-                    html: `Bạn có chắc muốn xóa sản phẩm <strong>${tenSP}</strong> (Mã: ${id})?<br/>Thao tác này không thể hoàn tác!`,
+                    html: `Bạn có chắc muốn xóa <strong>${tenSP}</strong> (Mã: ${id})?`,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
                     confirmButtonText: 'Đồng ý xóa',
                     cancelButtonText: 'Hủy bỏ'
                 }).then((result) => {
@@ -492,21 +410,15 @@
                             method: 'DELETE',
                             success: function (response) {
                                 if (response && response.status === 'success') {
-                                    Swal.fire('Đã xóa!', response.message || 'Sản phẩm đã được xóa thành công.', 'success');
-                                    // Xóa hàng khỏi bảng một cách mượt mà
-                                    row.fadeOut(500, function() {
-                                        $(this).remove();
-                                        // Kiểm tra xem bảng còn hàng nào không
-                                        if ($('#tableBody tr').length === 0) {
-                                             loadProducts(); // Tải lại nếu hết sản phẩm
-                                        }
-                                    });
+                                    Swal.fire('Đã xóa!', response.message || 'Đã xóa.', 'success');
+                                    // TỐI GIẢN: Tải lại bảng (thay vì fadeOut)
+                                    loadProducts();
                                 } else {
-                                    Swal.fire('Lỗi!', response.message || 'Không thể xóa sản phẩm.', 'error');
+                                    Swal.fire('Lỗi!', response.message || 'Không thể xóa.', 'error');
                                 }
                             },
                             error: function (xhr) {
-                                Swal.fire('Lỗi!', `Lỗi ${xhr.status} khi xóa sản phẩm.`, 'error');
+                                Swal.fire('Lỗi!', `Lỗi ${xhr.status} khi xóa.`, 'error');
                             }
                         });
                     }
@@ -515,12 +427,11 @@
 
             // 7. Tìm kiếm (khi nhấn nút hoặc Enter)
             function performSearch() {
-                loadProducts(); // Hàm loadProducts đã lấy giá trị từ searchInput
+                loadProducts();
             }
-
             $('#btnSearch').on('click', performSearch);
             $('#searchInput').on('keypress', function(e) {
-                if (e.which === 13) { // 13 là mã phím Enter
+                if (e.which === 13) {
                     performSearch();
                 }
             });
@@ -528,11 +439,11 @@
             // 8. Nhấn nút "Xem chi tiết"
             $('#tableBody').on('click', '.btnViewDetail', function () {
                 const id = $(this).data('id');
-                window.location.href = `/Admin/SanPham/Detail/${id}`; // Chuyển trang
+                window.location.href = `/Admin/SanPham/Detail/${id}`;
             });
 
             // --- KHỞI TẠO ---
-            loadProducts(); // Tải danh sách sản phẩm ban đầu khi trang sẵn sàng
+            loadProducts(); // Tải danh sách sản phẩm ban đầu
         });
     </script>
 }
