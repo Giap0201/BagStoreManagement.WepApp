@@ -20,110 +20,139 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-                  $(document).ready(function() {
+        $(document).ready(function() {
             const userId = '@(ViewBag.UserId)';
             console.log("🔹 User ID từ ViewBag:", userId);
 
-            const apiUrl = `https://localhost:7013/api/cart/${userId}`;
-            console.log("🔹 URL gọi API:", apiUrl);
+            const apiBaseUrl = `https://localhost:7013/api/cart`;
 
-            $.ajax({
-                url: apiUrl,
-                method: 'GET',
-                success: function(cart) {
-                    console.log("✅ Dữ liệu giỏ hàng nhận được:", cart);
+            // Hàm load giỏ hàng
+            function loadCart() {
+                $.ajax({
+                    url: `${apiBaseUrl}/${userId}`,
+                    method: 'GET',
+                    success: function(cart) {
+                        console.log("✅ Dữ liệu giỏ hàng nhận được:", cart);
 
-                    if (!cart || !cart.items || cart.items.length === 0) {
-                        $('#cart-container').html('<p>Giỏ hàng trống.</p>');
-                        return;
-                    }
+                        if (!cart || !cart.items || cart.items.length === 0) {
+                            $('#cart-container').html('<p>Giỏ hàng trống.</p>');
+                            return;
+                        }
 
-                     let html = `
-        <div class="row px-xl-5">
-         <div class="col-lg-8 table-responsive mb-5">
-             <table class="table table-bordered text-center mb-0">
-                 <thead class="bg-secondary text-dark">
-                     <tr>
-                         <th>Sản phẩm</th>
-                         <th>Đơn giá</th>
-                         <th>Số lượng</th>
-                         <th>Thành tiền</th>
-                         <th>xóa</th>
-                     </tr>
-                 </thead>
-            <tbody class="align-middle">
-                `;
+                        let html = `
+                        <div class="row px-xl-5">
+                            <div class="col-lg-8 table-responsive mb-5">
+                                <table class="table table-bordered text-center mb-0">
+                                    <thead class="bg-secondary text-dark">
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th>Đơn giá</th>
+                                            <th>Số lượng</th>
+                                            <th>Thành tiền</th>
+                                            <th>Xóa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="align-middle">`;
 
-                cart.items.forEach(item => {
-                html += `
-                 <tr>
-                        <td class="align-middle"><img src="${item.duongDanAnh}" alt="${item.tenSP}" style="width: 50px;"> ${item.tenSP}</td>
-                        <td class="align-middle">${(item.giaBan || 0).toLocaleString()} ₫</td>
-                        <td class="align-middle">
-                            <div class="input-group quantity mx-auto" style="width: 100px;">
+                        cart.items.forEach(item => {
+                            html += `
+                            <tr data-product-id="${item.maChiTietSP}">
+                                <td class="align-middle"><img src="${item.duongDanAnh}" alt="${item.tenSP}" style="width: 50px;"> ${item.tenSP}</td>
+                                <td class="align-middle">${(item.giaBan || 0).toLocaleString()} ₫</td>
+                                <td class="align-middle">
+                                    <div class="input-group quantity mx-auto" style="width: 100px;">
+                                        <input type="text" class="form-control form-control-sm bg-secondary text-center" value="${item.soLuong}">
+                                    </div>
+                                </td>
+                                <td class="align-middle">${(item.thanhTien || 0).toLocaleString()} ₫</td>
+                                <td class="align-middle">
+                                    <button class="btn btn-sm btn-primary btn-delete-item">
+                                        <i class="fa fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>`;
+                        });
 
-                                <input type="text" class="form-control form-control-sm bg-secondary text-center" value="${item.soLuong}">
-                              
+                        html += `
+                                    </tbody>
+                                </table>
                             </div>
-                        </td>
-                        <td class="align-middle">${(item.thanhTien || 0).toLocaleString()} ₫</td>
-                        <td class="align-middle"><button class="btn btn-sm btn-primary"><i class="fa fa-times"></i></button></td>
-                    </tr>
-                <tr>
-                `;
+                            <div class="col-lg-4">
+                                <div class="card border-secondary mb-5">
+                                    <div class="card-header bg-secondary border-0">
+                                        <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between mb-3 pt-1">
+                                            <h6 class="font-weight-medium">Subtotal</h6>
+                                            <h6 class="font-weight-medium">$150</h6>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="font-weight-medium">Shipping</h6>
+                                            <h6 class="font-weight-medium">$10</h6>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer border-secondary bg-transparent">
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <h5 class="font-weight-bold">Total</h5>
+                                            <h5 class="font-weight-bold">$160</h5>
+                                        </div>
+                                        <button class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+
+                        $('#cart-container').html(html);
+                    },
+                    error: function(xhr) {
+                        console.error("❌ Lỗi khi tải giỏ hàng:", xhr);
+                        let message = "Lỗi khi tải giỏ hàng.";
+                        if (xhr.responseJSON && xhr.responseJSON.message)
+                            message = xhr.responseJSON.message;
+                        $('#cart-container').html(`<p>${message}</p>`);
+                    }
                 });
+            }
 
-                html += `
-                  </tbody>
-                </table>
-            </div>
-            <div class="col-lg-4">
-                <form class="mb-5" action="">
-                    <div class="input-group">
-                        <input type="text" class="form-control p-4" placeholder="Coupon Code">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary">Apply Coupon</button>
-                        </div>
-                    </div>
-                </form>
-                <div class="card border-secondary mb-5">
-                    <div class="card-header bg-secondary border-0">
-                        <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-3 pt-1">
-                            <h6 class="font-weight-medium">Subtotal</h6>
-                            <h6 class="font-weight-medium">$150</h6>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <h6 class="font-weight-medium">Shipping</h6>
-                            <h6 class="font-weight-medium">$10</h6>
-                        </div>
-                    </div>
-                    <div class="card-footer border-secondary bg-transparent">
-                        <div class="d-flex justify-content-between mt-2">
-                            <h5 class="font-weight-bold">Total</h5>
-                            <h5 class="font-weight-bold">$160</h5>
-                        </div>
-                        <button class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</button>
-                    </div>
-                </div>
-            </div>
-        </div>  `;
+            // Gọi lần đầu để load cart
+            loadCart();
 
-                            $('#cart-container').html(html);
-                },
-                error: function(xhr) {
-                    console.error("❌ Lỗi khi tải giỏ hàng:", xhr);
-                    let message = "Lỗi khi tải giỏ hàng.";
-                    if (xhr.responseJSON && xhr.responseJSON.message)
-                        message = xhr.responseJSON.message;
-                    $('#cart-container').html(`<p>${message}</p>`);
-                }
+            // Gán sự kiện xoá (dùng event delegation vì nút được tạo động)
+            $('#cart-container').on('click', '.btn-delete-item', function() {
+                const row = $(this).closest('tr');
+                const maChiTietSP = row.data('product-id');
+                     console.log(" Mã Chi Tiết SP lấy được:", maChiTietSP);
+                     console.log(" Mã KH:", userId);
+
+        if (!maChiTietSP) {
+            alert("Không lấy được mã chi tiết sản phẩm!");
+            return;
+        }
+
+                if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) return;
+
+                $.ajax({
+                    url: `${apiBaseUrl}/${userId}/${maChiTietSP}`,
+                    method: 'DELETE',
+                    success: function(res) {
+                        console.log("🗑️ Xóa thành công:", res);
+                        alert(res.message || "Đã xóa sản phẩm khỏi giỏ hàng.");
+                        // Cách 1: load lại toàn bộ giỏ hàng
+                        //loadCart();
+
+                        // Hoặc Cách 2: chỉ xoá dòng trong bảng cho nhanh
+                         row.remove();
+                    },
+                    error: function(xhr) {
+                        console.error("❌ Lỗi khi xóa:", xhr);
+                        alert(xhr.responseJSON?.message || "Không thể xóa sản phẩm.");
+                    }
+                });
             });
         });
-
     </script>
 }
+
 
                      
