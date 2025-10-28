@@ -1,9 +1,9 @@
 ﻿@{
-    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    Layout = "~/Views/Shared/_Cartlayout.cshtml";
     ViewData["Title"] = "Giỏ hàng của bạn";
 }
 
-<!-- Page Header Start -->
+
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
         <h1 class="font-weight-semi-bold text-uppercase mb-3">Shopping Cart</h1>
@@ -14,8 +14,39 @@
         </div>
     </div>
 </div>
-<div class="container-fluid pt-5" id="cart-container">
+<div class="cart-container">
+    <div class="cart-page">
+        <!-- Header -->
+        <div class="cart-header">
+            <div>
+                <input type="checkbox" class="check-all" /> Sản Phẩm
+            </div>
+            <div>Đơn Giá</div>
+            <div>Số Lượng</div>
+            <div>Số Tiền</div>
+            <div>Thao Tác</div>
+        </div>
+
+        <!-- Một sản phẩm -->
+        <div id="cart-container"></div>
+        <!-- Thanh checkout -->
+        <div class="cart-footer">
+            <div class="left">
+                <input type="checkbox" class="check-all" /> Chọn tất cả
+                <button class="delete-selected">Xóa</button>
+            </div>
+
+            <div class="right">
+                <p>
+                    Tổng cộng (<span class="count">0</span> sản phẩm):
+                    <span class="total-price">0₫</span>
+                </p>
+                <button class="checkout-btn">Mua Hàng</button>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -26,7 +57,7 @@
 
             const apiBaseUrl = `https://localhost:7013/api/cart`;
 
-            // Hàm load giỏ hàng
+            // ===== Hàm Load Giỏ Hàng =====
             function loadCart() {
                 $.ajax({
                     url: `${apiBaseUrl}/${userId}`,
@@ -35,79 +66,40 @@
                         console.log("✅ Dữ liệu giỏ hàng nhận được:", cart);
 
                         if (!cart || !cart.items || cart.items.length === 0) {
-                            $('#cart-container').html('<p>Giỏ hàng trống.</p>');
+                            $('#cart-container').html('<p class="text-center">Giỏ hàng của bạn đang trống.</p>');
+                            $('.cart-footer .count').text(0);
+                            $('.cart-footer .total-price').text('0₫');
                             return;
                         }
 
-                        let html = `
-                        <div class="row px-xl-5">
-                            <div class="col-lg-8 table-responsive mb-5">
-                                <table class="table table-bordered text-center mb-0">
-                                    <thead class="bg-secondary text-dark">
-                                        <tr>
-                                            <th>Sản phẩm</th>
-                                            <th>Đơn giá</th>
-                                            <th>Số lượng</th>
-                                            <th>Thành tiền</th>
-                                            <th>Xóa</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="align-middle">`;
-
-                        let subtotal = 0;
+                        let html = "";
                         cart.items.forEach(item => {
-                            subtotal += item.thanhTien || 0;
+                            const thanhTien = item.giaBan * item.soLuong;
                             html += `
-                            <tr data-product-id="${item.maChiTietSP}">
-                                <td class="align-middle"><img src="${item.duongDanAnh}" alt="${item.tenSP}" style="width: 50px;"> ${item.tenSP}</td>
-                                <td class="align-middle">${(item.giaBan || 0).toLocaleString()} ₫</td>
-                                <td class="align-middle">
-                                    <div class="input-group quantity mx-auto" style="width: 100px;">
-                                        <input type="text" class="form-control form-control-sm bg-secondary text-center" value="${item.soLuong}">
-                                    </div>
-                                </td>
-                                <td class="align-middle">${(item.thanhTien || 0).toLocaleString()} ₫</td>
-                                <td class="align-middle">
-                                    <button class="btn btn-sm btn-primary btn-delete-item">
-                                        <i class="fa fa-times"></i>
-                                    </button>
-                                </td>
-                            </tr>`;
-                        });
-                        const shipping = 35000; 
-                        const total = subtotal + shipping;
-
-                        html += `
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="col-lg-4">
-                                <div class="card border-secondary mb-5">
-                                    <div class="card-header bg-secondary border-0">
-                                        <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between mb-3 pt-1">
-                                            <h6 class="font-weight-medium">Subtotal</h6>
-                                            <h6 class="font-weight-medium">${subtotal.toLocaleString()} ₫</h6>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <h6 class="font-weight-medium">Shipping</h6>
-                                            <h6 class="font-weight-medium">${shipping.toLocaleString()} ₫</h6>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer border-secondary bg-transparent">
-                                        <div class="d-flex justify-content-between mt-2">
-                                            <h5 class="font-weight-bold">Total</h5>
-                                            <h5 class="font-weight-bold">${total.toLocaleString()} ₫</h5>
-                                        </div>
-                                        <button class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</button>
+                            <div class="cart-item" data-product-id="${item.maChiTietSP}">
+                                <div class="product-col">
+                                    <input type="checkbox" class="check-item" value="${item.maChiTietSP}" />
+                                    <img src="${item.hinhAnh || '/images/no-image.png'}" alt="${item.tenSP}" style="width:80px;height:80px;object-fit:cover;margin-right:10px;" />
+                                    <div class="product-info">
+                                        <h4>${item.tenSP}</h4>
+                                        <p class="variant">[size:${item.kichThuoc || 'N/A'}] ${item.mauSac || ''}</p>
                                     </div>
                                 </div>
-                            </div>
-                        </div>`;
+                                <div class="price-col">${(item.giaBan || 0).toLocaleString('vi-VN')}₫</div>
+                                <div class="qty-col">
+                                            <div class="qty-col">
+                                                <input type="number" class="qty-input" min="1" value="${item.soLuong || 1}" readonly />
+                                            </div>
+                                </div>
+                                <div class="total-col">${(thanhTien || 0).toLocaleString('vi-VN')}₫</div>
+                                <div class="action-col">
+                                    <button class="delete-btn">Xóa</button>
+                                </div>
+                            </div>`;
+                        });
 
                         $('#cart-container').html(html);
+                        updateTotal();
                     },
                     error: function(xhr) {
                         console.error("❌ Lỗi khi tải giỏ hàng:", xhr);
@@ -119,20 +111,41 @@
                 });
             }
 
-            // Gọi lần đầu để load cart
-            loadCart();
+            // ===== Hàm cập nhật tổng tiền =====
+            function updateTotal() {
+                let total = 0;
+                let count = 0;
 
-            // Gán sự kiện xoá (dùng event delegation vì nút được tạo động)
-            $('#cart-container').on('click', '.btn-delete-item', function() {
-                const row = $(this).closest('tr');
+                $('.check-item:checked').each(function() {
+                    const itemRow = $(this).closest('.cart-item');
+                    const totalText = itemRow.find('.total-col').text().replace(/[^\d]/g, '');
+                    total += parseInt(totalText || 0);
+                    count++;
+                });
+
+                $('.cart-footer .count').text(count);
+                $('.cart-footer .total-price').text(total.toLocaleString('vi-VN') + '₫');
+            }
+
+            // ===== Sự kiện chọn tất cả =====
+            $(document).on('change', '.check-all', function() {
+                const isChecked = $(this).is(':checked');
+                $('.check-item').prop('checked', isChecked);
+                $('.check-all').prop('checked', isChecked);
+                updateTotal();
+            });
+
+            // ===== Sự kiện chọn từng sản phẩm =====
+            $(document).on('change', '.check-item', function() {
+                const allChecked = $('.check-item').length === $('.check-item:checked').length;
+                $('.check-all').prop('checked', allChecked);
+                updateTotal();
+            });
+
+            // ===== Sự kiện xóa sản phẩm =====
+            $(document).on('click', '.delete-btn', function() {
+                const row = $(this).closest('.cart-item');
                 const maChiTietSP = row.data('product-id');
-                     console.log(" Mã Chi Tiết SP lấy được:", maChiTietSP);
-                     console.log(" Mã KH:", userId);
-
-        if (!maChiTietSP) {
-            alert("Không lấy được mã chi tiết sản phẩm!");
-            return;
-        }
 
                 if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) return;
 
@@ -140,12 +153,8 @@
                     url: `${apiBaseUrl}/${userId}/${maChiTietSP}`,
                     method: 'DELETE',
                     success: function(res) {
-                        console.log("🗑️ Xóa thành công:", res);
                         alert(res.message || "Đã xóa sản phẩm khỏi giỏ hàng.");
-                      
                         loadCart();
-
-                        
                     },
                     error: function(xhr) {
                         console.error("❌ Lỗi khi xóa:", xhr);
@@ -153,9 +162,34 @@
                     }
                 });
             });
+
+            // ===== Sự kiện xóa nhiều sản phẩm được chọn =====
+            $(document).on('click', '.delete-selected', function() {
+                const selected = $('.check-item:checked');
+                if (selected.length === 0) {
+                    alert("Vui lòng chọn ít nhất 1 sản phẩm để xóa!");
+                    return;
+                }
+
+                if (!confirm(`Xóa ${selected.length} sản phẩm đã chọn?`)) return;
+
+                selected.each(function() {
+                    const maChiTietSP = $(this).val();
+                    $.ajax({
+                        url: `${apiBaseUrl}/${userId}/${maChiTietSP}`,
+                        method: 'DELETE',
+                        success: function() {
+                            loadCart();
+                        }
+                    });
+                });
+            });
+
+            // ===== Gọi lần đầu để load cart =====
+            loadCart();
         });
     </script>
 }
 
 
-                     
+
