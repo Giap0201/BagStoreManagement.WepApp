@@ -1,6 +1,7 @@
 ﻿using BagStore.Web.Models.Entities;
 using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Services;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,6 @@ namespace BagStore.Web.Areas.Client.Controllers
     [Area("Client")]
     public class AccountController : Controller
     {
-
         private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -139,6 +139,5 @@ namespace BagStore.Web.Areas.Client.Controllers
         {
             return View();
         }
-
     }
 }

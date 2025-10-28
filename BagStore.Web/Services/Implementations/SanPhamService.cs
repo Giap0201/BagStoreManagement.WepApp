@@ -31,7 +31,7 @@ namespace BagStore.Web.Services.Implementations
             _repoChatLieu = repoChatLieu;
         }
 
-        public async Task<BaseResponse<SanPhamResponseDto>> CreateAsync(SanPhamCreateDto dto)
+        public async Task<BaseResponse<SanPhamResponseDto>> CreateAsync(SanPhamRequestDto dto)
         {
             if (dto == null)
                 return BaseResponse<SanPhamResponseDto>.Error(
@@ -101,15 +101,28 @@ namespace BagStore.Web.Services.Implementations
             return BaseResponse<List<SanPhamResponseDto>>.Success(dtos, "Lấy danh sách sản phẩm thành công");
         }
 
-        public async Task<BaseResponse<SanPhamResponseDto>> UpdateAsync(int maSanPham, SanPhamUpdateDto dto)
+        public async Task<BaseResponse<SanPhamResponseDto>> UpdateAsync(int maSanPham, SanPhamRequestDto dto)
         {
+            if (dto == null)
+                return BaseResponse<SanPhamResponseDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("Dto", "Dữ liệu không được null") },
+                    "Cập nhật thất bại");
+
             var entity = await _repo.GetByIdAsync(maSanPham);
             if (entity == null)
                 return BaseResponse<SanPhamResponseDto>.Error(
                     new List<ErrorDetail> { new ErrorDetail("MaSanPham", "Sản phẩm không tồn tại") },
                     "Cập nhật sản phẩm thất bại");
 
-            entity.TenSP = dto.TenSanPham;
+            // Kiểm tra trùng tên (ngoại trừ chính nó)
+            var existing = await _repo.GetByNameAsync(dto.TenSP);
+            if (existing != null && existing.MaSP != maSanPham)
+                return BaseResponse<SanPhamResponseDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail(nameof(dto.TenSP), $"Tên sản phẩm '{dto.TenSP}' đã tồn tại") },
+                    "Cập nhật thất bại");
+
+            // Map DTO → Entity
+            entity.TenSP = dto.TenSP;
             entity.MoTaChiTiet = dto.MoTaChiTiet;
             entity.MetaTitle = dto.MetaTitle;
             entity.MetaDescription = dto.MetaDescription;
@@ -118,9 +131,26 @@ namespace BagStore.Web.Services.Implementations
             entity.MaChatLieu = dto.MaChatLieu;
             entity.NgayCapNhat = DateTime.Now;
 
-            var updated = await _repo.UpdateAsync(entity);
+            // Nếu có ảnh mới
+            if (dto.AnhChinh != null)
+            {
+                var anhChinh = await ImageHelper.UploadSingleImageAsync(dto.AnhChinh, _env.WebRootPath);
+                if (anhChinh != null)
+                {
+                    anhChinh.LaHinhChinh = true;
 
+                    // Xóa ảnh chính cũ
+                    var oldMain = entity.AnhSanPhams.FirstOrDefault(a => a.LaHinhChinh);
+                    if (oldMain != null)
+                        entity.AnhSanPhams.Remove(oldMain);
+
+                    entity.AnhSanPhams.Add(anhChinh);
+                }
+            }
+
+            var updated = await _repo.UpdateAsync(entity);
             var sanPhamResponDto = await MapEntityToResponse(updated);
+
             return BaseResponse<SanPhamResponseDto>.Success(sanPhamResponDto, "Cập nhật sản phẩm thành công");
         }
 
@@ -152,8 +182,11 @@ namespace BagStore.Web.Services.Implementations
                 MoTaChiTiet = entity.MoTaChiTiet,
                 MetaTitle = entity.MetaTitle,
                 MetaDescription = entity.MetaDescription,
+                MaLoaiTui = entity.MaLoaiTui,
                 TenLoaiTui = danhMucLoaiTui?.TenLoaiTui ?? "N/A",
+                MaThuongHieu = entity.MaThuongHieu,
                 TenThuongHieu = thuongHieu?.TenThuongHieu ?? "N/A",
+                MaChatLieu = entity.MaChatLieu,
                 TenChatLieu = chatLieu?.TenChatLieu ?? "N/A",
                 NgayCapNhap = entity.NgayCapNhat,
                 AnhChinh = anhChinh?.DuongDan

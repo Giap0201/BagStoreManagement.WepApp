@@ -1,4 +1,5 @@
-﻿@{
+﻿@model dynamic
+@{
     ViewData["Title"] = "Quản lý sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
@@ -171,23 +172,23 @@
                 modalForm.find('input, textarea, select').removeClass('is-invalid');
                 errorContainer.addClass('d-none').empty();
 
-                let html = response.message || '';
+                let html = response.message || 'Có lỗi xảy ra';
                 if(response.errors && response.errors.length){
-                    html += '<ul>' + response.errors.map(e=>`<li>${e.message}</li>`).join('') + '</ul>';
-                    response.errors.forEach(e=>{
-                        const field = e.field;
-                        if(field==='TenSP') inputTenSP.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
-                        if(field==='MoTaChiTiet') inputMoTaChiTiet.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
-                        if(field==='MetaTitle') inputMetaTitle.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
-                        if(field==='MetaDescription') inputMetaDescription.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
-                        if(field==='MaLoaiTui') inputLoaiTui.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
-                        if(field==='MaThuongHieu') inputThuongHieu.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
-                        if(field==='MaChatLieu') inputChatLieu.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
-                        if(field==='AnhChinh') inputAnhChinh.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                    html += '<ul>' + response.errors.map(e => `<li>${e.message}</li>`).join('') + '</ul>';
+                    response.errors.forEach(e => {
+                        const field = e.field?.toLowerCase();
+                        if(field === 'tensp') inputTenSP.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field === 'motachitiet') inputMoTaChiTiet.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field === 'metatitle') inputMetaTitle.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field === 'metadescription') inputMetaDescription.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field === 'maloaitui') inputLoaiTui.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field === 'mathuonghieu') inputThuongHieu.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field === 'machatlieu') inputChatLieu.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
+                        if(field === 'anhchinh') inputAnhChinh.addClass('is-invalid').siblings('.invalid-feedback').text(e.message);
                     });
                 }
                 if(html) errorContainer.removeClass('d-none').html(html);
-                Swal.fire({title:'Lỗi!', html:html||'Có lỗi xảy ra', icon:'error'});
+                Swal.fire({title:'Lỗi!', html:html, icon:'error'});
             }
 
             function loadData(){
@@ -298,7 +299,7 @@
                 errorContainer.addClass('d-none').empty();
 
                 const formData = new FormData();
-                formData.append('MaSP', parseInt(inputId.val())||0);
+                formData.append('MaSanPham', parseInt(inputId.val())||0);
                 formData.append('TenSP', inputTenSP.val().trim());
                 formData.append('MoTaChiTiet', inputMoTaChiTiet.val().trim());
                 formData.append('MetaTitle', inputMetaTitle.val().trim());

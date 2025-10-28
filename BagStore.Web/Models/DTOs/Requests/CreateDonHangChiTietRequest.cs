@@ -1,4 +1,4 @@
-﻿namespace BagStore.Web.Models.DTOs.Request
+﻿namespace BagStore.Web.Models.DTOs.Requests
 {
     public class CreateDonHangChiTietRequest
     {

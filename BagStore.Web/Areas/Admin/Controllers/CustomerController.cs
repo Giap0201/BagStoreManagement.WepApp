@@ -1,10 +1,11 @@
 ﻿using BagStore.Web.Models.ViewModels;
-using BagStore.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BagStore.Web.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using BagStore.Web.Services.Interfaces;
+using BagStore.Web.Services;
 
 namespace BagStore.Web.Areas.Admin.Controllers
 {
