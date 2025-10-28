@@ -3,6 +3,7 @@ using BagStore.Web.Models.DTOs.Response;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BagStore.Web.Controllers.Api
 {
@@ -71,9 +72,9 @@ namespace BagStore.Web.Controllers.Api
 
             try
             {
-                var order = await _donHangService.TaoDonHangAsync(dto);
-                return CreatedAtAction(nameof(LayDonHangTheoKhachHang),
-                    new { maKhachHang = dto.MaKhachHang }, order);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                var response = await _donHangService.TaoDonHangAsync(dto, userId);
+                return Ok(response);
             }
             catch (ArgumentException ex)
             {

@@ -1,5 +1,7 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
+using BagStore.Models.Common;
+using BagStore.Services;
 using BagStore.Web.AppConfig.Implementations;
 using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.Models.DTOs.Requests;
@@ -17,22 +19,25 @@ namespace BagStore.Web.Services.Implementations
         private readonly IChiTietDonHangRepository _chiTietRepo;
         private readonly IEnumMapper _mapper;
         private readonly BagStoreDbContext _dbContext;
-        //private readonly IChiTietSanPhamRepository _chiTietSanPhamRepo;
+        private readonly IChiTietSanPhamRepository _chiTietSanPhamRepo;
+        private readonly ICartService _cartService;
         //private readonly IKhachHangRepository _khachHangRepo;
 
         public DonHangService(
             IDonHangRepository donHangRepo,
             IChiTietDonHangRepository chiTietRepo,
+            IChiTietSanPhamRepository chiTietSanPhamRepo,
+            ICartService cartService,
             IEnumMapper mapper,
             BagStoreDbContext dbContext)
-            //IChiTietSanPhamRepository chiTietSanPhamRepo,
             //IKhachHangRepository khachHangRepo)
         {
             _donHangRepo = donHangRepo;
             _chiTietRepo = chiTietRepo;
             _mapper = mapper;
+            _cartService = cartService;
             _dbContext = dbContext;
-            //_chiTietSanPhamRepo = chiTietSanPhamRepo;
+            _chiTietSanPhamRepo = chiTietSanPhamRepo;
             //_khachHangRepo = khachHangRepo;
         }
 
@@ -61,65 +66,99 @@ namespace BagStore.Web.Services.Implementations
             return donHangs.Select(MapToDonHangResponse);
         }
 
-        public async Task<DonHangResponse> TaoDonHangAsync(CreateDonHangRequest dto)
+        public BagStoreDbContext Get_dbContext()
         {
-            if (dto == null || dto.ChiTietDonHang == null || dto.ChiTietDonHang.Count == 0)
-                throw new ArgumentException("Dữ liệu đơn hàng không hợp lệ.");
+            return _dbContext;
+        }
 
-            //// ---------------------------
-            //// TẠM THỜI: test cứng MaKH = 2
-            //// ---------------------------
+        public async Task<DonHangResponse> TaoDonHangAsync(CreateDonHangRequest request, string userId)
+        {
+            // 1️⃣ Lấy khách hàng
+            var khachHang = await _dbContext.KhachHangs
+                .FirstOrDefaultAsync(x => x.ApplicationUserId == userId);
+            if (khachHang == null)
+                throw new KeyNotFoundException("Không tìm thấy khách hàng.");
 
-            // Nếu muốn khôi phục lấy MaKH từ DTO (hoặc từ auth/token), bỏ comment dòng dưới
-            //var khachHang = await _khachHangRepo.LayTheoIdAsync(dto.MaKhachHang)
-            //    ?? throw new ArgumentException($"Khách hàng {dto.MaKhachHang} không tồn tại.");
+            var maKH = khachHang.MaKH;
 
-            var kh = await _dbContext.KhachHangs
-                .FirstOrDefaultAsync(k => k.ApplicationUserId == "ad6eb301-6a39-489c-8253-375e7620ecaa");
+            // 2️⃣ Lấy danh sách sản phẩm cần thanh toán
+            List<(int MaChiTietSP, int SoLuong)> sanPhamThanhToan = new();
 
-            // Thay bằng lookup khách hàng cho MaKH = 2 để kiểm tra phản hồi
-
-            var donHang = new DonHang
+            if (request.ChiTietDonHang != null && request.ChiTietDonHang.Any())
             {
-                // Lưu MaKH test
-                MaKH = kh.MaKH,
-                DiaChiGiaoHang = dto.DiaChiGiaoHang,
-                PhuongThucThanhToan = dto.PhuongThucThanhToan,
-                NgayDatHang = DateTime.Now,
-                TongTien = dto.ChiTietDonHang.Sum(ct => ct.SoLuong * ct.GiaBan),
-                TrangThai = "Chờ xử lý",
-                TrangThaiThanhToan = "Chờ xác nhận",
-                PhiGiaoHang = 0
-            };
-
-            // Thêm đơn vào repo
-            await _donHangRepo.ThemAsync(donHang);
-            await _donHangRepo.LuuAsync();
-
-            // Xử lý chi tiết đơn
-            foreach (var ct in dto.ChiTietDonHang)
+                // 🟢 Trường hợp BUY NOW
+                sanPhamThanhToan = request.ChiTietDonHang
+                    .Select(x => (x.MaChiTietSanPham, x.SoLuong))
+                    .ToList();
+            }
+            else
             {
-                // tạo chi tiết đơn
-                var chiTietDonHang = new ChiTietDonHang
-                {
-                    MaDonHang = donHang.MaDonHang,
-                    MaChiTietSP = ct.MaChiTietSanPham,
-                    SoLuong = ct.SoLuong,
-                    GiaBan = ct.GiaBan
-                };
+                // 🟢 Trường hợp lấy từ GIỎ HÀNG
+                var cart = await _cartService.GetCartByUserIdAsync(maKH);
+                if (cart == null || !cart.Items.Any())
+                    throw new InvalidOperationException("Giỏ hàng của bạn đang trống.");
 
-                await _chiTietRepo.ThemAsync(chiTietDonHang);
+                sanPhamThanhToan = cart.Items
+                    .Select(i => (i.MaSP_GH, i.SoLuong))
+                    .ToList();
             }
 
-            // Lưu lần cuối để commit chi tiết và cập nhật tồn kho
-            await _donHangRepo.LuuAsync();
+            // 3️⃣ Tạo đơn hàng
+            var donHang = new DonHang
+            {
+                MaKH = maKH,
+                NgayDatHang = DateTime.Now,
+                TrangThai = "Chờ xử lý",
+                TrangThaiThanhToan = "Chờ xác nhận",
+                DiaChiGiaoHang = request.DiaChiGiaoHang,
+                PhuongThucThanhToan = request.PhuongThucThanhToan
+            };
+            _dbContext.DonHangs.Add(donHang);
+            await _dbContext.SaveChangesAsync();
 
-            // Lấy lại đơn (đã include chi tiết, sản phẩm, khách hàng trong repository)
-            var updated = await _donHangRepo.LayTheoIdAsync(donHang.MaDonHang)
-                ?? throw new Exception("Không thể load lại đơn hàng.");
+            decimal tongTien = 0;
 
-            return MapToDonHangResponse(updated);
+            // 4️⃣ Duyệt và tạo chi tiết đơn hàng
+            foreach (var (maChiTietSP, soLuong) in sanPhamThanhToan)
+            {
+                var chiTietSP = await _chiTietSanPhamRepo.GetByIdAsync(maChiTietSP);
+                if (chiTietSP == null)
+                    throw new KeyNotFoundException($"Không tìm thấy sản phẩm mã {maChiTietSP}");
+
+                if (chiTietSP.SoLuongTon < soLuong)
+                    throw new InvalidOperationException($"Sản phẩm {chiTietSP.SanPham.TenSP} không đủ hàng.");
+
+                chiTietSP.SoLuongTon -= soLuong;
+                await _chiTietSanPhamRepo.UpdateAsync(chiTietSP);
+
+                var giaBan = chiTietSP.GiaBan;
+                var thanhTien = giaBan * soLuong;
+                tongTien += thanhTien;
+
+                _dbContext.ChiTietDonHangs.Add(new ChiTietDonHang
+                {
+                    MaDonHang = donHang.MaDonHang,
+                    MaChiTietSP = maChiTietSP,
+                    SoLuong = soLuong,
+                    GiaBan = giaBan
+                });
+            }
+
+            // 5️⃣ Cập nhật tổng tiền
+            donHang.TongTien = tongTien;
+            await _dbContext.SaveChangesAsync();
+
+            // 6️⃣ Nếu đơn hàng được lấy từ giỏ → xoá giỏ hàng
+            if (request.ChiTietDonHang == null || !request.ChiTietDonHang.Any())
+            {
+                await _cartService.ClearCartAsync(maKH);
+            }
+
+            return MapToDonHangResponse(donHang);
         }
+
+
+
 
         public async Task<DonHangResponse> CapNhatTrangThaiAsync(UpdateDonHangStatusRequest dto)
         {
@@ -173,6 +212,25 @@ namespace BagStore.Web.Services.Implementations
             };
 
             donHang.TrangThaiThanhToan = _mapper.MapToString(trangThaiThanhToanMoi);
+
+            // Nếu hủy đơn hàng thì hoàn trả tồn kho
+
+            if (trangThaiEnum == TrangThaiDonHang.DaHuy)
+            {
+                var chiTietDonHangs = await _dbContext.ChiTietDonHangs
+                    .Where(ct => ct.MaDonHang == donHang.MaDonHang)
+                    .ToListAsync();
+
+                foreach (var ct in chiTietDonHangs)
+                {
+                    var chiTietSP = await _chiTietSanPhamRepo.GetByIdAsync(ct.MaChiTietSP);
+                    if (chiTietSP != null)
+                    {
+                        chiTietSP.SoLuongTon += ct.SoLuong;
+                        await _chiTietSanPhamRepo.UpdateAsync(chiTietSP);
+                    }
+                }
+            }
 
             // 7️⃣ Lưu DB
             await _donHangRepo.CapNhatAsync(donHang);
