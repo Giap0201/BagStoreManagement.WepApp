@@ -33,6 +33,9 @@ namespace BagStore.Web.Repositories.implementations
         public async Task<List<SanPham>> GetAllAsync()
         {
             return await _context.SanPhams
+                .Include(p => p.DanhMucLoaiTui)
+                .Include(p => p.ThuongHieu)
+                .Include(p => p.ChatLieu)
                 .Include(p => p.AnhSanPhams)
                 .ToListAsync();
         }
@@ -40,6 +43,9 @@ namespace BagStore.Web.Repositories.implementations
         public async Task<SanPham?> GetByIdAsync(int maSP)
         {
             return await _context.SanPhams
+                .Include(p => p.DanhMucLoaiTui)
+                .Include(p => p.ThuongHieu)
+                .Include(p => p.ChatLieu)
                 .Include(p => p.AnhSanPhams)
                 .FirstOrDefaultAsync(p => p.MaSP == maSP);
         }
