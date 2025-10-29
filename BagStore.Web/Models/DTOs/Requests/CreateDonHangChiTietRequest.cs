@@ -4,6 +4,5 @@
     {
         public int MaChiTietSanPham { get; set; }
         public int SoLuong { get; set; }
-        public decimal GiaBan { get; set; }
     }
 }

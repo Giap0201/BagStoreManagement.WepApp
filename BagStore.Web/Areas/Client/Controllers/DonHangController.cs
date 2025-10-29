@@ -1,4 +1,5 @@
 ﻿using BagStore.Web.Models.DTOs.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 namespace BagStore.Web.Areas.Client.Controllers
 {
     [Area("Client")]
+    [Authorize]
     public class DonHangController : Controller
     {
         private readonly IHttpClientFactory _httpFactory;
@@ -30,8 +32,26 @@ namespace BagStore.Web.Areas.Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Checkout()
+        public IActionResult Checkout(int? maChiTietSP = null, int? soLuong = null)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ViewBag.UserId = userId;
+
+            if (maChiTietSP.HasValue && soLuong.HasValue)
+            {
+                // Mua ngay
+                ViewBag.BuyNow = true;
+                ViewBag.MaChiTietSP = maChiTietSP.Value;
+                ViewBag.SoLuong = soLuong.Value;
+            }
+            else
+            {
+                // Từ giỏ hàng
+                ViewBag.BuyNow = true;
+                ViewBag.MaChiTietSP = 3;
+                ViewBag.SoLuong = 1;
+            }
+
             return View();
         }
     }

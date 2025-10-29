@@ -1,86 +1,133 @@
-﻿﻿@{
-Layout = "~/Views/Shared/_ClientLayout.cshtml";
-ViewData["Title"] = "Đơn hàng";
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Thanh toán";
+    var userId = ViewBag.UserId;
+    bool isBuyNow = true;
+    int maChiTietSP = ViewBag.MaChiTietSP ?? 3;
+    int soLuong = ViewBag.SoLuong ?? 1;
 }
 
-<!-- include jQuery & SweetAlert2 (CDN) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">CHECKOUT</h1>
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Checkout</h1>
         <div class="d-inline-flex">
-            <p class="m-0"><a href="">Home</a></p>
+            <p class="m-0"><a href="/">Home</a></p>
         </div>
     </div>
 </div>
 
-<form id="checkoutForm">
-    <div>
-        <label>Địa chỉ giao hàng</label><br />
-        <input type="text" id="diaChi" name="DiaChiGiaoHang" class="form-control" required />
-    </div>
-
-    <div>
-        <label>Phương thức thanh toán</label><br />
-        <select id="pttt" name="PhuongThucThanhToan" class="form-control">
-            <option value="COD">COD</option>
-            <option value="Chuyển khoản">Chuyển khoản</option>
-        </select>
-    </div>
-
-    <h4>Sản phẩm</h4>
-    <!-- Giả sử bạn render sản phẩm/cart bằng server hoặc JS; ví dụ static cho demo -->
-    <div id="cartItems">
-        <!-- item mẫu: data attributes cho maChiTietSP, giaBan -->
-        <div class="cart-row" data-machitietsp="3" data-giaban="250000">
-            <span>Tên sản phẩm A</span>
-            <input type="number" class="qty" value="1" min="1" />
+<div class="container mb-5">
+    <form id="checkoutForm">
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Địa chỉ giao hàng</label>
+                <input type="text" id="diaChi" name="DiaChiGiaoHang" class="form-control" placeholder="Nhập địa chỉ giao hàng" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Phương thức thanh toán</label>
+                <select id="pttt" name="PhuongThucThanhToan" class="form-select">
+                    <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="Chuyển khoản">Chuyển khoản ngân hàng</option>
+                    <option value="Ví điện tử">Ví điện tử</option>
+                </select>
+            </div>
         </div>
-        <div class="cart-row" data-machitietsp="4" data-giaban="300000">
-            <span>Tên sản phẩm B</span>
-            <input type="number" class="qty" value="1" min="1" />
-        </div>
-    </div>
 
-    <button id="btnOrder" type="button" class="btn btn-primary mt-3">Đặt hàng</button>
-</form>
+        <table id="checkoutTable" class="table table-bordered align-middle text-center">
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th>Hình ảnh</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Màu sắc</th>
+                    <th>Kích cỡ</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Tổng cộng</th>
+                    <th id="tongTien" class="text-danger">0 ₫</th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="text-center mt-4">
+            <button id="btnOrder" type="button" class="btn btn-success px-4 py-2 fw-bold">Thanh toán</button>
+        </div>
+    </form>
+</div>
 
 <script>
-    $(function() {
+    const userId = '@userId';
+    const isBuyNow = @isBuyNow.ToString().ToLower();
+    const maChiTietSP = @maChiTietSP;
+    const soLuong = @soLuong;
+
+    $(document).ready(async function () {
+        let items = [];
+
+            if (isBuyNow) {
+        const res = await fetch(`/api/ChiTietSanPhamApi/${maChiTietSP}`);
+        const sp = await res.json();
+        items.push({
+            maChiTietSP: sp.maChiTietSP,
+            hinhAnh: sp.hinhAnh || '/uploads/088a82d7-9462-4afb-bd8c-6ec8f1b94631_Screenshot 2025-10-13 143624.png',
+            tenSP: sp.tenSanPham,
+            mauSac: sp.tenMauSac || 'Không xác định',
+            kichCo: sp.tenKichThuoc || 'Không xác định',
+            soLuong: soLuong,
+            giaBan: sp.giaBan,
+            thanhTien: sp.giaBan * soLuong
+        });
+    } else {
+        const res = await fetch(`/api/CartAPI/${userId}`);
+        const cart = await res.json();
+        items = cart.items.map(x => ({
+            maChiTietSP: x.maChiTietSP,
+            hinhAnh: x.hinhAnh ? `/uploads/${x.hinhAnh}` : '~/uploads/default.png',
+            tenSP: x.tenSanPham,
+            mauSac: x.tenMauSac || 'Không xác định',
+            kichCo: x.tenKichThuoc || 'Không xác định',
+            soLuong: x.soLuong,
+            giaBan: x.giaBan,
+            thanhTien: x.giaBan * x.soLuong
+        }));
+    }
+
+
+        renderTable(items);
+
         $('#btnOrder').click(async function () {
-            // Build DTO từ form
-            const chiTietDonHangs = [];
-            $('#cartItems .cart-row').each(function () {
-                const ma = parseInt($(this).data('machitietsp'));
-                const gia = parseFloat($(this).data('giaban'));
-                const soLuong = parseInt($(this).find('.qty').val()) || 1;
-                chiTietDonHangs.push({
-                    MaChiTietSP: ma,
-                    SoLuong: soLuong,
-                    GiaBan: gia
-                });
-            });
+            if ($('#diaChi').val().trim() === "") {
+                Swal.fire('Thiếu thông tin', 'Vui lòng nhập địa chỉ giao hàng', 'warning');
+                return;
+            }
 
             const dto = {
-                MaKH: /* TODO: lấy user id server-side hoặc đặt 0 */ 2, // thay bằng user id thực
                 DiaChiGiaoHang: $('#diaChi').val(),
                 PhuongThucThanhToan: $('#pttt').val(),
-                ChiTietDonHangs: chiTietDonHangs
+                ChiTietDonHang: items.map(x => ({
+                    MaChiTietSanPham: x.maChiTietSP,
+                    SoLuong: x.soLuong
+                }))
             };
 
-            // Xác nhận bằng SweetAlert
-            const result = await Swal.fire({
+            const confirm = await Swal.fire({
                 title: 'Xác nhận đặt hàng?',
-                text: 'Bạn có chắc muốn đặt các sản phẩm này?',
+                text: 'Bạn chắc chắn muốn đặt đơn hàng này?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Đặt hàng',
                 cancelButtonText: 'Hủy'
             });
 
-            if (!result.isConfirmed) return;
+            if (!confirm.isConfirmed) return;
 
             try {
                 const res = await fetch('/api/DonHangApi', {
@@ -90,18 +137,41 @@ ViewData["Title"] = "Đơn hàng";
                 });
 
                 if (res.ok) {
-                    const data = await res.json();
-                    await Swal.fire('Thành công', 'Đơn hàng đã được tạo', 'success');
-                    // Redirect tới trang danh sách đơn hàng client
-                    window.location.href = '/Client/Orders/Index';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đặt hàng thành công!',
+                        text: 'Cảm ơn bạn đã mua hàng 💚',
+                        confirmButtonText: 'Xem đơn hàng'
+                    }).then(() => window.location.href = '/Client/DonHang/Index');
                 } else {
-                    // show lỗi chi tiết (server có thể trả text hoặc json)
-                    const txt = await res.text();
-                    await Swal.fire('Lỗi', txt, 'error');
+                    const err = await res.text();
+                    Swal.fire('Lỗi', err, 'error');
                 }
-            } catch (err) {
-                await Swal.fire('Lỗi', err.message || 'Lỗi mạng', 'error');
+            } catch (error) {
+                Swal.fire('Lỗi', error.message || 'Không thể kết nối máy chủ', 'error');
             }
         });
     });
+
+        function renderTable(items) {
+        const tbody = $('#checkoutTable tbody');
+        tbody.empty();
+
+        let tongTien = 0;
+        items.forEach(item => {
+            tongTien += item.thanhTien;
+            tbody.append(`
+                <tr>
+                    <td><img src="${item.hinhAnh}" alt="SP" style="width:70px;height:70px;object-fit:cover;border-radius:5px"></td>
+                    <td>${item.tenSP}</td>
+                    <td>${item.mauSac}</td>
+                    <td>${item.kichCo}</td>
+                    <td>${item.soLuong}</td>
+                    <td>${item.giaBan.toLocaleString('vi-VN')} ₫</td>
+                    <td>${item.thanhTien.toLocaleString('vi-VN')} ₫</td>
+                </tr>
+            `);
+        });
+        $('#tongTien').text(tongTien.toLocaleString('vi-VN') + ' ₫');
+    }
 </script>
