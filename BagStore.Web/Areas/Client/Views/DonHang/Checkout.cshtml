@@ -64,7 +64,7 @@
 </div>
 
 <script>
-        const userId = '@userId';
+    const userId = '@userId';
     const isBuyNow = @isBuyNow.ToString().ToLower();
     const maChiTietSP = @maChiTietSP;
     const soLuong = @soLuong;
@@ -77,10 +77,10 @@
         const sp = await res.json();
         items.push({
             maChiTietSP: sp.maChiTietSP,
-            hinhAnh: sp.hinhAnh || '',
-            tenSP: sp.tenSP,
-            mauSac: sp.mauSac || 'Không xác định',
-            kichCo: sp.kichCo || 'Không xác định',
+            hinhAnh: sp.hinhAnh || '/uploads/088a82d7-9462-4afb-bd8c-6ec8f1b94631_Screenshot 2025-10-13 143624.png',
+            tenSP: sp.tenSanPham,
+            mauSac: sp.tenMauSac || 'Không xác định',
+            kichCo: sp.tenKichThuoc || 'Không xác định',
             soLuong: soLuong,
             giaBan: sp.giaBan,
             thanhTien: sp.giaBan * soLuong
@@ -90,10 +90,10 @@
         const cart = await res.json();
         items = cart.items.map(x => ({
             maChiTietSP: x.maChiTietSP,
-            hinhAnh: x.hinhAnh ? `/uploads/${x.hinhAnh}` : '/uploads/default.png',
-            tenSP: x.tenSP,
-            mauSac: x.mauSac || 'Không xác định',
-            kichCo: x.kichCo || 'Không xác định',
+            hinhAnh: x.hinhAnh ? `/uploads/${x.hinhAnh}` : '~/uploads/default.png',
+            tenSP: x.tenSanPham,
+            mauSac: x.tenMauSac || 'Không xác định',
+            kichCo: x.tenKichThuoc || 'Không xác định',
             soLuong: x.soLuong,
             giaBan: x.giaBan,
             thanhTien: x.giaBan * x.soLuong

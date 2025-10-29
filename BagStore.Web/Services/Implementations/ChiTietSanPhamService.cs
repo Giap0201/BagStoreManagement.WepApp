@@ -65,9 +65,13 @@ namespace BagStore.Web.Services.Implementations
             if (result == null) return null;
             return new ChiTietSanPhamResponseDto
             {
+                MaSP = result.MaSP,
                 MaChiTietSP = result.MaChiTietSP,
+                TenSanPham = result.SanPham.TenSP,
                 MaKichThuoc = result.MaKichThuoc,
+                TenKichThuoc = result.KichThuoc.TenKichThuoc,
                 MaMauSac = result.MaMauSac,
+                TenMauSac = result.MauSac.TenMauSac,
                 GiaBan = result.GiaBan,
                 NgayTao = result.NgayTao,
                 SoLuongTon = result.SoLuongTon
