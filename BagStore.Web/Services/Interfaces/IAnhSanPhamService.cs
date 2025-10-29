@@ -20,5 +20,7 @@ namespace BagStore.Web.Services.Interfaces
         Task<BaseResponse<List<AnhSanPhamResponseDto>>> GetAllAsync();
 
         Task<BaseResponse<List<AnhSanPham>>> CreateMultipleAsync(int maSP, List<IFormFile> files);
+
+        Task<BaseResponse<AnhSanPhamResponseDto>> SetPrimaryAsync(int maAnh);
     }
 }

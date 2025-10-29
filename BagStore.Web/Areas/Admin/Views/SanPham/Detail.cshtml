@@ -1,182 +1,743 @@
-﻿@model BagStore.Web.Models.ViewModels.SanPhamDetailViewModel
+﻿@* File: Areas/Admin/Views/SanPham/Detail.cshtml *@
+@model BagStore.Web.Models.ViewModels.SanPhams.SanPhamDetailViewModel;
 
 @{
-    ViewData["Title"] = "Quản lý sản phẩm";
+    ViewData["Title"] = "Chi tiết sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    var sanPham = Model.SanPham;
+    var maSP = sanPham?.MaSP ?? 0;
+    var tenSP = sanPham?.TenSP ?? "Sản phẩm không xác định";
 }
 
+
 <div class="container mt-4">
-    <h3 class="text-primary mb-3">
-        <i class="bi bi-info-circle"></i> Chi tiết sản phẩm
-    </h3>
 
-    <!-- Thông tin sản phẩm -->
+    @* Phần thông tin cơ bản của Sản phẩm *@
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Thông tin sản phẩm</h5>
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+            <h5 class="mb-0 text-primary"><i class="bi bi-info-circle-fill"></i> Thông tin: @tenSP (Mã: @maSP)</h5>
+            <a asp-action="Index" asp-controller="SanPham" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại DS Sản phẩm
+            </a>
+        </div>
+        @if (sanPham != null)
+        {
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 text-center">
+                        @if (!string.IsNullOrEmpty(sanPham.AnhChinh))
+                        {
+                            <img id="AnhChinh" src="@sanPham.AnhChinh" class="img-thumbnail" style="max-width:200px;max-height: 400px; object-fit:cover;" alt="Ảnh sản phẩm" />
+                        }
+                        else
+                        {
+                            <img id="AnhChinh" src="/images/placeholder.jpg" class="img-thumbnail" style="max-width:200px;max-height: 400px; object-fit:cover;" alt="Chưa có ảnh" />
+                        }
+                    </div>
+                    <div class="col-md-9">
+                        <table class="table table-borderless table-sm">
+                            <tbody>
+                                <tr><th style="width: 150px;">Mã SP:</th><td>@sanPham.MaSP</td></tr>
+                                <tr><th>Tên sản phẩm:</th><td>@sanPham.TenSP</td></tr>
+                                <tr><th>Loại túi:</th><td>@sanPham.TenLoaiTui</td></tr>
+                                <tr><th>Thương hiệu:</th><td>@sanPham.TenThuongHieu</td></tr>
+                                <tr><th>Chất liệu:</th><td>@sanPham.TenChatLieu</td></tr>
+                                <tr><th>Mô tả chi tiết:</th><td>@sanPham.MoTaChiTiet</td></tr>
+                                <tr><th>Meta Title:</th><td>@sanPham.MetaTitle</td></tr>
+                                <tr><th>Meta Description:</th><td>@sanPham.MetaDescription</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card-body py-2"><p class="text-danger mb-0 small">Không tải được thông tin sản phẩm.</p></div>
+        }
+    </div>
+
+
+    @* Phần Quản lý Biến thể *@
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+            <h5 class="mb-0"><i class="bi bi-palette"></i> Quản lý Biến thể</h5>
+            <button id="btnAddNewVariant" class="btn btn-sm btn-light text-primary">
+                <i class="bi bi-plus-circle"></i> Thêm mới
+            </button>
         </div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4 text-center">
-                    <img id="AnhChinh" src="" class="img-thumbnail" style="max-width:200px; object-fit:cover;" alt="Ảnh sản phẩm" />
+            <div id="variantAlertMessage" class="mb-2"></div>
+
+            @* Form thêm/sửa biến thể (Ẩn ban đầu) *@
+            <div class="card mt-1 mb-3 border-primary" id="variantFormCard" style="display: none;">
+                <div class="card-header bg-primary-subtle border-primary py-2">
+                    <h6 class="mb-0 text-primary" id="variantFormTitle">Thêm biến thể mới</h6>
                 </div>
-                <div class="col-md-8">
-                    <table class="table table-borderless">
-                        <tbody>
-                            <tr><th>Mã SP:</th><td id="MaSP"></td></tr>
-                            <tr><th>Tên sản phẩm:</th><td id="TenSP"></td></tr>
-                            <tr><th>Loại túi:</th><td id="TenLoaiTui"></td></tr>
-                            <tr><th>Thương hiệu:</th><td id="TenThuongHieu"></td></tr>
-                            <tr><th>Chất liệu:</th><td id="TenChatLieu"></td></tr>
-                            <tr><th>Mô tả chi tiết:</th><td id="MoTaChiTiet"></td></tr>
-                            <tr><th>Meta Title:</th><td id="MetaTitle"></td></tr>
-                            <tr><th>Meta Description:</th><td id="MetaDescription"></td></tr>
-                        </tbody>
-                    </table>
+                <div class="card-body pt-2 pb-3">
+                    <div id="variantFormAlert"></div>
+                    <form id="variantForm">
+                        <input type="hidden" id="MaChiTietSP" name="MaChiTietSP" value="0" />
+                        <input type="hidden" id="MaSP_Variant" name="MaSP" value="@maSP" />
+
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label for="MaMauSac" class="form-label mb-1 small fw-bold">Màu sắc <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm" id="MaMauSac" name="MaMauSac" required>
+                                    <option value="">-- Chọn màu --</option>
+                                    @if (ViewBag.MauSacList != null)
+                                    {
+                                        @foreach (var item in (List<SelectListItem>)ViewBag.MauSacList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                                <div class="text-danger small field-error" id="error-MaMauSac"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="MaKichThuoc" class="form-label mb-1 small fw-bold">Kích thước <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm" id="MaKichThuoc" name="MaKichThuoc" required>
+                                    <option value="">-- Chọn kích thước --</option>
+                                    @if (ViewBag.KichThuocList != null)
+                                    {
+                                        @foreach (var item in (List<SelectListItem>)ViewBag.KichThuocList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                                <div class="text-danger small field-error" id="error-MaKichThuoc"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="GiaBan" class="form-label mb-1 small fw-bold">Giá bán <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control form-control-sm" id="GiaBan" name="GiaBan" required />
+                                <div class="text-danger small field-error" id="error-GiaBan"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="SoLuongTon" class="form-label mb-1 small fw-bold">Số lượng tồn <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control form-control-sm" id="SoLuongTon" name="SoLuongTon" required min="0" />
+                                <div class="text-danger small field-error" id="error-SoLuongTon"></div>
+                            </div>
+                            <div class="col-12 text-end mt-2">
+                                <button type="submit" class="btn btn-primary btn-sm px-3 me-1"><i class="bi bi-save"></i> <span id="btnVariantSubmitText">Lưu</span></button>
+                                <button type="button" class="btn btn-secondary btn-sm px-3" id="btnCancelVariantForm"><i class="bi bi-x-circle"></i> Hủy</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
+            </div>
+
+            @* Bảng Biến thể *@
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover text-center align-middle small" id="tblVariants">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã CTSP</th>
+                            <th>Màu sắc</th>
+                            <th>Kích thước</th>
+                            <th>Giá bán (VNĐ)</th>
+                            <th>Số lượng tồn</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="variantTableBody">
+                        @* Render dữ liệu ban đầu từ Model *@
+                        @if (Model.ChiTietSanPhams != null && Model.ChiTietSanPhams.Any())
+                        {
+                            foreach (var v in Model.ChiTietSanPhams)
+                            {
+                                <tr data-id="@v.MaChiTietSP">
+                                    <td>@v.MaChiTietSP</td>
+                                    <td>@v.TenMauSac</td>
+                                    <td>@v.TenKichThuoc</td>
+                                    <td class="text-end">@(v.GiaBan.ToString("N0"))</td>
+                                    <td>@v.SoLuongTon</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm btnEditVariant" data-id="@v.MaChiTietSP" title="Sửa">Sửa<i class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-danger btn-sm btnDeleteVariant" data-id="@v.MaChiTietSP" title="Xóa">Xóa<i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="6" class="text-center text-muted">Chưa có biến thể nào.</td></tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Ảnh sản phẩm -->
+
+    @* Phần Quản lý Ảnh (ĐÃ CẬP NHẬT) *@
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Ảnh sản phẩm</h5>
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
+            <h5 class="mb-0"><i class="bi bi-images"></i> Quản lý Ảnh sản phẩm</h5>
+            <button id="btnAddNewImage" class="btn btn-sm btn-light text-success">
+                <i class="bi bi-plus-circle"></i> Thêm ảnh mới
+            </button>
         </div>
         <div class="card-body">
-            <div id="anhSanPhamList" class="d-flex flex-wrap gap-3 justify-content-start">
-                <div class="text-muted">Đang tải ảnh...</div>
+            <div id="imageAlertMessage" class="mb-2"></div>
+
+            @* Form thêm ảnh (ĐÃ CẬP NHẬT) *@
+            <div class="card mt-1 mb-3 border-success" id="imageFormCard" style="display: none;">
+                <div class="card-header bg-success-subtle border-success py-2">
+                    <h6 class="mb-0 text-success" id="imageFormTitle">Thêm ảnh mới</h6>
+                </div>
+                <div class="card-body pt-2 pb-3">
+                    <div id="imageFormAlert"></div>
+
+                    <form id="imageForm" enctype="multipart/form-data">
+                        <input type="hidden" name="MaSP" value="@maSP" />
+
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-7">
+                                <label for="ImageUrlFile" class="form-label mb-1 small fw-bold">Chọn file ảnh <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control form-control-sm" id="ImageUrlFile" name="FileAnh" accept="image/*" required />
+                                <div class="text-danger small field-error" id="error-FileAnh"></div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="ThuTuHienThi" class="form-label mb-1 small fw-bold">Thứ tự</label>
+                                <input type="number" class="form-control form-control-sm" id="ThuTuHienThi" name="ThuTuHienThi" value="1" min="1" required />
+                                <div class="text-danger small field-error" id="error-ThuTuHienThi"></div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="IsPrimary" name="LaHinhChinh" value="true">
+                                    <label class="form-check-label small" for="IsPrimary">
+                                        Đặt làm ảnh chính?
+                                    </label>
+                                    <input type="hidden" name="LaHinhChinh" value="false" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 text-end mt-2">
+                                <button type="submit" class="btn btn-success btn-sm px-3 me-1"><i class="bi bi-upload"></i> Tải lên</button>
+                                <button type="button" class="btn btn-secondary btn-sm px-3" id="btnCancelImageForm"><i class="bi bi-x-circle"></i> Hủy</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @* Bảng Ảnh (ĐÃ CẬP NHẬT) *@
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover text-center align-middle small" id="tblImages">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã Ảnh</th>
+                            <th style="width: 100px;">Ảnh</th>
+                            <th>Đường dẫn</th>
+                            <th>Thứ tự</th>
+                            <th>Ảnh chính?</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="imageTableBody">
+                        @* Render dữ liệu ban đầu từ Model *@
+                        @if (Model.AnhSanPhams != null && Model.AnhSanPhams.Any())
+                        {
+                            foreach (var img in Model.AnhSanPhams)
+                            {
+                                <tr data-id="@img.MaAnh">
+                                    <td>@img.MaAnh</td>
+                                    <td>
+                                        <img src="@img.DuongDan" alt="Ảnh SP @img.DuongDan" style="max-width: 80px; max-height: 80px; object-fit: contain; cursor: pointer; border: 1px solid #eee;" onclick="window.open('@img.DuongDan', '_blank')">
+                                    </td>
+                                    <td><small>@img.DuongDan</small></td>
+                                    <td>@img.ThuTuHienThi</td>
+                                    <td>@(img.LaHinhChinh? Html.Raw("<i class='bi bi-check-circle-fill text-success' title='Ảnh chính'>Ảnh chính</i>") : Html.Raw("<i class='bi bi-x-circle text-muted' title='Ảnh phụ'>Ảnh phụ</i>"))</td>
+                                    <td>
+                                        @if (!img.LaHinhChinh)
+                                        {
+                                            <button class="btn btn-outline-success btn-sm btnSetPrimaryImage" data-id="@img.MaAnh" title="Đặt làm ảnh chính"><i class="bi bi-check-lg">Đặt làm ảnh chính</i></button>
+                                        }
+                                        <button class="btn btn-danger btn-sm btnDeleteImage" data-id="@img.MaAnh" title="Xóa ảnh">Xóa<i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="6" class="text-center text-muted">Chưa có ảnh nào.</td></tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
-
-    <!-- Chi tiết sản phẩm (biến thể) -->
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Chi tiết sản phẩm</h5>
-        </div>
-        <div class="card-body table-responsive">
-            <table class="table table-bordered align-middle text-center">
-                <thead class="table-light">
-                    <tr>
-                        <th>Mã chi tiết</th>
-                        <th>Màu sắc</th>
-                        <th>Kích thước</th>
-                        <th>Số lượng tồn</th>
-                        <th>Giá bán</th>
-                    </tr>
-                </thead>
-                <tbody id="chiTietSanPhamTableBody">
-                    <tr><td colspan="5" class="text-muted">Đang tải...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="text-end">
-        <a href="/Admin/SanPham" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
     </div>
 </div>
 
+
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function () {
-            const maSP = @Model.SanPham.MaSP;
-            const apiBase = `/api/sanpham/${maSP}`;
+        const currentMaSP = @maSP;
 
-            // --- 1️⃣ Lấy thông tin sản phẩm chính ---
-            function loadSanPhamInfo() {
-                $.ajax({
-                    url: `/api/SanPhamApi/${maSP}`,
-                    method: 'GET',
-                    success: function (res) {
-                        if (res.status === 'success' && res.data) {
-                            const sp = res.data;
-                            $('#MaSP').text(sp.maSP);
-                            $('#TenSP').text(sp.tenSP);
-                            $('#TenLoaiTui').text(sp.tenLoaiTui || 'N/A');
-                            $('#TenThuongHieu').text(sp.tenThuongHieu || 'N/A');
-                            $('#TenChatLieu').text(sp.tenChatLieu || 'N/A');
-                            $('#MoTaChiTiet').text(sp.moTaChiTiet);
-                            $('#MetaTitle').text(sp.metaTitle || '');
-                            $('#MetaDescription').text(sp.metaDescription || '');
-                            $('#AnhChinh').attr('src', sp.anhChinh || '/images/placeholder.png');
-                        } else {
-                            Swal.fire('Lỗi', 'Không tải được thông tin sản phẩm.', 'error');
-                        }
-                    },
-                    error: function () {
-                        Swal.fire('Lỗi', 'Không thể kết nối máy chủ.', 'error');
-                    }
-                });
+        // ========================= HÀM TIỆN ÍCH CHUNG =========================
+
+        function showAlert(selector, message, isSuccess) {
+            const alertClass = isSuccess ? 'success' : 'danger';
+            $(selector).empty().html(`<div class="alert alert-${alertClass} alert-dismissible fade show small py-2" role="alert"> ${message} <button type="button" class="btn-close btn-sm py-1" data-bs-dismiss="alert" aria-label="Close"></button> </div>`).removeClass('d-none');
+        }
+
+        // Xóa lỗi của 1 form cụ thể
+        function clearFormErrors(formId) {
+            $(`#${formId} .field-error`).text('');
+            $(`#${formId} .form-control, #${formId} .form-select`).removeClass('is-invalid');
+            $(`#${formId}Alert`).empty().addClass('d-none');
+        }
+
+        // Hàm này giống hệt trang SanPham, chỉ thêm tham số "formId"
+        // để biết phải tìm ID lỗi trong form "variantForm" hay "imageForm"
+        function handleValidationErrors(errors, formId) {
+            let errorMessagesHtml = '';
+            let firstErrorField = null;
+
+            if (!Array.isArray(errors)) {
+                showAlert(`#${formId}Alert`, 'Lỗi: Định dạng phản hồi không hợp lệ.', false);
+                return;
             }
 
-            // --- 2️⃣ Lấy danh sách ảnh sản phẩm ---
-            function loadAnhSanPham() {
-                $.ajax({
-                    url: `${apiBase}/AnhSanPhamApi`,
-                    method: 'GET',
-                    success: function (res) {
-                        const container = $('#anhSanPhamList');
-                        container.empty();
+            errors.forEach(function(error) {
+                let fieldName = error.field || error.fieldName || error.FieldName;
+                let errorMessage = error.message || error.errorMessage || error.ErrorMessage || "Lỗi";
 
-                        if (res.status === 'success' && res.data.length > 0) {
-                            res.data.forEach(a => {
-                                const html = `
-                                    <div class="card p-2 text-center" style="width:120px;">
-                                        <img src="${a.duongDanAnh}" class="img-thumbnail" alt="Ảnh SP">
-                                        <div class="small text-muted mt-1">${a.tenAnh || ''}</div>
-                                    </div>`;
-                                container.append(html);
-                            });
-                        } else {
-                            container.html('<div class="text-muted">Không có ảnh nào.</div>');
-                        }
-                    },
-                    error: function () {
-                        $('#anhSanPhamList').html('<div class="text-danger">Lỗi tải ảnh sản phẩm.</div>');
+                if (!fieldName) {
+                    errorMessagesHtml += `<li>${errorMessage}</li>`;
+                    return;
+                }
+
+                // Chuyển tên field sang PascalCase để khớp ID (ví dụ: maMauSac -> MaMauSac)
+                let pascalFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+                let errorDivId = `error-${pascalFieldName}`;
+                let fieldInputId = pascalFieldName;
+
+                // Tìm trong form cụ thể (đây là lý do cần formId)
+                let formCtx = $(`#${formId}`);
+                let errorElement = $(`#${errorDivId}`, formCtx);
+                let inputElement = $(`#${fieldInputId}`, formCtx);
+
+                // Vì ID của input file là ImageUrlFile nhưng DTO là FileAnh
+                if (formId === 'imageForm' && pascalFieldName === 'FileAnh') {
+                    inputElement = $('#ImageUrlFile', formCtx);
+                }
+
+                if (errorElement.length) {
+                    errorElement.text(errorMessage);
+                    if(inputElement.length){
+                        inputElement.addClass('is-invalid');
+                        if(!firstErrorField) firstErrorField = inputElement;
                     }
-                });
+                } else {
+                    errorMessagesHtml += `<li><strong>${pascalFieldName}:</strong> ${errorMessage}</li>`;
+                }
+            });
+
+            const alertSelector = `#${formId}Alert`;
+            if (errorMessagesHtml) {
+                showAlert(alertSelector, 'Vui lòng kiểm tra lại:<ul class="mb-0 small">' + errorMessagesHtml + '</ul>', false);
+            } else {
+                showAlert(alertSelector, 'Vui lòng sửa các lỗi được đánh dấu.', false);
             }
 
-            // --- 3️⃣ Lấy danh sách chi tiết sản phẩm ---
-            function loadChiTietSanPham() {
-                $.ajax({
-                    url: `${apiBase}/ChiTietSanPhamApi`,
-                    method: 'GET',
-                    success: function (res) {
-                        const tbody = $('#chiTietSanPhamTableBody');
-                        tbody.empty();
+            if(firstErrorField){ firstErrorField.focus(); }
+        }
 
-                        if (res.status === 'success' && res.data.length > 0) {
-                            res.data.forEach(ct => {
-                                tbody.append(`
-                                    <tr>
-                                        <td>${ct.maChiTietSP}</td>
-                                        <td>${ct.mauSac || 'N/A'}</td>
-                                        <td>${ct.kichThuoc || 'N/A'}</td>
-                                        <td>${ct.soLuongTon}</td>
-                                        <td>${ct.giaBan.toLocaleString()} đ</td>
-                                    </tr>
-                                `);
-                            });
+
+        // ========================= BIẾN THỂ (CHI TIẾT SP) =========================
+        const baseVariantApiUrl = `/api/sanpham/${currentMaSP}/ChiTietSanPhamApi`;
+
+        function resetAndHideVariantForm() {
+            $('#variantForm')[0].reset();
+            $('#MaChiTietSP').val(0);
+            $('#variantFormTitle').text('Thêm biến thể mới');
+            $('#btnVariantSubmitText').text('Lưu');
+            clearFormErrors('variantForm');
+            $('#variantFormCard').hide(); // Đơn giản
+        }
+
+        function showVariantForm() {
+            $('#variantFormCard').show(); // Đơn giản
+            $('#MaMauSac').focus();
+        }
+
+        function renderVariantTable(variants) {
+            const tableBody = $('#variantTableBody');
+            tableBody.empty();
+            if (!variants || variants.length === 0) {
+                tableBody.html('<tr><td colspan="6" class="text-center text-muted">Chưa có biến thể nào.</td></tr>');
+                return;
+            }
+            variants.forEach(v => {
+                const giaBanFormatted = (v.giaBan != null) ? v.giaBan.toLocaleString('vi-VN') : '0';
+                tableBody.append(`
+                    <tr data-id="${v.maChiTietSP}">
+                        <td>${v.maChiTietSP}</td>
+                        <td>${v.tenMauSac || 'N/A'}</td>
+                        <td>${v.tenKichThuoc || 'N/A'}</td>
+                        <td class="text-end">${giaBanFormatted}</td>
+                        <td>${v.soLuongTon || 0}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm btnEditVariant" data-id="${v.maChiTietSP}" title="Sửa">Sửa<i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-danger btn-sm btnDeleteVariant" data-id="${v.maChiTietSP}" title="Xóa">Xóa<i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`);
+            });
+        }
+
+        function loadVariants() {
+            $('#variantTableBody').html('<tr><td colspan="6" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div></td></tr>');
+            $('#variantAlertMessage').empty().addClass('d-none');
+
+            $.ajax({
+                url: baseVariantApiUrl,
+                method: 'GET',
+                success: function(response) {
+                    if (response && response.status === 'success') {
+                        renderVariantTable(response.data || []);
+                    } else {
+                        showAlert('#variantAlertMessage', response.message || 'Lỗi tải biến thể.', false);
+                        renderVariantTable([]);
+                    }
+                },
+                error: function(xhr) {
+                    showAlert('#variantAlertMessage', `Lỗi kết nối (${xhr.status})`, false);
+                    renderVariantTable([]);
+                }
+            });
+        }
+
+        function fillVariantFormForEdit(variantData) {
+            clearFormErrors('variantForm');
+            $('#MaChiTietSP').val(variantData.maChiTietSP);
+            $('#MaMauSac').val(String(variantData.maMauSac || ''));
+            $('#MaKichThuoc').val(String(variantData.maKichThuoc || ''));
+            $('#GiaBan').val(variantData.giaBan);
+            $('#SoLuongTon').val(variantData.soLuongTon);
+            $('#variantFormTitle').text(`Cập nhật biến thể (Mã: ${variantData.maChiTietSP})`);
+            $('#btnVariantSubmitText').text('Cập nhật');
+            showVariantForm();
+        }
+
+
+        // ========================= ẢNH SẢN PHẨM (ĐÃ CẬP NHẬT) =========================
+        const baseImageApiUrl = `/api/sanpham/${currentMaSP}/AnhSanPhamApi`;
+
+        function resetAndHideImageForm() {
+            $('#imageForm')[0].reset();
+            $('#ThuTuHienThi').val(1); // Reset thứ tự về 1
+            clearFormErrors('imageForm');
+            $('#imageFormCard').hide();
+        }
+
+        function showImageForm() {
+            $('#imageFormTitle').text('Thêm ảnh mới');
+            $('#imageFormCard').show();
+            $('#ImageUrlFile').focus();
+        }
+
+        // Đã cập nhật cho 6 cột
+        function renderImageTable(images) {
+            const tableBody = $('#imageTableBody');
+            tableBody.empty();
+            if (!images || images.length === 0) {
+                tableBody.html('<tr><td colspan="6" class="text-center text-muted">Chưa có ảnh nào.</td></tr>');
+                return;
+            }
+            images.forEach(img => {
+                const imageUrl = img.duongDan || '/images/placeholder.jpg';
+                const maAnh = img.maAnh || 'N/A';
+                const thuTu = img.thuTuHienThi || 1; // Lấy thứ tự
+                const isPrimaryIcon = img.laHinhChinh ? '<i class="bi bi-check-circle-fill text-success" title="Ảnh chính">Ảnh chính</i>' : '<i class="bi bi-x-circle text-muted" title="Ảnh phụ">Ảnh phụ</i>';
+                const setPrimaryButton = !img.laHinhChinh ? `<button class="btn btn-outline-success btn-sm btnSetPrimaryImage" data-id="${maAnh}" title="Đặt làm ảnh chính"><i class="bi bi-check-lg"></i>Đặt làm ảnh chính</button>` : '';
+
+                tableBody.append(`
+                    <tr data-id="${maAnh}">
+                        <td>${maAnh}</td>
+                        <td><img src="${imageUrl}" alt="Ảnh SP ${maAnh}" style="max-width: 80px; max-height: 80px; object-fit: contain; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')"></td>
+                        <td><small>${imageUrl}</small></td>
+                        <td>${thuTu}</td> <td>${isPrimaryIcon}</td>
+                        <td> ${setPrimaryButton} <button class="btn btn-danger btn-sm btnDeleteImage" data-id="${maAnh}" title="Xóa ảnh"><i class="bi bi-trash">Xóa</i></button> </td>
+                    </tr>`);
+            });
+        }
+
+        function loadImages() {
+            $('#imageTableBody').html('<tr><td colspan="6" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div></td></tr>');
+            $('#imageAlertMessage').empty().addClass('d-none');
+
+            $.ajax({
+                url: baseImageApiUrl,
+                method: 'GET',
+                success: function(response) {
+                    if (response && response.status === 'success') {
+                        renderImageTable(response.data || []);
+                    } else {
+                        showAlert('#imageAlertMessage', response.message || 'Lỗi tải ảnh.', false);
+                        renderImageTable([]);
+                    }
+                },
+                error: function(xhr) {
+                    showAlert('#imageAlertMessage', `Lỗi kết nối (${xhr.status})`, false);
+                    renderImageTable([]);
+                }
+            });
+        }
+
+
+        // --- SỰ KIỆN (BÊN TRONG DOCUMENT.READY) ---
+        $(document).ready(function() {
+
+            // Dữ liệu ban đầu đã được render, không cần gọi load()
+            // Nếu muốn load bằng AJAX ban đầu (trang trống), hãy bỏ comment 2 dòng dưới
+            // và xóa code render trong <tbody> của HTML
+            // loadVariants();
+            // loadImages();
+
+            // === SỰ KIỆN CHO BIẾN THỂ ===
+
+            $('#btnAddNewVariant').on('click', function() {
+                resetAndHideVariantForm();
+                showVariantForm();
+            });
+
+            $('#btnCancelVariantForm').on('click', resetAndHideVariantForm);
+
+            // Submit form Biến thể (Dùng JSON)
+            $('#variantForm').on('submit', function(e) {
+                e.preventDefault();
+                clearFormErrors('variantForm');
+
+                // Dùng JSON vì DTO không có IFormFile
+                const requestData = {
+                    MaChiTietSP: parseInt($('#MaChiTietSP').val()) || 0,
+                    MaSanPhan: currentMaSP,
+                    MaMauSac: parseInt($('#MaMauSac').val()) || null,
+                    MaKichThuoc: parseInt($('#MaKichThuoc').val()) || null,
+                    GiaBan: parseFloat($('#GiaBan').val()?.replace(/,/g, '')) || null,
+                    SoLuongTon: parseInt($('#SoLuongTon').val()) || 0
+                };
+
+                const isNew = (requestData.MaChiTietSP === 0);
+                const url = isNew ? baseVariantApiUrl : `${baseVariantApiUrl}/${requestData.MaChiTietSP}`;
+                const method = isNew ? 'POST' : 'PUT';
+
+                const submitButton = $(this).find('button[type="submit"]');
+                const originalButtonText = $('#btnVariantSubmitText').text();
+                submitButton.prop('disabled', true);
+                $('#btnVariantSubmitText').html('<span class="spinner-border spinner-border-sm"></span> Đang lưu...');
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function(response) {
+                        if (response && response.status === 'success') {
+                            showAlert('#variantAlertMessage', response.message || 'Lưu thành công!', true);
+                            resetAndHideVariantForm();
+                            loadVariants();
                         } else {
-                            tbody.html('<tr><td colspan="5" class="text-muted">Không có chi tiết sản phẩm nào.</td></tr>');
+                            showAlert('#variantFormAlert', response.message || 'Có lỗi xảy ra khi lưu.', false);
                         }
                     },
-                    error: function () {
-                        $('#chiTietSanPhamTableBody').html('<tr><td colspan="5" class="text-danger">Lỗi tải dữ liệu chi tiết sản phẩm.</td></tr>');
+                    error: function(xhr) {
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            handleValidationErrors(xhr.responseJSON.errors, 'variantForm');
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            showAlert('#variantFormAlert', xhr.responseJSON.message, false);
+                        } else {
+                            showAlert('#variantFormAlert', `Lỗi ${xhr.status}.`, false);
+                        }
+                    },
+                    complete: function() {
+                        submitButton.prop('disabled', false);
+                        $('#btnVariantSubmitText').text(originalButtonText);
                     }
                 });
-            }
+            });
 
-            // Gọi tất cả khi trang load
-            loadSanPhamInfo();
-            loadAnhSanPham();
-            loadChiTietSanPham();
-        });
+            // Sửa Biến thể
+            $('#variantTableBody').on('click', '.btnEditVariant', function() {
+                const id = $(this).data('id');
+                resetAndHideVariantForm();
+                $('#variantFormTitle').text('Đang tải dữ liệu...');
+                showVariantForm();
+
+                $.ajax({
+                    url: `${baseVariantApiUrl}/${id}`,
+                    method: 'GET',
+                    success: function(response) {
+                        if (response && response.status === 'success' && response.data) {
+                            fillVariantFormForEdit(response.data);
+                        } else {
+                            showAlert('#variantAlertMessage', response.message || 'Không tìm thấy.', false);
+                            resetAndHideVariantForm();
+                        }
+                    },
+                    error: function() {
+                        showAlert('#variantAlertMessage', 'Lỗi tải chi tiết.', false);
+                        resetAndHideVariantForm();
+                    }
+                });
+            });
+
+            // Xóa Biến thể
+            $('#variantTableBody').on('click', '.btnDeleteVariant', function() {
+                const id = $(this).data('id');
+                const rowInfo = $(this).closest('tr').find('td:eq(1)').text() + ' - ' + $(this).closest('tr').find('td:eq(2)').text();
+
+                Swal.fire({
+                    title: 'Xác nhận xóa?',
+                    html: `Xóa biến thể: <strong>${rowInfo}</strong> (Mã: ${id})?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `${baseVariantApiUrl}/${id}`,
+                            method: 'DELETE',
+                            success: function(response) {
+                                if (response && response.status === 'success') {
+                                    Swal.fire('Đã xóa!', '', 'success');
+                                    loadVariants();
+                                } else {
+                                    Swal.fire('Lỗi!', response.message || 'Không thể xóa.', 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Lỗi!', `Lỗi ${xhr.status} khi xóa.`, 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+
+            // === SỰ KIỆN CHO ẢNH ===
+
+            $('#btnAddNewImage').on('click', function() {
+                resetAndHideImageForm();
+                showImageForm();
+            });
+
+            $('#btnCancelImageForm').on('click', resetAndHideImageForm);
+
+            // Submit form ảnh (Dùng FormData)
+            $('#imageForm').on('submit', function(e) {
+                e.preventDefault();
+                clearFormErrors('imageForm');
+
+                // Dùng FormData vì có IFormFile
+                // Code này tự động lấy MaSP, FileAnh, ThuTuHienThi, LaHinhChinh
+                const formData = new FormData(this);
+
+                const submitButton = $(this).find('button[type="submit"]');
+                const originalButtonText = submitButton.html(); // Lưu cả icon
+                submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Đang tải...');
+
+                $.ajax({
+                    url: baseImageApiUrl, // POST base
+                    method: 'POST',
+                    data: formData,
+                    processData: false, // Bắt buộc khi dùng FormData
+                    contentType: false, // Bắt buộc khi dùng FormData
+                    success: function(response) {
+                        if (response && response.status === 'success') {
+                            showAlert('#imageAlertMessage', response.message || 'Thêm ảnh thành công!', true);
+                            resetAndHideImageForm();
+                            loadImages(); // Tải lại bảng ảnh
+                        } else {
+                            showAlert('#imageFormAlert', response.message || 'Lỗi khi tải ảnh lên.', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            handleValidationErrors(xhr.responseJSON.errors, 'imageForm');
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            showAlert('#imageFormAlert', xhr.responseJSON.message, false);
+                        } else {
+                            showAlert('#imageFormAlert', `Lỗi ${xhr.status}.`, false);
+                        }
+                    },
+                    complete: function() {
+                        submitButton.prop('disabled', false).html(originalButtonText);
+                    }
+                });
+            });
+
+            // Xóa ảnh
+            $('#imageTableBody').on('click', '.btnDeleteImage', function() {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Xác nhận xóa?',
+                    text: `Bạn có chắc muốn xóa ảnh (Mã: ${id})?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `${baseImageApiUrl}/${id}`,
+                            method: 'DELETE',
+                            success: function(response) {
+                                if (response && response.status === 'success') {
+                                    Swal.fire('Đã xóa!', '', 'success');
+                                    loadImages();
+                                } else {
+                                    Swal.fire('Lỗi!', response.message || 'Không thể xóa.', 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Lỗi!', `Lỗi ${xhr.status} khi xóa.`, 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Đặt làm ảnh chính
+            $('#imageTableBody').on('click', '.btnSetPrimaryImage', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                // API của bạn: POST /.../AnhSanPhamApi/{id}/SetPrimary
+                $.ajax({
+                    url: `${baseImageApiUrl}/${id}/SetPrimary`,
+                    method: 'POST',
+                    success: function(response) {
+                        if (response && response.status === 'success') {
+                            showAlert('#imageAlertMessage', 'Đặt ảnh chính thành công!', true);
+                            loadImages(); // Tải lại bảng
+
+                            // Cập nhật ảnh chính ở đầu trang
+                            if(response.data && response.data.duongDan) {
+                                $('#AnhChinh').attr('src', response.data.duongDan);
+                            }
+                        } else {
+                             showAlert('#imageAlertMessage', response.message || 'Không thể đặt ảnh chính.', false);
+                             button.prop('disabled', false).html('<i class="bi bi-check-lg"></i>');
+                        }
+                    },
+                    error: function(xhr) {
+                         showAlert('#imageAlertMessage', `Lỗi ${xhr.status} khi thực hiện.`, false);
+                         button.prop('disabled', false).html('<i class="bi bi-check-lg"></i>');
+                    }
+                });
+            });
+
+        }); // End $(document).ready()
     </script>
 }
