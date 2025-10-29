@@ -21,6 +21,18 @@ namespace BagStore.Web.Repositories.implementations
                 .ToListAsync();
         }
 
+        // 👇 Thêm mới — lấy đơn hàng theo UserId
+        public async Task<IEnumerable<DonHang>> LayDonHangTheoUserAsync(string userId)
+        {
+            return await _dbSet
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(sp => sp.SanPham)
+                .Include(d => d.KhachHang)
+                .Where(d => d.KhachHang.ApplicationUserId == userId)
+                .ToListAsync();
+        }
+
         // Lấy đơn hàng theo trạng thái
         public async Task<IEnumerable<DonHang>> LayDonHangTheoTrangThaiAsync(string trangThai)
         {

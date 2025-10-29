@@ -1,6 +1,4 @@
 ﻿using BagStore.Domain.Entities;
-using BagStore.Models.Common;
-using BagStore.Web.Models.Common;
 using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Repositories.Interfaces;
@@ -11,148 +9,98 @@ namespace BagStore.Web.Services.Implementations
     public class ChiTietSanPhamService : IChiTietSanPhamService
     {
         private readonly IChiTietSanPhamRepository _repo;
-        private readonly IKichThuocRepository _repoKichThuoc;
-        private readonly IMauSacRepository _repoMauSac;
+        private readonly ISanPhamRepository _sanPhamRepo;
 
-        public ChiTietSanPhamService(
-            IChiTietSanPhamRepository repo,
-            IKichThuocRepository repoKichThuoc,
-            IMauSacRepository repoMauSac)
+        public ChiTietSanPhamService(IChiTietSanPhamRepository repo, ISanPhamRepository sanPhamRepo)
         {
             _repo = repo;
-            _repoKichThuoc = repoKichThuoc;
-            _repoMauSac = repoMauSac;
+            _sanPhamRepo = sanPhamRepo;
         }
 
-        /// Tạo mới chi tiết sản phẩm
-
-        public async Task<BaseResponse<ChiTietSanPhamResponseDto>> CreateAsync(ChiTietSanPhamRequestDto dto)
+        //them mot bien the moi vao san pham co san
+        public async Task<ChiTietSanPhamResponseDto?> AddAsync(int maSP, ChiTietSanPhamCreateDto dto)
         {
-            if (dto == null)
-                return BaseResponse<ChiTietSanPhamResponseDto>.Error(
-                    new List<ErrorDetail> { new ErrorDetail("Dto", "Dữ liệu không được null") },
-                    "Tạo mới thất bại");
+            if (dto == null) throw new ArgumentException("Dữ liệu không hợp lệ");
+            //kiem tra xem san pham cha ton tai chua
 
-            // Map DTO -> Entity
+            var sanPham = await _sanPhamRepo.GetByIdAsync(maSP);
+            if (sanPham == null) throw new KeyNotFoundException("Sản phẩm không tồn tại");
+
+            //kiem tra xem mau sac va kich thuoc da ton tai chua
+            var existing = await _repo.FindByAttributesAsync(maSP, dto.MaMauSac, dto.MaKichThuoc);
+            if (existing != null) throw new InvalidOperationException("Biến thể với màu sắc và kích thước này đã tồn tại");
+            //tao moi bien the
             var entity = new ChiTietSanPham
             {
-                MaSP = dto.MaSanPhan,
-                MaKichThuoc = dto.MaKichThuoc,
+                MaSP = maSP,
                 MaMauSac = dto.MaMauSac,
-                SoLuongTon = dto.SoLuongTon,
+                MaKichThuoc = dto.MaKichThuoc,
                 GiaBan = dto.GiaBan,
+                SoLuongTon = dto.SoLuongTon,
                 NgayTao = DateTime.Now
             };
-
             var created = await _repo.AddAsync(entity);
-            var responseDto = await MapEntityToResponse(created);
-
-            return BaseResponse<ChiTietSanPhamResponseDto>.Success(responseDto, "Tạo mới chi tiết sản phẩm thành công");
-        }
-
-        /// Cập nhật chi tiết sản phẩm
-
-        public async Task<BaseResponse<ChiTietSanPhamResponseDto>> UpdateAsync(int maChiTietSP, ChiTietSanPhamRequestDto dto)
-        {
-            if (dto == null)
-                return BaseResponse<ChiTietSanPhamResponseDto>.Error(
-                    new List<ErrorDetail> { new ErrorDetail("Dto", "Dữ liệu không được null") },
-                    "Cập nhật thất bại");
-
-            var entity = await _repo.GetByIdAsync(maChiTietSP);
-            if (entity == null)
-                return BaseResponse<ChiTietSanPhamResponseDto>.Error(
-                    new List<ErrorDetail> { new ErrorDetail("MaChiTietSP", "Chi tiết sản phẩm không tồn tại") },
-                    "Cập nhật thất bại");
-
-            // Map DTO -> Entity
-            entity.MaKichThuoc = dto.MaKichThuoc;
-            entity.MaMauSac = dto.MaMauSac;
-            entity.SoLuongTon = dto.SoLuongTon;
-            entity.GiaBan = dto.GiaBan;
-
-            var updated = await _repo.UpdateAsync(entity);
-            var responseDto = await MapEntityToResponse(updated);
-
-            return BaseResponse<ChiTietSanPhamResponseDto>.Success(responseDto, "Cập nhật chi tiết sản phẩm thành công");
-        }
-
-        /// Xóa chi tiết sản phẩm
-
-        public async Task<BaseResponse<bool>> DeleteAsync(int maChiTietSP)
-        {
-            var entity = await _repo.GetByIdAsync(maChiTietSP);
-            if (entity == null)
-                return BaseResponse<bool>.Error(
-                    new List<ErrorDetail> { new ErrorDetail("MaChiTietSP", "Chi tiết sản phẩm không tồn tại") },
-                    "Xóa thất bại");
-
-            var success = await _repo.DeleteAsync(maChiTietSP);
-            return BaseResponse<bool>.Success(success, success ? "Xóa thành công" : "Xóa thất bại");
-        }
-
-        /// Lấy chi tiết sản phẩm theo ID
-
-        public async Task<BaseResponse<ChiTietSanPhamResponseDto>> GetByIdAsync(int maChiTietSP)
-        {
-            var entity = await _repo.GetByIdAsync(maChiTietSP);
-            if (entity == null)
-                return BaseResponse<ChiTietSanPhamResponseDto>.Error(
-                    new List<ErrorDetail> { new ErrorDetail("MaChiTietSP", "Không tìm thấy") },
-                    "Lấy dữ liệu thất bại");
-
-            var responseDto = await MapEntityToResponse(entity);
-            return BaseResponse<ChiTietSanPhamResponseDto>.Success(responseDto, "Lấy chi tiết sản phẩm thành công");
-        }
-
-        /// Lấy danh sách chi tiết sản phẩm theo ID sản phẩm
-
-        public async Task<BaseResponse<List<ChiTietSanPhamResponseDto>>> GetBySanPhamIdAsync(int maSP)
-        {
-            var entities = await _repo.GetBySanPhamIdAsync(maSP);
-            var dtos = new List<ChiTietSanPhamResponseDto>();
-
-            foreach (var entity in entities)
-            {
-                dtos.Add(await MapEntityToResponse(entity));
-            }
-
-            return BaseResponse<List<ChiTietSanPhamResponseDto>>.Success(dtos, "Lấy danh sách chi tiết sản phẩm thành công");
-        }
-
-        /// Lấy tất cả chi tiết sản phẩm
-
-        public async Task<BaseResponse<List<ChiTietSanPhamResponseDto>>> GetAllAsync()
-        {
-            var entities = await _repo.GetAllAsync();
-            var dtos = new List<ChiTietSanPhamResponseDto>();
-
-            foreach (var entity in entities)
-            {
-                dtos.Add(await MapEntityToResponse(entity));
-            }
-
-            return BaseResponse<List<ChiTietSanPhamResponseDto>>.Success(dtos, "Lấy danh sách chi tiết sản phẩm thành công");
-        }
-
-        /// Map Entity -> Response DTO, bao gồm thông tin Kích Thước và Màu Sắc
-
-        private async Task<ChiTietSanPhamResponseDto> MapEntityToResponse(ChiTietSanPham entity)
-        {
-            var kichThuoc = await _repoKichThuoc.GetByIdAsync(entity.MaKichThuoc);
-            var mauSac = await _repoMauSac.GetByIdAsync(entity.MaMauSac);
-
             return new ChiTietSanPhamResponseDto
             {
-                MaSP = entity.MaSP,
-                MaChiTietSP = entity.MaChiTietSP,
-                MaKichThuoc = entity.MaKichThuoc,
-                TenKichThuoc = kichThuoc?.TenKichThuoc ?? "N/A",
-                MaMauSac = entity.MaMauSac,
-                TenMauSac = mauSac?.TenMauSac ?? "N/A",
-                SoLuongTon = entity.SoLuongTon,
-                GiaBan = entity.GiaBan,
-                NgayTao = entity.NgayTao
+                MaSP = created.MaSP,
+                MaChiTietSP = created.MaChiTietSP,
+                MaKichThuoc = created.MaKichThuoc,
+                MaMauSac = created.MaMauSac,
+                GiaBan = created.GiaBan,
+                NgayTao = created.NgayTao,
+                SoLuongTon = created.SoLuongTon
+            };
+        }
+
+        public async Task<bool> DeleteAsync(int maChiTietSanPham)
+        {
+            var ct = await _repo.GetByIdAsync(maChiTietSanPham);
+            if (ct == null) throw new KeyNotFoundException("Biến thể không tồn tại");
+            return await _repo.DeleteAsync(maChiTietSanPham);
+        }
+
+        public async Task<ChiTietSanPhamResponseDto?> GetByIdAsync(int maChiTietSanPham)
+        {
+            var result = await _repo.GetByIdAsync(maChiTietSanPham);
+            if (result == null) return null;
+            return new ChiTietSanPhamResponseDto
+            {
+                MaSP = result.MaSP,
+                MaChiTietSP = result.MaChiTietSP,
+                TenSanPham = result.SanPham.TenSP,
+                MaKichThuoc = result.MaKichThuoc,
+                TenKichThuoc = result.KichThuoc.TenKichThuoc,
+                MaMauSac = result.MaMauSac,
+                TenMauSac = result.MauSac.TenMauSac,
+                GiaBan = result.GiaBan,
+                NgayTao = result.NgayTao,
+                SoLuongTon = result.SoLuongTon
+            };
+        }
+
+        public Task<List<ChiTietSanPham>> GetBySanPhamIdAsync(int maSP)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<ChiTietSanPhamResponseDto> UpdateAsync(int maChiTietSanPham, ChiTietSanPhamCreateDto dto)
+        {
+            var ct = await _repo.GetByIdAsync(maChiTietSanPham);
+            if (ct == null) throw new KeyNotFoundException("Biến thể không tồn tại");
+            ct.GiaBan = dto.GiaBan;
+            ct.MaKichThuoc = dto.MaKichThuoc;
+            ct.MaMauSac = dto.MaMauSac;
+            ct.NgayTao = DateTime.Now;
+            ct.SoLuongTon = dto.SoLuongTon;
+            var updated = await _repo.UpdateAsync(ct);
+            return new ChiTietSanPhamResponseDto
+            {
+                MaChiTietSP = updated.MaChiTietSP,
+                MaKichThuoc = updated.MaKichThuoc,
+                MaMauSac = updated.MaMauSac,
+                GiaBan = updated.GiaBan,
+                NgayTao = updated.NgayTao,
+                SoLuongTon = updated.SoLuongTon
             };
         }
     }
