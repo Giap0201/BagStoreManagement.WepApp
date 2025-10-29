@@ -1,6 +1,4 @@
-﻿using BagStore.Web.Models.ViewModels.SanPhams;
-
-namespace BagStore.Web.Models.ViewModels
+﻿namespace BagStore.Web.Models.ViewModels.SanPhams
 {
     public class SanPhamDetailViewModel
     {
