@@ -39,8 +39,7 @@ namespace BagStore.Web.Controllers
 
             return Ok(new { message = "Đã thêm sản phẩm vào giỏ hàng thành công." });
         }
-
-        [HttpDelete("remove/{MaKH:int}/{MaChiTietSP:int}")]
+        [HttpDelete("{MaKH:int}/{MaChiTietSP:int}")]
         public async Task<IActionResult> DeleteCart(int MaKH, int MaChiTietSP)
         {
 
