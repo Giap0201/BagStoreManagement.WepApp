@@ -6,6 +6,7 @@ using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
+using NuGet.Common;
 
 namespace BagStore.Web.Services.Implementations
 {
@@ -39,6 +40,28 @@ namespace BagStore.Web.Services.Implementations
                     new List<ErrorDetail> { new ErrorDetail("MaSP", "Sản phẩm không tồn tại") },
                     "Tạo ảnh thất bại");
             }
+            //lay tat ca anh hien co cua san pham
+            var allImages = await _repo.GetBySanPhamIdAsync(dto.MaSP);
+            //kiem tra trung thu tu hien thi
+            if (allImages.Any(a => a.ThuTuHienThi == dto.ThuTuHienThi))
+            {
+                return BaseResponse<AnhSanPhamResponseDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("ThuTuHienThi", "Thứ tự hiển thị đã tồn tại") },
+                    "Tạo ảnh thất bại");
+            }
+
+            //xu li anh chinh
+
+            if (dto.LaHinhChinh)
+            {
+                //tim anh chinh cu neu co
+                var oldPrimary = allImages.FirstOrDefault(a => a.LaHinhChinh);
+                if (oldPrimary != null)
+                {
+                    oldPrimary.LaHinhChinh = false;
+                    await _repo.UpdateAsync(oldPrimary);
+                }
+            }
             // upload file
             var anh = await ImageHelper.UploadSingleImageAsync(dto.FileAnh, _env.WebRootPath, dto.ThuTuHienThi, dto.LaHinhChinh);
             anh.MaSP = dto.MaSP;
@@ -61,16 +84,38 @@ namespace BagStore.Web.Services.Implementations
                     new List<ErrorDetail> { new ErrorDetail("MaAnh", "Không tìm thấy ảnh sản phẩm") },
                     "Cập nhật thất bại");
 
-            //neu co file moi, upload va thay duong dan
+            var allOtherImages = (await _repo.GetBySanPhamIdAsync(entity.MaSP))
+                                 .Where(a => a.MaAnh != maAnh);
+            //lay tat ca anh hien co cua san pham
+            if (allOtherImages.Any(a => a.ThuTuHienThi == dto.ThuTuHienThi))
+            {
+                return BaseResponse<AnhSanPhamResponseDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("ThuTuHienThi", $"Thứ tự {dto.ThuTuHienThi} đã tồn tại.") },
+                    "Cập nhật thất bại");
+            }
+
+            // Xử lý ảnh chính (chỉ khi set ảnh MỚI làm chính)
+            if (dto.LaHinhChinh && !entity.LaHinhChinh)
+            {
+                var oldPrimary = allOtherImages.FirstOrDefault(a => a.LaHinhChinh);
+                if (oldPrimary != null)
+                {
+                    oldPrimary.LaHinhChinh = false;
+                    await _repo.UpdateAsync(oldPrimary);
+                }
+            }
+
             if (dto.FileAnh != null)
             {
                 var anhMoi = await ImageHelper.UploadSingleImageAsync(dto.FileAnh, _env.WebRootPath, dto.ThuTuHienThi, dto.LaHinhChinh);
                 entity.DuongDan = anhMoi.DuongDan;
             }
+
             entity.ThuTuHienThi = dto.ThuTuHienThi;
             entity.LaHinhChinh = dto.LaHinhChinh;
 
             var updated = await _repo.UpdateAsync(entity);
+
             return BaseResponse<AnhSanPhamResponseDto>.Success(MapEntityToResponse(updated), "Cập nhật ảnh thành công");
         }
 
@@ -83,7 +128,24 @@ namespace BagStore.Web.Services.Implementations
                     new List<ErrorDetail> { new ErrorDetail("MaAnh", "Ảnh không tồn tại") },
                     "Xóa thất bại");
 
-            var success = await _repo.DeleteAsync(maAnh);
+            if (entity.LaHinhChinh)
+            {
+                // Tìm 1 ảnh khác để thay thế
+                var allOtherImages = (await _repo.GetBySanPhamIdAsync(entity.MaSP))
+                                       .Where(a => a.MaAnh != maAnh);
+
+                // Ưu tiên ảnh có thứ tự nhỏ nhất
+                var newPrimary = allOtherImages.OrderBy(a => a.ThuTuHienThi).FirstOrDefault();
+
+                if (newPrimary != null)
+                {
+                    // Đặt ảnh này làm chính
+                    newPrimary.LaHinhChinh = true;
+                    await _repo.UpdateAsync(newPrimary); // Chỉ cần cập nhật ảnh này
+                }
+                // Nếu không còn ảnh nào, không cần làm gì cả
+            }
+            var success = await _repo.DeleteAsync(maAnh); // Xóa ảnh
             return BaseResponse<bool>.Success(success, success ? "Xóa ảnh thành công" : "Xóa thất bại");
         }
 
@@ -126,6 +188,38 @@ namespace BagStore.Web.Services.Implementations
         public Task<BaseResponse<List<AnhSanPhamResponseDto>>> GetAllAsync()
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<BaseResponse<AnhSanPhamResponseDto>> SetPrimaryAsync(int maAnh)
+        {
+            var entity = await _repo.GetByIdAsync(maAnh);
+            if (entity == null)
+            {
+                return BaseResponse<AnhSanPhamResponseDto>.Error(
+                    new List<ErrorDetail> { new ErrorDetail("MaAnh", "Ảnh không tồn tại") },
+                    "Thất bại");
+            }
+
+            if (entity.LaHinhChinh)
+            {
+                return BaseResponse<AnhSanPhamResponseDto>.Success(MapEntityToResponse(entity), "Ảnh đã là ảnh chính.");
+            }
+            // 1. Lấy ảnh chính cũ
+            var allImages = await _repo.GetBySanPhamIdAsync(entity.MaSP);
+            var oldPrimary = allImages.FirstOrDefault(a => a.MaAnh != maAnh && a.LaHinhChinh);
+
+            // 2. Bỏ cờ ảnh cũ (nếu có)
+            if (oldPrimary != null)
+            {
+                oldPrimary.LaHinhChinh = false;
+                await _repo.UpdateAsync(oldPrimary);
+            }
+
+            // 3. Set ảnh mới
+            entity.LaHinhChinh = true;
+            var updated = await _repo.UpdateAsync(entity);
+            // Trả về DTO của ảnh vừa được set (JavaScript cần 'duongDan' để cập nhật)
+            return BaseResponse<AnhSanPhamResponseDto>.Success(MapEntityToResponse(updated), "Đặt ảnh chính thành công");
         }
     }
 }

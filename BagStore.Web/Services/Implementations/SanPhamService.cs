@@ -59,19 +59,22 @@ namespace BagStore.Web.Services.Implementations
                 AnhSanPhams = new List<AnhSanPham>()
             };
 
-            // Upload ảnh chính
-            var anhChinh = await ImageHelper.UploadSingleImageAsync(dto.AnhChinh, _env.WebRootPath);
-            if (anhChinh != null)
+            // Upload ảnh chính (code của bạn đã đúng logic)
+            if (dto.AnhChinh != null)
             {
-                anhChinh.LaHinhChinh = true;
-                entity.AnhSanPhams.Add(anhChinh);
+                var anhChinh = await ImageHelper.UploadSingleImageAsync(dto.AnhChinh, _env.WebRootPath);
+                if (anhChinh != null)
+                {
+                    anhChinh.LaHinhChinh = true;
+                    anhChinh.ThuTuHienThi = 1; // Gán thứ tự 1 cho ảnh đầu tiên
+                    entity.AnhSanPhams.Add(anhChinh);
+                }
             }
 
             // Lưu vào DB
             var created = await _repo.AddAsync(entity);
-
-            // Map sang DTO Response
-            var sanPhamResponDto = await MapEntityToResponse(created);
+            var createdWithIncludes = await _repo.GetByIdAsync(created.MaSP);
+            var sanPhamResponDto = MapEntityToResponse(createdWithIncludes);
             return BaseResponse<SanPhamResponseDto>.Success(sanPhamResponDto, "Tạo mới sản phẩm thành công");
         }
 
@@ -83,20 +86,14 @@ namespace BagStore.Web.Services.Implementations
                     new List<ErrorDetail> { new ErrorDetail("MaSanPham", "Không tìm thấy sản phẩm") },
                     "Lấy dữ liệu thất bại");
 
-            var sanPhamResponDto = await MapEntityToResponse(entity);
+            var sanPhamResponDto = MapEntityToResponse(entity);
             return BaseResponse<SanPhamResponseDto>.Success(sanPhamResponDto, "Lấy sản phẩm thành công");
         }
 
         public async Task<BaseResponse<List<SanPhamResponseDto>>> GetAllAsync()
         {
             var entities = await _repo.GetAllAsync();
-            var dtos = new List<SanPhamResponseDto>();
-
-            foreach (var entity in entities)
-            {
-                var dto = await MapEntityToResponse(entity); // async mapping
-                dtos.Add(dto);
-            }
+            var dtos = entities.Select(MapEntityToResponse).ToList();
 
             return BaseResponse<List<SanPhamResponseDto>>.Success(dtos, "Lấy danh sách sản phẩm thành công");
         }
@@ -138,18 +135,20 @@ namespace BagStore.Web.Services.Implementations
                 if (anhChinh != null)
                 {
                     anhChinh.LaHinhChinh = true;
+                    int maxOrder = entity.AnhSanPhams.Any() ? entity.AnhSanPhams.Max(a => a.ThuTuHienThi) : 0;
+                    anhChinh.ThuTuHienThi = maxOrder + 1; // Gán thứ tự tiếp theo
 
-                    // Xóa ảnh chính cũ
                     var oldMain = entity.AnhSanPhams.FirstOrDefault(a => a.LaHinhChinh);
                     if (oldMain != null)
-                        entity.AnhSanPhams.Remove(oldMain);
+                    {
+                        oldMain.LaHinhChinh = false;
+                    }
 
                     entity.AnhSanPhams.Add(anhChinh);
                 }
             }
-
             var updated = await _repo.UpdateAsync(entity);
-            var sanPhamResponDto = await MapEntityToResponse(updated);
+            var sanPhamResponDto = MapEntityToResponse(updated);
 
             return BaseResponse<SanPhamResponseDto>.Success(sanPhamResponDto, "Cập nhật sản phẩm thành công");
         }
@@ -166,13 +165,9 @@ namespace BagStore.Web.Services.Implementations
             return BaseResponse<bool>.Success(success, success ? "Xóa sản phẩm thành công" : "Xóa thất bại");
         }
 
-        private async Task<SanPhamResponseDto> MapEntityToResponse(SanPham entity)
+        private SanPhamResponseDto MapEntityToResponse(SanPham entity)
         {
-            var danhMucLoaiTui = await _repoLoaiTui.GetByIdAsync(entity.MaLoaiTui);
-            var thuongHieu = await _repoThuongHieu.GetByIdAsync(entity.MaThuongHieu);
-            var chatLieu = await _repoChatLieu.GetByIdAsync(entity.MaChatLieu);
-
-            // Lấy ảnh chính
+            // Lấy ảnh chính từ list đã Include
             var anhChinh = entity.AnhSanPhams?.FirstOrDefault(a => a.LaHinhChinh);
 
             return new SanPhamResponseDto
@@ -183,11 +178,11 @@ namespace BagStore.Web.Services.Implementations
                 MetaTitle = entity.MetaTitle,
                 MetaDescription = entity.MetaDescription,
                 MaLoaiTui = entity.MaLoaiTui,
-                TenLoaiTui = danhMucLoaiTui?.TenLoaiTui ?? "N/A",
+                TenLoaiTui = entity.DanhMucLoaiTui?.TenLoaiTui ?? "N/A",
                 MaThuongHieu = entity.MaThuongHieu,
-                TenThuongHieu = thuongHieu?.TenThuongHieu ?? "N/A",
+                TenThuongHieu = entity.ThuongHieu?.TenThuongHieu ?? "N/A",
                 MaChatLieu = entity.MaChatLieu,
-                TenChatLieu = chatLieu?.TenChatLieu ?? "N/A",
+                TenChatLieu = entity.ChatLieu?.TenChatLieu ?? "N/A",
                 NgayCapNhap = entity.NgayCapNhat,
                 AnhChinh = anhChinh?.DuongDan
             };
