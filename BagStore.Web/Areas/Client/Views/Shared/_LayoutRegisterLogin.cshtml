@@ -1,0 +1,181 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using BagStore.Web.Models.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BagStore</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        :root {
+            --white: #fff;
+            --gray: #6c757d;
+            --gray-dark: #343a40;
+            --primary: #D19C97;
+            --secondary: #EDF1FF;
+            --light: #FFFFFF;
+            --dark: #1C1C1C;
+        }
+
+        body {
+            background-color: var(--secondary);
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--light) !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--primary) !important;
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            color: var(--dark) !important;
+            font-weight: 500;
+            transition: color 0.2s ease-in-out;
+        }
+
+            .nav-link:hover,
+            .nav-link.active {
+                color: var(--primary) !important;
+            }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background-color: var(--primary);
+            border: none;
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+            .btn-primary-custom:hover {
+                background-color: #c1847c;
+                color: var(--white);
+            }
+
+        .btn-outline-custom {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+            .btn-outline-custom:hover {
+                background-color: var(--primary);
+                color: var(--white);
+            }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: var(--gray);
+            text-align: center;
+            padding: 20px 0;
+            margin-top: auto;
+        }
+
+        /* Dropdown */
+        .dropdown-menu {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 🟡 NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light py-3">
+        <div class="container">
+            <a class="navbar-brand" asp-area="Client" asp-controller="Home" asp-action="Index">
+                <i class="fa-solid fa-bag-shopping me-2"></i>BagStore
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Client" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Client" asp-controller="Product" asp-action="Index">Sản phẩm</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Client" asp-controller="Home" asp-action="About">Giới thiệu</a>
+                    </li>
+                </ul>
+
+                <!-- 👤 User Menu -->
+                <ul class="navbar-nav">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userMenu" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-user-circle me-1"></i> @(UserManager.GetUserName(User))
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-area="Client" asp-controller="Account" asp-action="Profile">Hồ sơ</a></li>
+                                <li><a class="dropdown-item" asp-area="Client" asp-controller="Account" asp-action="ChangePassword">Đổi mật khẩu</a></li>
+                                <li>
+                                    <form asp-area="Client" asp-controller="Account" asp-action="Logout" method="post" class="dropdown-item p-0 m-0">
+                                        <button type="submit" class="btn btn-link text-start w-100">Đăng xuất</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="btn btn-primary-custom me-2" asp-area="Client" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-custom" asp-area="Client" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 🔸 CONTENT -->
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- 🔹 FOOTER -->
+    <footer>
+        <div>&copy; 2025 <strong>BagStore</strong>. All rights reserved.</div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

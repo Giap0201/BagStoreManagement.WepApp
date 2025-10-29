@@ -1,0 +1,195 @@
+﻿@{
+    Layout = "~/Views/Shared/_Cartlayout.cshtml";
+    ViewData["Title"] = "Giỏ hàng của bạn";
+}
+
+
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Shopping Cart</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shopping Cart</p>
+        </div>
+    </div>
+</div>
+<div class="cart-container">
+    <div class="cart-page">
+        <!-- Header -->
+        <div class="cart-header">
+            <div>
+                <input type="checkbox" class="check-all" /> Sản Phẩm
+            </div>
+            <div>Đơn Giá</div>
+            <div>Số Lượng</div>
+            <div>Số Tiền</div>
+            <div>Thao Tác</div>
+        </div>
+
+        <!-- Một sản phẩm -->
+        <div id="cart-container"></div>
+        <!-- Thanh checkout -->
+        <div class="cart-footer">
+            <div class="left">
+                <input type="checkbox" class="check-all" /> Chọn tất cả
+                <button class="delete-selected">Xóa</button>
+            </div>
+
+            <div class="right">
+                <p>
+                    Tổng cộng (<span class="count">0</span> sản phẩm):
+                    <span class="total-price">0₫</span>
+                </p>
+                <button class="checkout-btn">Mua Hàng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const userId = '@(ViewBag.UserId)';
+            console.log("🔹 User ID từ ViewBag:", userId);
+
+            const apiBaseUrl = `https://localhost:7013/api/cart`;
+
+            // ===== Hàm Load Giỏ Hàng =====
+            function loadCart() {
+                $.ajax({
+                    url: `${apiBaseUrl}/${userId}`,
+                    method: 'GET',
+                    success: function(cart) {
+                        console.log("✅ Dữ liệu giỏ hàng nhận được:", cart);
+
+                        if (!cart || !cart.items || cart.items.length === 0) {
+                            $('#cart-container').html('<p class="text-center">Giỏ hàng của bạn đang trống.</p>');
+                            $('.cart-footer .count').text(0);
+                            $('.cart-footer .total-price').text('0₫');
+                            return;
+                        }
+
+                        let html = "";
+                        cart.items.forEach(item => {
+                            const thanhTien = item.giaBan * item.soLuong;
+                            html += `
+                            <div class="cart-item" data-product-id="${item.maChiTietSP}">
+                                <div class="product-col">
+                                    <input type="checkbox" class="check-item" value="${item.maChiTietSP}" />
+                                    <img src="${item.hinhAnh || '/images/no-image.png'}" alt="${item.tenSP}" style="width:80px;height:80px;object-fit:cover;margin-right:10px;" />
+                                    <div class="product-info">
+                                        <h4>${item.tenSP}</h4>
+                                        <p class="variant">[size:${item.kichThuoc || 'N/A'}] ${item.mauSac || ''}</p>
+                                    </div>
+                                </div>
+                                <div class="price-col">${(item.giaBan || 0).toLocaleString('vi-VN')}₫</div>
+                                <div class="qty-col">
+                                            <div class="qty-col">
+                                                <input type="number" class="qty-input" min="1" value="${item.soLuong || 1}" readonly />
+                                            </div>
+                                </div>
+                                <div class="total-col">${(thanhTien || 0).toLocaleString('vi-VN')}₫</div>
+                                <div class="action-col">
+                                    <button class="delete-btn">Xóa</button>
+                                </div>
+                            </div>`;
+                        });
+
+                        $('#cart-container').html(html);
+                        updateTotal();
+                    },
+                    error: function(xhr) {
+                        console.error("❌ Lỗi khi tải giỏ hàng:", xhr);
+                        let message = "Lỗi khi tải giỏ hàng.";
+                        if (xhr.responseJSON && xhr.responseJSON.message)
+                            message = xhr.responseJSON.message;
+                        $('#cart-container').html(`<p>${message}</p>`);
+                    }
+                });
+            }
+
+            // ===== Hàm cập nhật tổng tiền =====
+            function updateTotal() {
+                let total = 0;
+                let count = 0;
+
+                $('.check-item:checked').each(function() {
+                    const itemRow = $(this).closest('.cart-item');
+                    const totalText = itemRow.find('.total-col').text().replace(/[^\d]/g, '');
+                    total += parseInt(totalText || 0);
+                    count++;
+                });
+
+                $('.cart-footer .count').text(count);
+                $('.cart-footer .total-price').text(total.toLocaleString('vi-VN') + '₫');
+            }
+
+            // ===== Sự kiện chọn tất cả =====
+            $(document).on('change', '.check-all', function() {
+                const isChecked = $(this).is(':checked');
+                $('.check-item').prop('checked', isChecked);
+                $('.check-all').prop('checked', isChecked);
+                updateTotal();
+            });
+
+            // ===== Sự kiện chọn từng sản phẩm =====
+            $(document).on('change', '.check-item', function() {
+                const allChecked = $('.check-item').length === $('.check-item:checked').length;
+                $('.check-all').prop('checked', allChecked);
+                updateTotal();
+            });
+
+            // ===== Sự kiện xóa sản phẩm =====
+            $(document).on('click', '.delete-btn', function() {
+                const row = $(this).closest('.cart-item');
+                const maChiTietSP = row.data('product-id');
+
+                if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) return;
+
+                $.ajax({
+                    url: `${apiBaseUrl}/${userId}/${maChiTietSP}`,
+                    method: 'DELETE',
+                    success: function(res) {
+                        alert(res.message || "Đã xóa sản phẩm khỏi giỏ hàng.");
+                        loadCart();
+                    },
+                    error: function(xhr) {
+                        console.error("❌ Lỗi khi xóa:", xhr);
+                        alert(xhr.responseJSON?.message || "Không thể xóa sản phẩm.");
+                    }
+                });
+            });
+
+            // ===== Sự kiện xóa nhiều sản phẩm được chọn =====
+            $(document).on('click', '.delete-selected', function() {
+                const selected = $('.check-item:checked');
+                if (selected.length === 0) {
+                    alert("Vui lòng chọn ít nhất 1 sản phẩm để xóa!");
+                    return;
+                }
+
+                if (!confirm(`Xóa ${selected.length} sản phẩm đã chọn?`)) return;
+
+                selected.each(function() {
+                    const maChiTietSP = $(this).val();
+                    $.ajax({
+                        url: `${apiBaseUrl}/${userId}/${maChiTietSP}`,
+                        method: 'DELETE',
+                        success: function() {
+                            loadCart();
+                        }
+                    });
+                });
+            });
+
+            // ===== Gọi lần đầu để load cart =====
+            loadCart();
+        });
+    </script>
+}
+
+
+

@@ -3,6 +3,7 @@
     public class CartItemResponse
     {
         public int MaSP_GH { get; set; }
+        public int MaChiTietSP { get; set; }
         public string TenSP { get; set; } = string.Empty;
         public decimal GiaBan { get; set; }
         public int SoLuong { get; set; }

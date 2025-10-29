@@ -1,4 +1,4 @@
-﻿using BagStore.Web.Models.DTOs.Request;
+﻿using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.DTOs.Response;
 
 namespace BagStore.Web.Services.Interfaces
@@ -7,7 +7,8 @@ namespace BagStore.Web.Services.Interfaces
     {
         Task<IEnumerable<DonHangResponse>> LayTatCaDonHangAsync();
         Task<IEnumerable<DonHangResponse>> LayDonHangTheoKhachHangAsync(int maKhachHang);
-        Task<DonHangResponse> TaoDonHangAsync(CreateDonHangRequest dto);
+        Task<IEnumerable<DonHangResponse>> LayDonHangTheoUserAsync(string userId);
+        Task<DonHangResponse> TaoDonHangAsync(CreateDonHangRequest request, string userId);
         Task<DonHangResponse> CapNhatTrangThaiAsync(UpdateDonHangStatusRequest dto);
     }
 }
