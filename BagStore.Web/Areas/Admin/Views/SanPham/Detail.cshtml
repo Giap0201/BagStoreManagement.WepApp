@@ -1,6 +1,5 @@
 ﻿@* File: Areas/Admin/Views/SanPham/Detail.cshtml *@
 @model BagStore.Web.Models.ViewModels.SanPhams.SanPhamDetailViewModel;
-@* Đúng Model theo Controller *@
 
 @{
     ViewData["Title"] = "Chi tiết sản phẩm";
@@ -23,38 +22,31 @@
         </div>
         @if (sanPham != null)
         {
-
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Thông tin sản phẩm</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4 text-center">
-                            @if (!string.IsNullOrEmpty(sanPham.AnhChinh))
-                            {
-                                <img id="AnhChinh" src="@sanPham.AnhChinh" class="img-thumbnail" style="max-width:200px;max-height: 400px; object-fit:cover;" alt="Ảnh sản phẩm" />
-
-                            }
-                            else
-                            {
-                                <span class="text-muted">(Chưa có)</span>
-                            }
-                        </div>
-                        <div class="col-md-8">
-                            <table class="table table-borderless">
-                                <tbody>
-                                    <tr><th>Mã SP:</th><td>@sanPham.MaSP</td></tr>
-                                    <tr><th>Tên sản phẩm:</th><td>@sanPham.TenSP</td></tr>
-                                    <tr><th>Loại túi:</th><td>@sanPham.TenLoaiTui</td></tr>
-                                    <tr><th>Thương hiệu:</th><td>@sanPham.TenThuongHieu</td></tr>
-                                    <tr><th>Chất liệu:</th><td>@sanPham.TenChatLieu</td></tr>
-                                    <tr><th>Mô tả chi tiết:</th><td>@sanPham.MoTaChiTiet</td></tr>
-                                    <tr><th>Meta Title:</th><td>@sanPham.MetaTitle</td></tr>
-                                    <tr><th>Meta Description:</th><td>@sanPham.MetaDescription</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 text-center">
+                        @if (!string.IsNullOrEmpty(sanPham.AnhChinh))
+                        {
+                            <img id="AnhChinh" src="@sanPham.AnhChinh" class="img-thumbnail" style="max-width:200px;max-height: 400px; object-fit:cover;" alt="Ảnh sản phẩm" />
+                        }
+                        else
+                        {
+                            <img id="AnhChinh" src="/images/placeholder.jpg" class="img-thumbnail" style="max-width:200px;max-height: 400px; object-fit:cover;" alt="Chưa có ảnh" />
+                        }
+                    </div>
+                    <div class="col-md-9">
+                        <table class="table table-borderless table-sm">
+                            <tbody>
+                                <tr><th style="width: 150px;">Mã SP:</th><td>@sanPham.MaSP</td></tr>
+                                <tr><th>Tên sản phẩm:</th><td>@sanPham.TenSP</td></tr>
+                                <tr><th>Loại túi:</th><td>@sanPham.TenLoaiTui</td></tr>
+                                <tr><th>Thương hiệu:</th><td>@sanPham.TenThuongHieu</td></tr>
+                                <tr><th>Chất liệu:</th><td>@sanPham.TenChatLieu</td></tr>
+                                <tr><th>Mô tả chi tiết:</th><td>@sanPham.MoTaChiTiet</td></tr>
+                                <tr><th>Meta Title:</th><td>@sanPham.MetaTitle</td></tr>
+                                <tr><th>Meta Description:</th><td>@sanPham.MetaDescription</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -66,6 +58,7 @@
     </div>
 
 
+    @* Phần Quản lý Biến thể *@
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
             <h5 class="mb-0"><i class="bi bi-palette"></i> Quản lý Biến thể</h5>
@@ -74,12 +67,11 @@
             </button>
         </div>
         <div class="card-body">
-            <div id="variantAlertMessage" class="mb-2"></div> @* Di chuyển alert lên trên *@
+            <div id="variantAlertMessage" class="mb-2"></div>
 
             @* Form thêm/sửa biến thể (Ẩn ban đầu) *@
             <div class="card mt-1 mb-3 border-primary" id="variantFormCard" style="display: none;">
                 <div class="card-header bg-primary-subtle border-primary py-2">
-                    @* Đổi màu header *@
                     <h6 class="mb-0 text-primary" id="variantFormTitle">Thêm biến thể mới</h6>
                 </div>
                 <div class="card-body pt-2 pb-3">
@@ -101,7 +93,7 @@
                                         }
                                     }
                                 </select>
-                                <div class="text-danger small field-error" id="error-MaMauSacSac"></div> @* ID khớp DTO: MaMauSac *@
+                                <div class="text-danger small field-error" id="error-MaMauSac"></div>
                             </div>
                             <div class="col-md-6">
                                 <label for="MaKichThuoc" class="form-label mb-1 small fw-bold">Kích thước <span class="text-danger">*</span></label>
@@ -115,17 +107,17 @@
                                         }
                                     }
                                 </select>
-                                <div class="text-danger small field-error" id="error-MaKichThuoc"></div> @* ID khớp DTO: MaKichThuoc *@
+                                <div class="text-danger small field-error" id="error-MaKichThuoc"></div>
                             </div>
                             <div class="col-md-6">
                                 <label for="GiaBan" class="form-label mb-1 small fw-bold">Giá bán <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control form-control-sm" id="GiaBan" name="GiaBan" required />
-                                <div class="text-danger small field-error" id="error-GiaBan"></div> @* ID khớp DTO: GiaBan *@
+                                <div class="text-danger small field-error" id="error-GiaBan"></div>
                             </div>
                             <div class="col-md-6">
                                 <label for="SoLuongTon" class="form-label mb-1 small fw-bold">Số lượng tồn <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control form-control-sm" id="SoLuongTon" name="SoLuongTon" required min="0" />
-                                <div class="text-danger small field-error" id="error-SoLuongTon"></div> @* ID khớp DTO: SoLuongTon *@
+                                <div class="text-danger small field-error" id="error-SoLuongTon"></div>
                             </div>
                             <div class="col-12 text-end mt-2">
                                 <button type="submit" class="btn btn-primary btn-sm px-3 me-1"><i class="bi bi-save"></i> <span id="btnVariantSubmitText">Lưu</span></button>
@@ -136,8 +128,8 @@
                 </div>
             </div>
 
+            @* Bảng Biến thể *@
             <div class="table-responsive">
-                @* Bỏ mb-3 *@
                 <table class="table table-bordered table-striped table-hover text-center align-middle small" id="tblVariants">
                     <thead class="table-light">
                         <tr>
@@ -159,11 +151,11 @@
                                     <td>@v.MaChiTietSP</td>
                                     <td>@v.TenMauSac</td>
                                     <td>@v.TenKichThuoc</td>
-                                    <td class="text-end">@(v.GiaBan.ToString("N0"))</td> @* Định dạng + căn phải *@
+                                    <td class="text-end">@(v.GiaBan.ToString("N0"))</td>
                                     <td>@v.SoLuongTon</td>
                                     <td>
-                                        <button class="btn btn-info btn-sm btnEditVariant" data-id="@v.MaChiTietSP"><i class="bi bi-eye"></i> Sửa</button>
-                                        <button class="btn btn-warning btn-sm btnDeleteVariant" data-id="@v.MaChiTietSP"><i class="bi bi-pencil"></i> Xóa</button>
+                                        <button class="btn btn-warning btn-sm btnEditVariant" data-id="@v.MaChiTietSP" title="Sửa">Sửa<i class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-danger btn-sm btnDeleteVariant" data-id="@v.MaChiTietSP" title="Xóa">Xóa<i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             }
@@ -179,6 +171,7 @@
     </div>
 
 
+    @* Phần Quản lý Ảnh (ĐÃ CẬP NHẬT) *@
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
             <h5 class="mb-0"><i class="bi bi-images"></i> Quản lý Ảnh sản phẩm</h5>
@@ -189,29 +182,37 @@
         <div class="card-body">
             <div id="imageAlertMessage" class="mb-2"></div>
 
-            @* Form thêm ảnh (Ẩn ban đầu) *@
+            @* Form thêm ảnh (ĐÃ CẬP NHẬT) *@
             <div class="card mt-1 mb-3 border-success" id="imageFormCard" style="display: none;">
                 <div class="card-header bg-success-subtle border-success py-2">
                     <h6 class="mb-0 text-success" id="imageFormTitle">Thêm ảnh mới</h6>
                 </div>
                 <div class="card-body pt-2 pb-3">
                     <div id="imageFormAlert"></div>
+
                     <form id="imageForm" enctype="multipart/form-data">
                         <input type="hidden" name="MaSP" value="@maSP" />
 
                         <div class="row g-2 align-items-end">
-                            <div class="col-md-8">
+                            <div class="col-md-7">
                                 <label for="ImageUrlFile" class="form-label mb-1 small fw-bold">Chọn file ảnh <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control form-control-sm" id="ImageUrlFile" name="ImageUrlFile" accept="image/*" required />
-                                <div class="text-danger small field-error" id="error-ImageUrlFile"></div> @* ID khớp DTO: ImageUrlFile *@
+                                <input type="file" class="form-control form-control-sm" id="ImageUrlFile" name="FileAnh" accept="image/*" required />
+                                <div class="text-danger small field-error" id="error-FileAnh"></div>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-md-2">
+                                <label for="ThuTuHienThi" class="form-label mb-1 small fw-bold">Thứ tự</label>
+                                <input type="number" class="form-control form-control-sm" id="ThuTuHienThi" name="ThuTuHienThi" value="1" min="1" required />
+                                <div class="text-danger small field-error" id="error-ThuTuHienThi"></div>
+                            </div>
+
+                            <div class="col-md-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="IsPrimary" name="IsPrimary" value="true">
+                                    <input class="form-check-input" type="checkbox" id="IsPrimary" name="LaHinhChinh" value="true">
                                     <label class="form-check-label small" for="IsPrimary">
                                         Đặt làm ảnh chính?
                                     </label>
-                                    <input type="hidden" name="IsPrimary" value="false" />
+                                    <input type="hidden" name="LaHinhChinh" value="false" />
                                 </div>
                             </div>
 
@@ -224,6 +225,7 @@
                 </div>
             </div>
 
+            @* Bảng Ảnh (ĐÃ CẬP NHẬT) *@
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover text-center align-middle small" id="tblImages">
                     <thead class="table-light">
@@ -231,6 +233,7 @@
                             <th>Mã Ảnh</th>
                             <th style="width: 100px;">Ảnh</th>
                             <th>Đường dẫn</th>
+                            <th>Thứ tự</th>
                             <th>Ảnh chính?</th>
                             <th>Thao tác</th>
                         </tr>
@@ -247,20 +250,21 @@
                                         <img src="@img.DuongDan" alt="Ảnh SP @img.DuongDan" style="max-width: 80px; max-height: 80px; object-fit: contain; cursor: pointer; border: 1px solid #eee;" onclick="window.open('@img.DuongDan', '_blank')">
                                     </td>
                                     <td><small>@img.DuongDan</small></td>
-                                    <td>@(img.LaHinhChinh? Html.Raw("<i class='bi bi-check-circle-fill text-success' title='Ảnh chính'></i>") : Html.Raw("<i class='bi bi-x-circle text-muted' title='Ảnh phụ'></i>"))</td>
+                                    <td>@img.ThuTuHienThi</td>
+                                    <td>@(img.LaHinhChinh? Html.Raw("<i class='bi bi-check-circle-fill text-success' title='Ảnh chính'>Ảnh chính</i>") : Html.Raw("<i class='bi bi-x-circle text-muted' title='Ảnh phụ'>Ảnh phụ</i>"))</td>
                                     <td>
                                         @if (!img.LaHinhChinh)
                                         {
-                                            <button class="btn btn-outline-success btn-sm btnSetPrimaryImage" data-id="@img.MaAnh" title="Đặt làm ảnh chính"><i class="bi bi-check-lg"></i></button>
+                                            <button class="btn btn-outline-success btn-sm btnSetPrimaryImage" data-id="@img.MaAnh" title="Đặt làm ảnh chính"><i class="bi bi-check-lg">Đặt làm ảnh chính</i></button>
                                         }
-                                        <button class="btn btn-danger btn-sm btnDeleteImage" data-id="@img.MaAnh" title="Xóa ảnh"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-danger btn-sm btnDeleteImage" data-id="@img.MaAnh" title="Xóa ảnh">Xóa<i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="5" class="text-center text-muted">Chưa có ảnh nào.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted">Chưa có ảnh nào.</td></tr>
                         }
                     </tbody>
                 </table>
@@ -271,238 +275,218 @@
 
 
 @section Scripts {
-    @* Thêm SweetAlert2 nếu chưa có trong layout *@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Lấy MaSP từ Model
         const currentMaSP = @maSP;
 
         // ========================= HÀM TIỆN ÍCH CHUNG =========================
+
         function showAlert(selector, message, isSuccess) {
             const alertClass = isSuccess ? 'success' : 'danger';
             $(selector).empty().html(`<div class="alert alert-${alertClass} alert-dismissible fade show small py-2" role="alert"> ${message} <button type="button" class="btn-close btn-sm py-1" data-bs-dismiss="alert" aria-label="Close"></button> </div>`).removeClass('d-none');
         }
 
+        // Xóa lỗi của 1 form cụ thể
         function clearFormErrors(formId) {
             $(`#${formId} .field-error`).text('');
             $(`#${formId} .form-control, #${formId} .form-select`).removeClass('is-invalid');
             $(`#${formId}Alert`).empty().addClass('d-none');
         }
 
-        function handleValidationErrors(errors, formIdPrefix) {
+        // Hàm này giống hệt trang SanPham, chỉ thêm tham số "formId"
+        // để biết phải tìm ID lỗi trong form "variantForm" hay "imageForm"
+        function handleValidationErrors(errors, formId) {
             let errorMessagesHtml = '';
-             if (!Array.isArray(errors)) {
-                 showAlert(`#${formIdPrefix}Alert`, 'Lỗi: Định dạng phản hồi không hợp lệ.', false);
-                 console.error("Validation errors is not an array:", errors);
-                 return;
-            }
             let firstErrorField = null;
 
-            errors.forEach(function(error) {
-                 if (typeof error !== 'object' || error === null) return;
+            if (!Array.isArray(errors)) {
+                showAlert(`#${formId}Alert`, 'Lỗi: Định dạng phản hồi không hợp lệ.', false);
+                return;
+            }
 
+            errors.forEach(function(error) {
                 let fieldName = error.field || error.fieldName || error.FieldName;
-                let errorMessage = error.message || error.errorMessage || error.ErrorMessage || "Lỗi không xác định";
+                let errorMessage = error.message || error.errorMessage || error.ErrorMessage || "Lỗi";
 
                 if (!fieldName) {
-                     errorMessagesHtml += `<li>${errorMessage}</li>`;
-                     return;
+                    errorMessagesHtml += `<li>${errorMessage}</li>`;
+                    return;
                 }
 
-                 let pascalFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-                 let errorDivId = `error-${pascalFieldName}`;
-                 let fieldInputId = pascalFieldName;
+                // Chuyển tên field sang PascalCase để khớp ID (ví dụ: maMauSac -> MaMauSac)
+                let pascalFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+                let errorDivId = `error-${pascalFieldName}`;
+                let fieldInputId = pascalFieldName;
 
-                 let errorElement = $(`#${formIdPrefix} #${errorDivId}`);
-                 let inputElement = $(`#${formIdPrefix} #${fieldInputId}`);
+                // Tìm trong form cụ thể (đây là lý do cần formId)
+                let formCtx = $(`#${formId}`);
+                let errorElement = $(`#${errorDivId}`, formCtx);
+                let inputElement = $(`#${fieldInputId}`, formCtx);
+
+                // Vì ID của input file là ImageUrlFile nhưng DTO là FileAnh
+                if (formId === 'imageForm' && pascalFieldName === 'FileAnh') {
+                    inputElement = $('#ImageUrlFile', formCtx);
+                }
 
                 if (errorElement.length) {
                     errorElement.text(errorMessage);
                     if(inputElement.length){
-                         inputElement.addClass('is-invalid');
-                         if(!firstErrorField) firstErrorField = inputElement;
-                    } else { console.warn(`Input/Select not found: #${fieldInputId}`); }
+                        inputElement.addClass('is-invalid');
+                        if(!firstErrorField) firstErrorField = inputElement;
+                    }
                 } else {
-                     console.warn(`Error div not found: #${errorDivId}`);
-                     errorMessagesHtml += `<li><strong>${fieldName}:</strong> ${errorMessage}</li>`;
+                    errorMessagesHtml += `<li><strong>${pascalFieldName}:</strong> ${errorMessage}</li>`;
                 }
             });
 
-            const alertSelector = `#${formIdPrefix}Alert`;
+            const alertSelector = `#${formId}Alert`;
             if (errorMessagesHtml) {
                 showAlert(alertSelector, 'Vui lòng kiểm tra lại:<ul class="mb-0 small">' + errorMessagesHtml + '</ul>', false);
-            } else if($(`#${formIdPrefix} .is-invalid`).length > 0){
-                showAlert(alertSelector, 'Vui lòng sửa các lỗi được đánh dấu.', false);
             } else {
-                 showAlert(alertSelector, 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.', false);
+                showAlert(alertSelector, 'Vui lòng sửa các lỗi được đánh dấu.', false);
             }
 
-             if(firstErrorField){ firstErrorField.focus(); }
+            if(firstErrorField){ firstErrorField.focus(); }
         }
 
 
         // ========================= BIẾN THỂ (CHI TIẾT SP) =========================
         const baseVariantApiUrl = `/api/sanpham/${currentMaSP}/ChiTietSanPhamApi`;
 
-        // --- Hàm cho Biến thể (Tương tự cấu trúc Index.cshtml) ---
-
-        // 1. Reset và ẩn form biến thể
         function resetAndHideVariantForm() {
             $('#variantForm')[0].reset();
-            $('#MaChiTietSP').val(0); // Đặt ID về 0 (cho Thêm mới)
-            // MaSP không cần reset vì nó lấy từ const currentMaSP
+            $('#MaChiTietSP').val(0);
             $('#variantFormTitle').text('Thêm biến thể mới');
             $('#btnVariantSubmitText').text('Lưu');
-            clearFormErrors('variantForm'); // Xóa lỗi validation cũ
-            $('#variantFormCard').hide(); // Ẩn form đi
+            clearFormErrors('variantForm');
+            $('#variantFormCard').hide(); // Đơn giản
         }
 
-        // 2. Hiển thị form biến thể
         function showVariantForm() {
-             $('#variantFormCard').show(); // Hiện form
-             $('#MaMauSac').focus(); // Focus vào trường đầu tiên
+            $('#variantFormCard').show(); // Đơn giản
+            $('#MaMauSac').focus();
         }
 
-        // 3. Render bảng biến thể
         function renderVariantTable(variants) {
-             const tableBody = $('#variantTableBody');
-             tableBody.empty(); // Xóa dữ liệu cũ
-             if (!variants || variants.length === 0) {
-                 tableBody.html('<tr><td colspan="6" class="text-center text-muted">Chưa có biến thể nào.</td></tr>');
-                 return;
-             }
-             variants.forEach(v => {
-                 const maChiTietSP = v.maChiTietSP || 'N/A';
-                 const tenMau = v.tenMauSac || 'N/A';
-                 const tenKichThuoc = v.tenKichThuoc || 'N/A';
-                 const giaBanFormatted = (v.giaBan != null) ? v.giaBan.toLocaleString('vi-VN') : '0';
-                 const soLuongTon = (v.soLuongTon != null) ? v.soLuongTon : 0;
-
-                 // Tạo HTML cho một hàng
-                 const rowHtml = `
-                    <tr data-id="${maChiTietSP}">
-                        <td>${maChiTietSP}</td>
-                        <td>${tenMau}</td>
-                        <td>${tenKichThuoc}</td>
+            const tableBody = $('#variantTableBody');
+            tableBody.empty();
+            if (!variants || variants.length === 0) {
+                tableBody.html('<tr><td colspan="6" class="text-center text-muted">Chưa có biến thể nào.</td></tr>');
+                return;
+            }
+            variants.forEach(v => {
+                const giaBanFormatted = (v.giaBan != null) ? v.giaBan.toLocaleString('vi-VN') : '0';
+                tableBody.append(`
+                    <tr data-id="${v.maChiTietSP}">
+                        <td>${v.maChiTietSP}</td>
+                        <td>${v.tenMauSac || 'N/A'}</td>
+                        <td>${v.tenKichThuoc || 'N/A'}</td>
                         <td class="text-end">${giaBanFormatted}</td>
-                        <td>${soLuongTon}</td>
+                        <td>${v.soLuongTon || 0}</td>
                         <td>
-                            <button class="btn btn-warning btn-sm btnEditVariant" data-id="${maChiTietSP}">Sửa<i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-danger btn-sm btnDeleteVariant" data-id="${maChiTietSP}">Xóa<i class="bi bi-trash"></i></button>
+                            <button class="btn btn-warning btn-sm btnEditVariant" data-id="${v.maChiTietSP}" title="Sửa">Sửa<i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-danger btn-sm btnDeleteVariant" data-id="${v.maChiTietSP}" title="Xóa">Xóa<i class="bi bi-trash"></i></button>
                         </td>
-                    </tr>`;
-                 tableBody.append(rowHtml); // Thêm hàng vào bảng
-             });
+                    </tr>`);
+            });
         }
 
-        // 4. Tải danh sách biến thể từ API
         function loadVariants() {
-            const tableBody = $('#variantTableBody');
-            // Hiển thị loading nếu bảng trống
-             if (tableBody.find('tr').length === 0 || tableBody.find('td[colspan]').length > 0) {
-                 tableBody.html('<tr><td colspan="6" class="text-center text-muted"><div class="spinner-border spinner-border-sm" role="status"></div></td></tr>');
-            }
-             $('#variantAlertMessage').empty().addClass('d-none'); // Xóa thông báo cũ
+            $('#variantTableBody').html('<tr><td colspan="6" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div></td></tr>');
+            $('#variantAlertMessage').empty().addClass('d-none');
 
-            // Gọi AJAX để lấy danh sách
             $.ajax({
-                url: baseVariantApiUrl, // GET base URL -> Lấy danh sách
+                url: baseVariantApiUrl,
                 method: 'GET',
                 success: function(response) {
                     if (response && response.status === 'success') {
-                        renderVariantTable(response.data || []); // Vẽ lại bảng
+                        renderVariantTable(response.data || []);
                     } else {
                         showAlert('#variantAlertMessage', response.message || 'Lỗi tải biến thể.', false);
-                        renderVariantTable([]); // Hiển thị bảng rỗng
+                        renderVariantTable([]);
                     }
                 },
                 error: function(xhr) {
-                     showAlert('#variantAlertMessage', `Lỗi kết nối (${xhr.status})`, false);
-                     renderVariantTable([]); // Hiển thị bảng rỗng
+                    showAlert('#variantAlertMessage', `Lỗi kết nối (${xhr.status})`, false);
+                    renderVariantTable([]);
                 }
             });
         }
 
-        // 5. Điền dữ liệu biến thể vào form để sửa
         function fillVariantFormForEdit(variantData) {
-            clearFormErrors('variantForm'); // Xóa lỗi cũ trước khi điền
+            clearFormErrors('variantForm');
             $('#MaChiTietSP').val(variantData.maChiTietSP);
-            // MaSP không cần điền
             $('#MaMauSac').val(String(variantData.maMauSac || ''));
             $('#MaKichThuoc').val(String(variantData.maKichThuoc || ''));
             $('#GiaBan').val(variantData.giaBan);
             $('#SoLuongTon').val(variantData.soLuongTon);
-
-            // Cập nhật tiêu đề và nút bấm
             $('#variantFormTitle').text(`Cập nhật biến thể (Mã: ${variantData.maChiTietSP})`);
             $('#btnVariantSubmitText').text('Cập nhật');
-            showVariantForm(); // Hiển thị form
+            showVariantForm();
         }
 
 
-        // ========================= ẢNH SẢN PHẨM =========================
+        // ========================= ẢNH SẢN PHẨM (ĐÃ CẬP NHẬT) =========================
         const baseImageApiUrl = `/api/sanpham/${currentMaSP}/AnhSanPhamApi`;
 
-        // --- Hàm cho Ảnh --- (Giữ nguyên cấu trúc cũ, đã hoạt động)
         function resetAndHideImageForm() {
             $('#imageForm')[0].reset();
-            $('#imageForm input[name="MaSP"]').val(currentMaSP);
+            $('#ThuTuHienThi').val(1); // Reset thứ tự về 1
             clearFormErrors('imageForm');
             $('#imageFormCard').hide();
         }
 
         function showImageForm() {
-             $('#imageFormTitle').text('Thêm ảnh mới');
-             $('#imageFormCard').show();
-             $('#FileAnh').focus();
+            $('#imageFormTitle').text('Thêm ảnh mới');
+            $('#imageFormCard').show();
+            $('#ImageUrlFile').focus();
         }
 
+        // Đã cập nhật cho 6 cột
         function renderImageTable(images) {
-             const tableBody = $('#imageTableBody');
-             tableBody.empty();
-             if (!images || images.length === 0) {
-                 tableBody.html('<tr><td colspan="5" class="text-center text-muted">Chưa có ảnh nào.</td></tr>');
-                 return;
-             }
-             images.forEach(img => {
-                 const imageUrl = img.duongDan || '/images/placeholder.jpg';
-                 const maAnh = img.maAnh || 'N/A';
-                 const isPrimaryIcon = img.laHinhChinh ? '<i class="bi bi-check-circle-fill text-success" title="Ảnh chính"></i>' : '<i class="bi bi-x-circle text-muted" title="Ảnh phụ"></i>';
-                 const setPrimaryButton = !img.laHinhChinh ? `<button class="btn btn-outline-success btn-sm btnSetPrimaryImage" data-id="${maAnh}" title="Đặt làm ảnh chính"><i class="bi bi-check-lg"></i></button>` : '';
+            const tableBody = $('#imageTableBody');
+            tableBody.empty();
+            if (!images || images.length === 0) {
+                tableBody.html('<tr><td colspan="6" class="text-center text-muted">Chưa có ảnh nào.</td></tr>');
+                return;
+            }
+            images.forEach(img => {
+                const imageUrl = img.duongDan || '/images/placeholder.jpg';
+                const maAnh = img.maAnh || 'N/A';
+                const thuTu = img.thuTuHienThi || 1; // Lấy thứ tự
+                const isPrimaryIcon = img.laHinhChinh ? '<i class="bi bi-check-circle-fill text-success" title="Ảnh chính">Ảnh chính</i>' : '<i class="bi bi-x-circle text-muted" title="Ảnh phụ">Ảnh phụ</i>';
+                const setPrimaryButton = !img.laHinhChinh ? `<button class="btn btn-outline-success btn-sm btnSetPrimaryImage" data-id="${maAnh}" title="Đặt làm ảnh chính"><i class="bi bi-check-lg"></i>Đặt làm ảnh chính</button>` : '';
 
-                 tableBody.append(`
+                tableBody.append(`
                     <tr data-id="${maAnh}">
                         <td>${maAnh}</td>
-                        <td><img src="${imageUrl}" alt="Ảnh SP ${maAnh}" style="max-width: 80px; max-height: 80px; object-fit: contain; cursor: pointer; border: 1px solid #eee;" onclick="window.open('${imageUrl}', '_blank')"></td>
+                        <td><img src="${imageUrl}" alt="Ảnh SP ${maAnh}" style="max-width: 80px; max-height: 80px; object-fit: contain; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')"></td>
                         <td><small>${imageUrl}</small></td>
-                        <td>${isPrimaryIcon}</td>
-                        <td> ${setPrimaryButton} <button class="btn btn-danger btn-sm btnDeleteImage" data-id="${maAnh}" title="Xóa ảnh"><i class="bi bi-trash"></i></button> </td>
+                        <td>${thuTu}</td> <td>${isPrimaryIcon}</td>
+                        <td> ${setPrimaryButton} <button class="btn btn-danger btn-sm btnDeleteImage" data-id="${maAnh}" title="Xóa ảnh"><i class="bi bi-trash">Xóa</i></button> </td>
                     </tr>`);
-             });
+            });
         }
 
-         function loadImages() {
-            const tableBody = $('#imageTableBody');
-             if (tableBody.find('tr').length === 0 || tableBody.find('td[colspan]').length > 0) {
-                 tableBody.html('<tr><td colspan="5" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div></td></tr>');
-            }
+        function loadImages() {
+            $('#imageTableBody').html('<tr><td colspan="6" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div></td></tr>');
             $('#imageAlertMessage').empty().addClass('d-none');
 
             $.ajax({
-                url: baseImageApiUrl, // GET base URL
+                url: baseImageApiUrl,
                 method: 'GET',
                 success: function(response) {
                     if (response && response.status === 'success') {
                         renderImageTable(response.data || []);
                     } else {
-                         showAlert('#imageAlertMessage', response.message || 'Lỗi tải ảnh.', false);
-                         renderImageTable([]);
+                        showAlert('#imageAlertMessage', response.message || 'Lỗi tải ảnh.', false);
+                        renderImageTable([]);
                     }
                 },
-                 error: function(xhr) {
-                     showAlert('#imageAlertMessage', `Lỗi kết nối (${xhr.status})`, false);
-                     renderImageTable([]);
+                error: function(xhr) {
+                    showAlert('#imageAlertMessage', `Lỗi kết nối (${xhr.status})`, false);
+                    renderImageTable([]);
                 }
             });
         }
@@ -511,134 +495,105 @@
         // --- SỰ KIỆN (BÊN TRONG DOCUMENT.READY) ---
         $(document).ready(function() {
 
-            // === KHỞI TẠO ===
-            // Dữ liệu ban đầu đã render từ Model, không cần gọi load() ở đây
-            // Nếu muốn load bằng AJAX ban đầu, bỏ comment 2 dòng dưới và xóa render trong HTML
+            // Dữ liệu ban đầu đã được render, không cần gọi load()
+            // Nếu muốn load bằng AJAX ban đầu (trang trống), hãy bỏ comment 2 dòng dưới
+            // và xóa code render trong <tbody> của HTML
             // loadVariants();
             // loadImages();
 
-
             // === SỰ KIỆN CHO BIẾN THỂ ===
 
-            // 1. Nút "Thêm mới" biến thể
             $('#btnAddNewVariant').on('click', function() {
-                resetAndHideVariantForm(); // Reset form về trạng thái thêm mới
-                showVariantForm();         // Hiện form
+                resetAndHideVariantForm();
+                showVariantForm();
             });
 
-            // 2. Nút "Hủy" form biến thể
             $('#btnCancelVariantForm').on('click', resetAndHideVariantForm);
 
-            // 3. Submit form biến thể (Thêm mới / Cập nhật)
+            // Submit form Biến thể (Dùng JSON)
             $('#variantForm').on('submit', function(e) {
-                 e.preventDefault();
-                 clearFormErrors('variantForm'); // Xóa lỗi cũ
+                e.preventDefault();
+                clearFormErrors('variantForm');
 
-                 // Lấy dữ liệu từ form
-                 const maChiTietSPVal = $('#MaChiTietSP').val();
-                 const maMauSacVal = $('#MaMauSac').val();
-                 const maKichThuocVal = $('#MaKichThuoc').val();
-                 const giaBanStr = $('#GiaBan').val()?.replace(/,/g, '');
-                 const soLuongTonStr = $('#SoLuongTon').val();
+                // Dùng JSON vì DTO không có IFormFile
+                const requestData = {
+                    MaChiTietSP: parseInt($('#MaChiTietSP').val()) || 0,
+                    MaSanPhan: currentMaSP,
+                    MaMauSac: parseInt($('#MaMauSac').val()) || null,
+                    MaKichThuoc: parseInt($('#MaKichThuoc').val()) || null,
+                    GiaBan: parseFloat($('#GiaBan').val()?.replace(/,/g, '')) || null,
+                    SoLuongTon: parseInt($('#SoLuongTon').val()) || 0
+                };
 
-                 // Tạo requestData khớp ChiTietSanPhamRequestDto
-                 const requestData = {
-                     MaChiTietSP: parseInt(maChiTietSPVal) || 0,
-                     MaSanPhan: currentMaSP, // Thêm MaSP
-                     MaMauSac: maMauSacVal ? parseInt(maMauSacVal) : null,
-                     MaKichThuoc: maKichThuocVal ? parseInt(maKichThuocVal) : null,
-                     GiaBan: (giaBanStr && !isNaN(parseFloat(giaBanStr))) ? parseFloat(giaBanStr) : null,
-                     SoLuongTon: (soLuongTonStr && !isNaN(parseInt(soLuongTonStr))) ? parseInt(soLuongTonStr) : null
-                 };
+                const isNew = (requestData.MaChiTietSP === 0);
+                const url = isNew ? baseVariantApiUrl : `${baseVariantApiUrl}/${requestData.MaChiTietSP}`;
+                const method = isNew ? 'POST' : 'PUT';
 
-               
-                 // Xác định URL và Method (Thêm/Sửa)
-                 const isNew = (requestData.MaChiTietSP === 0);
-                 const url = isNew ? baseVariantApiUrl : `${baseVariantApiUrl}/${requestData.MaChiTietSP}`;
-                 const method = isNew ? 'POST' : 'PUT';
+                const submitButton = $(this).find('button[type="submit"]');
+                const originalButtonText = $('#btnVariantSubmitText').text();
+                submitButton.prop('disabled', true);
+                $('#btnVariantSubmitText').html('<span class="spinner-border spinner-border-sm"></span> Đang lưu...');
 
-                 // Hiển thị loading
-                 const submitButton = $(this).find('button[type="submit"]');
-                 const originalButtonText = $('#btnVariantSubmitText').text();
-                 submitButton.prop('disabled', true);
-                 $('#btnVariantSubmitText').html('<span class="spinner-border spinner-border-sm"></span> Đang lưu...');
-
-                 // Gửi AJAX
-                 $.ajax({
-                     url: url,
-                     method: method,
-                     contentType: 'application/json',
-                     data: JSON.stringify(requestData),
-                     success: function(response) {
-                         if (response && response.status === 'success') {
-                             showAlert('#variantAlertMessage', response.message || 'Lưu thành công!', true);
-                             resetAndHideVariantForm(); // Reset và ẩn form
-                             loadVariants(); // Tải lại bảng
-                         } else {
-                             // Lỗi nghiệp vụ từ API
-                             showAlert('#variantFormAlert', response.message || 'Có lỗi xảy ra khi lưu.', false);
-                         }
-                     },
-                     error: function(xhr) {
-                         // Lỗi HTTP (validation, server error,...)
-                         if (xhr.responseJSON) {
-                             var errorResponse = xhr.responseJSON;
-                             if (errorResponse.errors && Array.isArray(errorResponse.errors)) {
-                                 handleValidationErrors(errorResponse.errors, 'variantForm'); // Hiển thị lỗi chi tiết
-                             } else if (errorResponse.message) {
-                                 showAlert('#variantFormAlert', errorResponse.message, false); // Hiển thị lỗi chung từ API
-                             } else {
-                                 showAlert('#variantFormAlert', `Lỗi ${xhr.status}. Không thể xử lý phản hồi.`, false); // Lỗi không rõ cấu trúc
-                             }
-                         } else {
-                             showAlert('#variantFormAlert', `Lỗi kết nối (${xhr.status}). Vui lòng thử lại.`, false); // Lỗi kết nối
-                         }
-                     },
-                     complete: function() {
-                         // Khôi phục nút bấm
-                         submitButton.prop('disabled', false);
-                         $('#btnVariantSubmitText').text(originalButtonText);
-                     }
-                 });
+                $.ajax({
+                    url: url,
+                    method: method,
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function(response) {
+                        if (response && response.status === 'success') {
+                            showAlert('#variantAlertMessage', response.message || 'Lưu thành công!', true);
+                            resetAndHideVariantForm();
+                            loadVariants();
+                        } else {
+                            showAlert('#variantFormAlert', response.message || 'Có lỗi xảy ra khi lưu.', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            handleValidationErrors(xhr.responseJSON.errors, 'variantForm');
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            showAlert('#variantFormAlert', xhr.responseJSON.message, false);
+                        } else {
+                            showAlert('#variantFormAlert', `Lỗi ${xhr.status}.`, false);
+                        }
+                    },
+                    complete: function() {
+                        submitButton.prop('disabled', false);
+                        $('#btnVariantSubmitText').text(originalButtonText);
+                    }
+                });
             });
 
-            // 4. Nút "Sửa" trong bảng biến thể
+            // Sửa Biến thể
             $('#variantTableBody').on('click', '.btnEditVariant', function() {
                 const id = $(this).data('id');
-                resetAndHideVariantForm(); // Đảm bảo form sạch trước khi tải
-
-                // Hiển thị loading tạm thời trên form
+                resetAndHideVariantForm();
                 $('#variantFormTitle').text('Đang tải dữ liệu...');
-                showVariantForm(); // Hiện form trước
+                showVariantForm();
 
-                // Gọi AJAX để lấy chi tiết biến thể
                 $.ajax({
-                     url: `${baseVariantApiUrl}/${id}`, // GET by ID
-                     method: 'GET',
-                     success: function(response) {
-                         if (response && response.status === 'success' && response.data) {
-                             fillVariantFormForEdit(response.data); // Điền dữ liệu vào form
-                         } else {
-                             showAlert('#variantAlertMessage', response.message || 'Không tìm thấy biến thể.', false);
-                             resetAndHideVariantForm(); // Ẩn form nếu không tìm thấy
-                         }
-                     },
-                     error: function() {
-                          showAlert('#variantAlertMessage', 'Lỗi tải chi tiết biến thể.', false);
-                          resetAndHideVariantForm(); // Ẩn form nếu lỗi
-                     }
-                 });
+                    url: `${baseVariantApiUrl}/${id}`,
+                    method: 'GET',
+                    success: function(response) {
+                        if (response && response.status === 'success' && response.data) {
+                            fillVariantFormForEdit(response.data);
+                        } else {
+                            showAlert('#variantAlertMessage', response.message || 'Không tìm thấy.', false);
+                            resetAndHideVariantForm();
+                        }
+                    },
+                    error: function() {
+                        showAlert('#variantAlertMessage', 'Lỗi tải chi tiết.', false);
+                        resetAndHideVariantForm();
+                    }
+                });
             });
 
-            // 5. Nút "Xóa" trong bảng biến thể
+            // Xóa Biến thể
             $('#variantTableBody').on('click', '.btnDeleteVariant', function() {
                 const id = $(this).data('id');
-                const row = $(this).closest('tr');
-                const mau = row.find('td:eq(1)').text();
-                const size = row.find('td:eq(2)').text();
-                const rowInfo = `${mau} - ${size}`;
+                const rowInfo = $(this).closest('tr').find('td:eq(1)').text() + ' - ' + $(this).closest('tr').find('td:eq(2)').text();
 
-                // Hiển thị xác nhận xóa
                 Swal.fire({
                     title: 'Xác nhận xóa?',
                     html: `Xóa biến thể: <strong>${rowInfo}</strong> (Mã: ${id})?`,
@@ -648,16 +603,15 @@
                     cancelButtonText: 'Hủy bỏ'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Gửi AJAX xóa
                         $.ajax({
-                            url: `${baseVariantApiUrl}/${id}`, // DELETE by ID
+                            url: `${baseVariantApiUrl}/${id}`,
                             method: 'DELETE',
                             success: function(response) {
                                 if (response && response.status === 'success') {
                                     Swal.fire('Đã xóa!', '', 'success');
-                                    loadVariants(); // Tải lại bảng
+                                    loadVariants();
                                 } else {
-                                    Swal.fire('Lỗi!', response.message || 'Không thể xóa biến thể.', 'error');
+                                    Swal.fire('Lỗi!', response.message || 'Không thể xóa.', 'error');
                                 }
                             },
                             error: function(xhr) {
@@ -669,14 +623,121 @@
             });
 
 
-            // === SỰ KIỆN CHO ẢNH === (Giữ nguyên như phiên bản trước)
-            $('#btnAddNewImage').on('click', function() { /*...*/ });
+            // === SỰ KIỆN CHO ẢNH ===
+
+            $('#btnAddNewImage').on('click', function() {
+                resetAndHideImageForm();
+                showImageForm();
+            });
+
             $('#btnCancelImageForm').on('click', resetAndHideImageForm);
-            $('#imageForm').on('submit', function(e) { /*...*/ });
-            $('#imageTableBody').on('click', '.btnDeleteImage', function() { /*...*/ });
-            $('#imageTableBody').on('click', '.btnSetPrimaryImage', function() { /*...*/ });
+
+            // Submit form ảnh (Dùng FormData)
+            $('#imageForm').on('submit', function(e) {
+                e.preventDefault();
+                clearFormErrors('imageForm');
+
+                // Dùng FormData vì có IFormFile
+                // Code này tự động lấy MaSP, FileAnh, ThuTuHienThi, LaHinhChinh
+                const formData = new FormData(this);
+
+                const submitButton = $(this).find('button[type="submit"]');
+                const originalButtonText = submitButton.html(); // Lưu cả icon
+                submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Đang tải...');
+
+                $.ajax({
+                    url: baseImageApiUrl, // POST base
+                    method: 'POST',
+                    data: formData,
+                    processData: false, // Bắt buộc khi dùng FormData
+                    contentType: false, // Bắt buộc khi dùng FormData
+                    success: function(response) {
+                        if (response && response.status === 'success') {
+                            showAlert('#imageAlertMessage', response.message || 'Thêm ảnh thành công!', true);
+                            resetAndHideImageForm();
+                            loadImages(); // Tải lại bảng ảnh
+                        } else {
+                            showAlert('#imageFormAlert', response.message || 'Lỗi khi tải ảnh lên.', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            handleValidationErrors(xhr.responseJSON.errors, 'imageForm');
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            showAlert('#imageFormAlert', xhr.responseJSON.message, false);
+                        } else {
+                            showAlert('#imageFormAlert', `Lỗi ${xhr.status}.`, false);
+                        }
+                    },
+                    complete: function() {
+                        submitButton.prop('disabled', false).html(originalButtonText);
+                    }
+                });
+            });
+
+            // Xóa ảnh
+            $('#imageTableBody').on('click', '.btnDeleteImage', function() {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Xác nhận xóa?',
+                    text: `Bạn có chắc muốn xóa ảnh (Mã: ${id})?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy bỏ'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `${baseImageApiUrl}/${id}`,
+                            method: 'DELETE',
+                            success: function(response) {
+                                if (response && response.status === 'success') {
+                                    Swal.fire('Đã xóa!', '', 'success');
+                                    loadImages();
+                                } else {
+                                    Swal.fire('Lỗi!', response.message || 'Không thể xóa.', 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Lỗi!', `Lỗi ${xhr.status} khi xóa.`, 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Đặt làm ảnh chính
+            $('#imageTableBody').on('click', '.btnSetPrimaryImage', function() {
+                const id = $(this).data('id');
+                const button = $(this);
+                button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                // API của bạn: POST /.../AnhSanPhamApi/{id}/SetPrimary
+                $.ajax({
+                    url: `${baseImageApiUrl}/${id}/SetPrimary`,
+                    method: 'POST',
+                    success: function(response) {
+                        if (response && response.status === 'success') {
+                            showAlert('#imageAlertMessage', 'Đặt ảnh chính thành công!', true);
+                            loadImages(); // Tải lại bảng
+
+                            // Cập nhật ảnh chính ở đầu trang
+                            if(response.data && response.data.duongDan) {
+                                $('#AnhChinh').attr('src', response.data.duongDan);
+                            }
+                        } else {
+                             showAlert('#imageAlertMessage', response.message || 'Không thể đặt ảnh chính.', false);
+                             button.prop('disabled', false).html('<i class="bi bi-check-lg"></i>');
+                        }
+                    },
+                    error: function(xhr) {
+                         showAlert('#imageAlertMessage', `Lỗi ${xhr.status} khi thực hiện.`, false);
+                         button.prop('disabled', false).html('<i class="bi bi-check-lg"></i>');
+                    }
+                });
+            });
 
         }); // End $(document).ready()
-
     </script>
 }
