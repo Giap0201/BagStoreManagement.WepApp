@@ -42,7 +42,7 @@ namespace BagStore.Web.Controllers.Api
         /// POST: /api/sanpham/{maSanPham}/ChiTietSanPhamApi
 
         [HttpPost]
-        public async Task<IActionResult> Create(int maSanPham, [FromForm] ChiTietSanPhamRequestDto dto)
+        public async Task<IActionResult> Create(int maSanPham, [FromBody] ChiTietSanPhamRequestDto dto)
         {
             // Gán MaSanPhan từ URL để tránh client gửi sai
             dto.MaSanPhan = maSanPham;
@@ -55,7 +55,7 @@ namespace BagStore.Web.Controllers.Api
         /// PUT: /api/sanpham/{maSanPham}/ChiTietSanPhamApi/{maChiTietSP}
 
         [HttpPut("{maChiTietSP}")]
-        public async Task<IActionResult> Update(int maSanPham, int maChiTietSP, [FromForm] ChiTietSanPhamRequestDto dto)
+        public async Task<IActionResult> Update(int maSanPham, int maChiTietSP, [FromBody] ChiTietSanPhamRequestDto dto)
         {
             // Gán MaSanPhan từ URL để đảm bảo tính nhất quán
             dto.MaSanPhan = maSanPham;

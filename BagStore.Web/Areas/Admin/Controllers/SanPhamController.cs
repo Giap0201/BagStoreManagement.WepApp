@@ -1,10 +1,12 @@
-﻿using BagStore.Services.Interfaces;
+﻿using BagStore.Domain.Entities;
+using BagStore.Services.Interfaces;
 using BagStore.Web.Models.DTOs;
 using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace BagStore.Web.Areas.Admin.Controllers
 {
@@ -17,6 +19,8 @@ namespace BagStore.Web.Areas.Admin.Controllers
         private readonly IDanhMucLoaiTuiService _danhMucLoaiTuiService;
         private readonly IChiTietSanPhamService _chiTietService;
         private readonly IAnhSanPhamService _anhService;
+        private readonly IMauSacService _mauSacService;
+        private readonly IKichThuocService _kichThuocService;
 
         public SanPhamController(
          ISanPhamService service,
@@ -24,7 +28,9 @@ namespace BagStore.Web.Areas.Admin.Controllers
          IChatLieuService chatLieuService,
          IDanhMucLoaiTuiService danhMucLoaiTuiService,
          IChiTietSanPhamService chiTietService,
-         IAnhSanPhamService anhService)
+         IAnhSanPhamService anhService,
+         IMauSacService mauSacService,
+         IKichThuocService kichThuocService)
         {
             _service = service;
             _chatLieuService = chatLieuService;
@@ -32,9 +38,13 @@ namespace BagStore.Web.Areas.Admin.Controllers
             _danhMucLoaiTuiService = danhMucLoaiTuiService;
             _chiTietService = chiTietService;
             _anhService = anhService;
+            _mauSacService = mauSacService;
+            _kichThuocService = kichThuocService;
         }
 
         // Hiển thị danh sách sản phẩm (ban đầu)
+        [Route("Admin/SanPham")]
+        [Route("Admin/SanPham/Index")]
         public async Task<IActionResult> Index()
         {
             var response = await _service.GetAllAsync();
@@ -85,6 +95,19 @@ namespace BagStore.Web.Areas.Admin.Controllers
                 ChiTietSanPhams = chiTietResponse.Data ?? new List<ChiTietSanPhamResponseDto>(),
                 AnhSanPhams = anhResponse.Data ?? new List<AnhSanPhamResponseDto>()
             };
+            //load mau sac
+            var mauSacList = await _mauSacService.GetAllAsync();
+            var modelMauSac = mauSacList.Data ?? new List<MauSacDto>();
+            ViewBag.MauSacList = modelMauSac
+                .Select(x => new SelectListItem { Value = x.MaMauSac.ToString(), Text = x.TenMauSac })
+                .ToList();
+
+            //load kich thuoc
+            var kichThuocList = await _kichThuocService.GetAllAsync();
+            var modelKichThuoc = kichThuocList.Data ?? new List<KichThuocDto>();
+            ViewBag.KichThuocList = modelKichThuoc
+                .Select(x => new SelectListItem { Value = x.MaKichThuoc.ToString(), Text = x.TenKichThuoc })
+                .ToList();
 
             return View(model);
         }
