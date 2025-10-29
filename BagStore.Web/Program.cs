@@ -1,5 +1,4 @@
 ﻿using BagStore.Data;
-using BagStore.Domain.Entities;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;
@@ -8,7 +7,6 @@ using BagStore.Web.Services;
 using BagStore.Web.Services.Implementations;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -19,7 +17,6 @@ using BagStore.Repositories;
 using BagStore.Services;
 using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.AppConfig.Implementations;
-using BagStore.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

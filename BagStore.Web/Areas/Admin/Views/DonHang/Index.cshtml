@@ -3,7 +3,20 @@
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+<!-- ✅ DataTables Bootstrap 5 (phù hợp với Purple Admin, SB Admin, v.v.) -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css" />
+
+<style>
+    body {
+        background-color: #fff !important;
+    }
+
+    .content-wrapper,
+    .main-panel {
+        background-color: #fff !important;
+    }
+</style>
+
 
 <h2>Quản lý đơn hàng</h2>
 <div class="table-responsive">
@@ -22,8 +35,10 @@
 </div>
 
 @section Scripts {
-    <!-- DataTables (load SAU khi layout đã load vendor/jquery) -->
+    <!-- ✅ DataTables + Bootstrap 5 integration -->
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+
 
     <script>
         $(function () {
@@ -51,7 +66,11 @@
                             return `<select onchange="updateStatus(${row.maDonHang}, this.value)">${options}</select>`;
                         }
                     }
-                ]
+                ],
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/vi.json",
+                    info: "Đang hiển thị _START_–_END_ trên tổng số _TOTAL_ đơn hàng"
+                }
             });
 
             // Expose reload function
