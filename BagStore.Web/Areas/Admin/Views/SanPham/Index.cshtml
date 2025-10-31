@@ -1,4 +1,5 @@
-﻿@model List<BagStore.Web.Models.ViewModels.SanPhams.SanPhamResponseDto>
+﻿﻿
+@model List<BagStore.Web.Models.ViewModels.SanPhams.SanPhamResponseDto>
 
 @{
     ViewData["Title"] = "Quản lý sản phẩm";
@@ -39,6 +40,10 @@
                 @* Nội dung bảng sẽ được load bằng AJAX *@
             </tbody>
         </table>
+        <nav aria-label="Page navigation" id="paginationContainer" style="display: none;">
+            <ul class="pagination justify-content-center" id="paginationControls">
+            </ul>
+        </nav>
     </div>
 
     <div class="card mt-4" id="productFormCard" style="display: none;">
@@ -135,6 +140,9 @@
 
     <script>
            // --- ĐỊNH NGHĨA HÀM ---
+            let currentPage = 1;
+            const pageSize = 5; // <-- Có thể đổi số lượng (ví dụ: 10)
+            let currentSearch = "";
            const apiUrl = '/api/SanPhamApi';
 
               // Hàm tiện ích hiển thị thông báo chung
@@ -165,14 +173,11 @@
                $('#AnhChinhHienTai').val('');
 
                clearFormErrors(); // Gọi hàm xóa lỗi chi tiết
-
-               // TỐI GIẢN: Dùng .hide() thay vì .slideUp()
                $('#productFormCard').hide();
            }
 
            // Hiển thị form
            function showAndScrollToForm() {
-               // TỐI GIẢN: Dùng .show() thay vì .slideDown() và bỏ .animate()
                $('#productFormCard').show();
            }
 
@@ -210,30 +215,87 @@
                });
            }
 
+           //ham phan trang
+           function renderPagination(totalPages, page) {
+            const $pagination = $('#paginationControls');
+            $pagination.empty();
+            const $container = $('#paginationContainer');
+
+            // Ẩn thanh phân trang nếu chỉ có 1 trang
+            if (totalPages <= 1) {
+                $container.hide();
+                return;
+            }
+            $container.show();
+
+            // Nút "Trang trước"
+            let prevDisabled = (page === 1) ? "disabled" : "";
+            $pagination.append(`
+                <li class="page-item ${prevDisabled}">
+                    <a class="page-link" href="#" data-page="${page - 1}">&laquo;</a>
+                </li>
+            `);
+
+            // Các nút số trang
+            for (let i = 1; i <= totalPages; i++) {
+                let activeClass = (i === page) ? "active" : "";
+                $pagination.append(`
+                    <li class="page-item ${activeClass}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `);
+            }
+
+            // Nút "Trang sau"
+            let nextDisabled = (page === totalPages) ? "disabled" : "";
+            $pagination.append(`
+                <li class="page-item ${nextDisabled}">
+                    <a class="page-link" href="#" data-page="${page + 1}">&raquo;</a>
+                </li>
+            `);
+        }
+
            // Tải danh sách sản phẩm từ API (Dùng $.ajax{})
            function loadProducts() {
                const tableBody = $('#tableBody');
                tableBody.html('<tr><td colspan="7" class="text-center text-muted"><div class="spinner-border spinner-border-sm"></div> Đang tải...</td></tr>');
                $('#tableAlertMessage').empty().addClass('d-none');
 
+               currentSearch = $("#searchInput").val() || '';
                $.ajax({
-                   url: apiUrl,
-                   method: 'GET',
-                   data: { tenSp: $("#searchInput").val() || '' },
-                   success: function (response) {
-                       if (response && response.status === 'success') {
-                           renderTable(response.data || []);
-                       }
-                       else {
-                           showAlert('#tableAlertMessage', response.message || 'Lỗi tải dữ liệu.', false);
-                           tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
-                       }
-                   },
-                   error: function (xhr) {
-                       showAlert('#tableAlertMessage', `Lỗi kết nối (${xhr.status}): ${xhr.statusText}`, false);
-                       tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối.</td></tr>');
-                   }
-               });
+                url: apiUrl,
+                method: 'GET',
+                data: {
+                    page: currentPage,       // Gửi số trang
+                    pageSize: pageSize,      // Gửi kích thước trang
+                    search: currentSearch    // Gửi từ khóa (phải là 'search' để khớp API)
+                },
+                success: function (response) {
+                    if (response && response.status === 'success' && response.data) {
+                        // response.data bây giờ là một đối tượng PageResult
+                        const pagedResult = response.data;
+
+                        // 1. Dùng pagedResult.data (list sản phẩm) để vẽ bảng
+                        renderTable(pagedResult.data || []);
+
+                        // 2. Tính toán tổng số trang
+                        totalPages = Math.ceil(pagedResult.total / pagedResult.pageSize);
+
+                        // 3. Dùng totalPages và pagedResult.page (trang hiện tại) để vẽ phân trang
+                        renderPagination(totalPages, pagedResult.page);
+
+                    } else {
+                        showAlert('#tableAlertMessage', response.message || 'Lỗi tải dữ liệu.', false);
+                        tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu.</td></tr>');
+                        renderPagination(0, 0); // Ẩn phân trang nếu lỗi
+                    }
+                },
+                error: function (xhr) {
+                    showAlert('#tableAlertMessage', `Lỗi kết nối (${xhr.status}): ${xhr.statusText}`, false);
+                    tableBody.html('<tr><td colspan="7" class="text-center text-danger">Lỗi kết nối.</td></tr>');
+                    renderPagination(0, 0); // Ẩn phân trang nếu lỗi
+                }
+            });
            }
 
            // Điền dữ liệu sản phẩm vào form để chỉnh sửa
@@ -425,16 +487,35 @@
                    });
                });
 
-               // 7. Tìm kiếm (khi nhấn nút hoặc Enter)
-               function performSearch() {
-                   loadProducts();
-               }
-               $('#btnSearch').on('click', performSearch);
-               $('#searchInput').on('keypress', function(e) {
-                   if (e.which === 13) {
-                       performSearch();
-                   }
-               });
+              // HÀM TÌM KIẾM ---
+            function performSearch() {
+                currentPage = 1; //  Khi tìm kiếm, luôn quay về trang 1
+                loadProducts();
+            }
+            $('#btnSearch').on('click', performSearch);
+            $('#searchInput').on('keypress', function(e) {
+                if (e.which === 13) { // 13 là phím Enter
+                    performSearch();
+                }
+            });
+
+            // ---  THÊM SỰ KIỆN CLICK CHO NÚT PHÂN TRANG ---
+             $('#paginationControls').on('click', 'a.page-link', function(e) {
+                e.preventDefault(); // Ngăn trình duyệt tải lại trang
+                const $link = $(this);
+
+                // Không làm gì nếu nút bị vô hiệu hóa
+                if ($link.closest('li').hasClass('disabled') || $link.closest('li').hasClass('active')) {
+                    return;
+                }
+
+                const newPage = $(this).data('page'); // Lấy số trang từ 'data-page'
+
+                if (newPage && newPage !== currentPage) {
+                    currentPage = newPage; // Cập nhật trang hiện tại
+                    loadProducts(); // Tải lại dữ liệu cho trang mới
+                }
+            });
 
                // 8. Nhấn nút "Xem chi tiết"
                $('#tableBody').on('click', '.btnViewDetail', function () {
