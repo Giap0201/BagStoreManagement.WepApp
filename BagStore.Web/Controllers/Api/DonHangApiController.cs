@@ -127,7 +127,7 @@ namespace BagStore.Web.Controllers.Api
         }
 
         [HttpGet("{maDH:int}")]
-        public async Task<IActionResult> GetById(int maDH)
+        public async Task<ActionResult<DonHangResponse>> GetById(int maDH)
         {
             var donHang = await _donHangService.GetByIdAsync(maDH);
             if (donHang == null)

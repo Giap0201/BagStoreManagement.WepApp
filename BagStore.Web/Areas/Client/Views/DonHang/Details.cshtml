@@ -1,36 +1,89 @@
-﻿@model BagStore.Web.Models.Entities.DonHang
-@{
-    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.MaDonHang;
-    Layout = "~/Areas/Client/Views/Shared/_LayoutClient.cshtml";
+﻿@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "~/Views/Shared/_ClientLayout.cshtml"; // hoặc layout bạn đang dùng
 }
 
-<div class="container py-4">
-    <h3>Chi tiết đơn hàng #@Model.MaDonHang</h3>
-    <p>Ngày đặt: @Model.NgayDat.ToString("dd/MM/yyyy")</p>
-    <p>Tổng tiền: @Model.TongTien.ToString("N0") ₫</p>
+<div class="container mt-5 mb-5">
+    <div class="card shadow-sm p-4">
+        <h3 class="mb-4 text-primary">
+            <i class="bi bi-receipt-cutoff me-2"></i>Chi tiết đơn hàng
+        </h3>
 
-    <hr />
+        <!-- Vùng hiển thị nội dung -->
+        <div id="donHangDetails" class="mt-3">
+            <p>Đang tải dữ liệu đơn hàng...</p>
+        </div>
 
-    <h5>Sản phẩm trong đơn hàng:</h5>
-    <table class="table table-bordered">
-        <thead class="table-light">
-            <tr>
-                <th>Tên sản phẩm</th>
-                <th>Số lượng</th>
-                <th>Giá bán</th>
-                <th>Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var ct in Model.ChiTietDonHangs)
-            {
-                <tr>
-                    <td>@ct.SanPham.TenSP</td>
-                    <td>@ct.SoLuong</td>
-                    <td>@ct.GiaBan.ToString("N0") ₫</td>
-                    <td>@(ct.SoLuong* ct.GiaBan).ToString("N0") ₫</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+        <div class="mt-4">
+            <a href="/Client/DonHang/Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
 </div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Script lấy dữ liệu từ API -->
+<script>
+    $(async function () {
+        const maDH = parseInt('@ViewData["MaDonHang"]');
+
+        try {
+            const res = await fetch(`/api/DonHangApi/${maDH}`);
+            if (!res.ok) {
+                $('#donHangDetails').html('<p class="text-danger">Không tìm thấy đơn hàng.</p>');
+                return;
+            }
+
+            const dh = await res.json();
+
+            let html = `
+                <div class="mb-3">
+                    <p><strong>Khách hàng:</strong> ${dh.tenKhachHang}</p>
+                    <p><strong>Số điện thoại:</strong> ${dh.soDienThoai}</p>
+                    <p><strong>Địa chỉ:</strong> ${dh.diaChiGiaoHang}</p>
+                    <p><strong>Ngày đặt:</strong> ${new Date(dh.ngayDatHang).toLocaleDateString('vi-VN')}</p>
+                    <p><strong>Tổng tiền:</strong> ${dh.tongTien.toLocaleString('vi-VN')} ₫</p>
+                    <p><strong>Trạng thái:</strong> ${dh.trangThai}</p>
+                    <p><strong>Phương thức thanh toán:</strong> ${dh.phuongThucThanhToan}</p>
+                    <p><strong>Trạng thái thanh toán:</strong> ${dh.trangThaiThanhToan}</p>
+                </div>
+
+                <hr />
+                <h5>Sản phẩm:</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên sản phẩm</th>
+                                <th>Kích thước</th>
+                                <th>Màu sắc</th>
+                                <th>Số lượng</th>
+                                <th>Giá bán</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dh.chiTietDonHang.map(ct => `
+                                <tr>
+                                    <td>${ct.tenSanPham}</td>
+                                    <td>${ct.kichThuoc}</td>
+                                    <td>${ct.mauSac}</td>
+                                    <td>${ct.soLuong}</td>
+                                    <td>${ct.giaBan.toLocaleString('vi-VN')} ₫</td>
+                                    <td>${ct.thanhTien.toLocaleString('vi-VN')} ₫</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            $('#donHangDetails').html(html);
+        } catch (err) {
+            $('#donHangDetails').html('<p class="text-danger">Có lỗi xảy ra: ' + err.message + '</p>');
+        }
+    });
+</script>

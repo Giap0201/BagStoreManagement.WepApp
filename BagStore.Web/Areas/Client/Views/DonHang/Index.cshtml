@@ -45,27 +45,29 @@
                 const t = await res.text();
                 $('#ordersTable tbody').html(`<tr><td colspan="5">${t}</td></tr>`);
                 return;
-            }
 
+            }
             const data = await res.json();
 
-            const rows = data.map(o => `
-                <tr>
-                    <td>${o.maDonHang}</td>
-                    <td>${new Date(o.ngayDatHang).toLocaleString('vi-VN')}</td>
-                    <td>${o.tongTien.toLocaleString('vi-VN')}</td>
-                    <td>${o.trangThai}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary btn-view-details" data-id="@@o.MaDonHang">
-                            <i class="bi bi-eye"></i> Xem </button>
-                        </td>
-                </tr>
-            `).join('');
+                const rows = data.map(o => `
+        <tr>
+            <td>${o.maDonHang}</td>
+            <td>${new Date(o.ngayDatHang).toLocaleString('vi-VN')}</td>
+            <td>${o.tongTien.toLocaleString('vi-VN')}</td>
+            <td>${o.trangThai}</td>
+            <td>
+                <button class="btn btn-sm btn-primary btn-view-details" data-id="${o.maDonHang}">
+                    <i class="bi bi-eye"></i> Xem
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
 
             $('#ordersTable tbody').html(rows);
 
                     // 🧩 Sự kiện xem chi tiết (chuyển trang)
-    $('#ordersTable').on('click', '.btn-view-details', function () {
+            $('#ordersTable').on('click', '.btn-view-details', function () {
         const maDonHang = $(this).data('id'); // Lấy mã đơn hàng
 
         if (!maDonHang) {
