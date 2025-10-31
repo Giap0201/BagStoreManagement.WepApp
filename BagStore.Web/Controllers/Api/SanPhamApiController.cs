@@ -20,13 +20,13 @@ namespace BagStore.Web.Controllers.Api
         /// Lấy danh sách tất cả sản phẩm
         /// GET: /api/SanPhamApi
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var response = await _service.GetAllAsync();
-            // Nếu thất bại thì BadRequest, thành công trả Ok
-            return response.Status == "error" ? BadRequest(response) : Ok(response);
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    var response = await _service.GetAllAsync();
+        //    // Nếu thất bại thì BadRequest, thành công trả Ok
+        //    return response.Status == "error" ? BadRequest(response) : Ok(response);
+        //}
 
         /// Lấy sản phẩm theo ID
         /// GET: /api/SanPhamApi/{maSanPham}
@@ -69,6 +69,25 @@ namespace BagStore.Web.Controllers.Api
         {
             var response = await _service.DeleteAsync(maSanPham);
             return response.Status == "error" ? BadRequest(response) : Ok(response);
+        }
+
+        //lay ra danh sach cac san pham,co the phan trang va tim kiem
+        //page: So trang (mac dinh 1)
+        //pageSize: so luong muc (mac dinh 10)
+        // GET: /api/SanPhamApi?page=1&pageSize=5 (Lấy trang 1, 5 mục)
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int? page, [FromQuery] int? pageSize, [FromQuery] string? search)
+        {
+            // Nếu không cung cấp page hoặc pageSize, gọi phương thức GetAllAsync() cũ
+            if (!page.HasValue || !pageSize.HasValue)
+            {
+                var response = await _service.GetAllAsync();
+                return response.Status == "error" ? BadRequest(response) : Ok(response);
+            }
+
+            // Nếu có phân trang, gọi phương thức mới
+            var pagedResponse = await _service.GetAllPagingAsync(page.Value, pageSize.Value, search);
+            return pagedResponse.Status == "error" ? BadRequest(pagedResponse) : Ok(pagedResponse);
         }
     }
 }

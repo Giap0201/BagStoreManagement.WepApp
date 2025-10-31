@@ -1,4 +1,5 @@
 ﻿using BagStore.Domain.Entities;
+using BagStore.Web.Models.ViewModels.SanPhams;
 
 namespace BagStore.Web.Repositories.Interfaces
 {
@@ -15,5 +16,7 @@ namespace BagStore.Web.Repositories.Interfaces
         Task<List<SanPham>> GetAllAsync();
 
         Task<SanPham> GetByNameAsync(string tenSanPham);
+
+        Task<PageResult<SanPham>> GetAllPagingAsync(int page, int pageSize, string? search = null);
     }
 }
