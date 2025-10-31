@@ -3,118 +3,228 @@
 @model IEnumerable<ApplicationUser>
 
 @{
-    ViewData["Title"] = "Danh sách khách hàng (API)";
+    ViewData["Title"] = "Danh sách khách hàng";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<h2>@ViewData["Title"]</h2>
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">
+            <i class="fa-solid fa-users me-2 text-primary"></i> @ViewData["Title"]
+        </h2>
+        <button id="btnShowCreate" class="btn btn-success shadow-sm">
+            <i class="fa fa-user-plus me-1"></i> Thêm khách hàng
+        </button>
+    </div>
 
-@* <button id="btnLoadApi" class="btn btn-primary mb-3">Tải danh sách từ API</button> *@
-
-<table class="table table-bordered" id="tblCustomers">
-    <thead>
-        <tr>
-            <th>Tên đăng nhập</th>
-            <th>Họ tên</th>
-            <th>Email</th>
-            <th>SĐT</th>
-            <th>Ngày sinh</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
-
-<button id="btnShowCreate" class="btn btn-success mb-3">➕ Thêm khách hàng</button>
+    <div class="card shadow-sm border-0">
+        <div class="card-body table-responsive mt-3">
+            <table class="table table-hover align-middle" id="tblCustomers">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tên đăng nhập</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>SĐT</th>
+                        <th>Ngày sinh</th>
+                        <th class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Form -->
-<div id="modalCustomer" class="modal" tabindex="-1" style="display:none;">
-    <div class="modal-dialog">
-        <div class="modal-content p-3">
-            <h4 id="modalTitle"></h4>
-            <form id="formCustomer">
-                <input type="hidden" id="Id" />
-                <div class="mb-2">
-                    <label>Tên đăng nhập</label>
-                    <input type="text" id="UserName" class="form-control" required />
-                </div>
-                <div class="mb-2">
-                    <label>Họ tên</label>
-                    <input type="text" id="FullName" class="form-control" />
-                </div>
-                <div class="mb-2">
-                    <label>Email</label>
-                    <input type="email" id="Email" class="form-control" required />
-                </div>
-                <div class="mb-2">
-                    <label>SĐT</label>
-                    <input type="text" id="PhoneNumber" class="form-control" />
-                </div>
-                <div class="mb-2">
-                    <label>Ngày sinh</label>
-                    <input type="date" id="NgaySinh" class="form-control" />
-                </div>
-                <div id="divPassword" class="mb-3">
-                    <label for="Password">Mật khẩu (khi thêm mới)</label>
-                    <input type="password" id="Password" name="Password" class="form-control" />
-                </div>
-                <button type="submit" class="btn btn-primary mt-2">Lưu</button>
-                <button type="button" id="btnCancel" class="btn btn-secondary mt-2">Hủy</button>
-            </form>
+<div id="modalCustomer" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3 shadow-lg border-0 rounded-3">
+            <div class="modal-header border-0">
+                <h4 id="modalTitle" class="modal-title fw-bold text-primary"></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCustomer">
+                    <input type="hidden" id="Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" id="UserName" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên</label>
+                        <input type="text" id="FullName" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="Email" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">SĐT</label>
+                        <input type="text" id="PhoneNumber" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" id="NgaySinh" class="form-control" />
+                    </div>
+
+                    <!-- 👉 Mật khẩu mặc định khi thêm mới -->
+                    <div id="defaultPasswordNotice" class="alert alert-info py-2" style="display:none;">
+                        🔒 Mật khẩu mặc định: <strong>Customer@123</strong>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">💾 Lưu</button>
+                        <button type="button" id="btnCancel" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables + Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
+
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+    <!-- Giao diện tiếng Việt -->
+    <script src="https://cdn.datatables.net/plug-ins/1.13.8/i18n/vi.json"></script>
+
     <script>
         const apiUrl = "/api/Admin/CustomerApi";
         const token = sessionStorage.getItem("jwtToken");
 
-                // ----------------- Load danh sách -----------------
+        // ----------------- Load danh sách -----------------
+        // function loadCustomers() {
+        //     $.ajax({
+        //         url: apiUrl + "/all",
+        //         headers: { "Authorization": "Bearer " + token },
+        //         success: function (res) {
+        //             const tbody = $("#tblCustomers tbody");
+        //             tbody.empty();
+        //             $.each(res, function (i, c) {
+        //                 const row = `
+        //                     <tr>
+        //                         <td><i class="fa fa-user text-secondary me-1"></i>${c.userName}</td>
+        //                         <td>${c.fullName ?? ""}</td>
+        //                         <td>${c.email}</td>
+        //                         <td>${c.phoneNumber ?? ""}</td>
+        //                         <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ""}</td>
+        //                         <td class="text-center">
+        //                             <button class="btn btn-sm btn-outline-primary btnEdit me-1" data-id="${c.id}">
+        //                                 <i class="fa fa-edit"></i>
+        //                             </button>
+        //                             <button class="btn btn-sm btn-outline-danger btnDelete me-1" data-id="${c.id}">
+        //                                 <i class="fa fa-trash"></i>
+        //                             </button>
+        //                             <button class="btn btn-sm btn-outline-warning btnReset" data-id="${c.id}">
+        //                                 <i class="fa fa-key"></i>
+        //                             </button>
+        //                         </td>
+        //                     </tr>`;
+        //                 tbody.append(row);
+        //             });
+
+        //         },
+        //         error: function (xhr) {
+        //             console.error(xhr);
+        //             alert("Không tải được danh sách khách hàng.");
+        //         }
+        //     });
+        // }
+
+        // ----------------- Load danh sách -----------------
         function loadCustomers() {
             $.ajax({
                 url: apiUrl + "/all",
                 headers: { "Authorization": "Bearer " + token },
                 success: function (res) {
-                    const tbody = $("#tblCustomers tbody");
-                    tbody.empty();
-                    $.each(res, function (i, c) {
-                        const row = `
-                            <tr>
-                                <td>${c.userName}</td>
-                                <td>${c.fullName ?? ""}</td>
-                                <td>${c.email}</td>
-                                <td>${c.phoneNumber ?? ""}</td>
-                                <td>${c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : ""}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary btnEdit" data-id="${c.id}">Sửa</button>
-                                    <button class="btn btn-sm btn-danger btnDelete" data-id="${c.id}">Xoá</button>
-                                    <button class="btn btn-sm btn-warning btnReset" data-id="${c.id}">Đặt lại MK</button>
-                                </td>
-                            </tr>`;
-                        tbody.append(row);
-                    });
+
+                    // Nếu DataTable đã tồn tại thì chỉ cần clear + add lại
+                    if ($.fn.DataTable.isDataTable('#tblCustomers')) {
+                        const table = $('#tblCustomers').DataTable();
+                        table.clear();
+
+                        $.each(res, function (i, c) {
+                            table.row.add([
+                                `<i class="fa fa-user text-secondary me-1"></i>${c.userName}`,
+                                c.fullName ?? "",
+                                c.email,
+                                c.phoneNumber ?? "",
+                                c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : "",
+                                `<div class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary btnEdit me-1" data-id="${c.id}">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btnDelete me-1" data-id="${c.id}">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning btnReset" data-id="${c.id}">
+                                        <i class="fa fa-key"></i>
+                                    </button>
+                                </div>`
+                            ]);
+                        });
+
+                        table.draw(false); // 👈 Cập nhật ngay, không reset trang hiện tại
+                    } else {
+                        // Nếu chưa khởi tạo DataTable thì tạo mới
+                        $('#tblCustomers').DataTable({
+                            data: res.map(c => [
+                                `<i class="fa fa-user text-secondary me-1"></i>${c.userName}`,
+                                c.fullName ?? "",
+                                c.email,
+                                c.phoneNumber ?? "",
+                                c.ngaySinh ? new Date(c.ngaySinh).toLocaleDateString() : "",
+                                `<div class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary btnEdit me-1" data-id="${c.id}">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btnDelete me-1" data-id="${c.id}">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning btnReset" data-id="${c.id}">
+                                        <i class="fa fa-key"></i>
+                                    </button>
+                                </div>`
+                            ]),
+                            responsive: true,
+                            autoWidth: false,
+                            pageLength: 5,
+                            lengthMenu: [5, 10, 20, 50],
+                            language: {
+                                url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/vi.json"
+                            }
+                        });
+                    }
                 },
                 error: function (xhr) {
                     console.error(xhr);
-                    alert("Không tải được danh sách.");
+                    alert("Không tải được danh sách khách hàng.");
                 }
             });
         }
+
 
         // ----------------- Hiện modal tạo mới -----------------
         $("#btnShowCreate").click(function () {
             $("#modalTitle").text("Thêm khách hàng");
             $("#formCustomer")[0].reset();
             $("#Id").val("");
-            $("#divPassword").show(); // khi thêm mới thì hiển thị
-            $("#modalCustomer").show();
-        });
-
-        // ----------------- Hủy -----------------
-        $("#btnCancel").click(function () {
-            $("#modalCustomer").hide();
+            $("#defaultPasswordNotice").show(); // 👉 Hiện thông báo mật khẩu mặc định
+            $("#modalCustomer").modal("show");
         });
 
         // ----------------- Lưu (Thêm hoặc Sửa) -----------------
@@ -129,12 +239,11 @@
                 email: $("#Email").val(),
                 phoneNumber: $("#PhoneNumber").val(),
                 ngaySinh: $("#NgaySinh").val() ? new Date($("#NgaySinh").val()).toISOString() : null,
-                // password: $("#Password")?.val() || null //nếu có field Password
-                password: $("#Password")?.val()
+                password: id ? null : "Customer@123"
             };
 
             const method = id ? "PUT" : "POST";
-            const url = customer.id ? `${apiUrl}/${customer.id}` : apiUrl;
+            const url = id ? `${apiUrl}/${id}` : apiUrl;
 
             $.ajax({
                 url: url,
@@ -143,9 +252,9 @@
                 contentType: "application/json",
                 data: JSON.stringify(customer),
                 success: function () {
-                    $("#modalCustomer").hide();
+                    $("#modalCustomer").modal("hide");
                     loadCustomers();
-                    alert("Lưu thành công!");
+                    alert("Lưu khách hàng thành công!");
                 },
                 error: function (xhr) {
                     console.error("❌ Lỗi khi lưu:", xhr.responseText);
@@ -153,7 +262,6 @@
                 }
             });
         });
-
 
         // ----------------- Sửa -----------------
         $(document).on("click", ".btnEdit", function () {
@@ -169,8 +277,8 @@
                     $("#Email").val(c.email);
                     $("#PhoneNumber").val(c.phoneNumber);
                     $("#NgaySinh").val(c.ngaySinh ? c.ngaySinh.split("T")[0] : "");
-                    $("#divPassword").hide(); // khi sửa thì ẩn
-                    $("#modalCustomer").show();
+                    $("#defaultPasswordNotice").hide(); // 👉 Ẩn khi sửa
+                    $("#modalCustomer").modal("show");
                 },
                 error: function () {
                     alert("Không lấy được dữ liệu khách hàng.");
@@ -181,25 +289,25 @@
         // ----------------- Xoá -----------------
         $(document).on("click", ".btnDelete", function () {
             const id = $(this).data("id");
-            if (!confirm("Bạn chắc chắn muốn xoá?")) return;
+            if (!confirm("Bạn có chắc chắn muốn xoá khách hàng này không?")) return;
             $.ajax({
                 url: apiUrl + "/" + id,
                 method: "DELETE",
                 headers: { "Authorization": "Bearer " + token },
                 success: function () {
                     loadCustomers();
-                    alert("Đã xoá!");
+                    alert("Đã xoá thành công!");
                 },
                 error: function () {
-                    alert("Lỗi khi xoá.");
-                }
+                    alert("Lỗi khi xoá khách hàng.");
+                },
             });
         });
 
         // ----------------- Reset mật khẩu -----------------
         $(document).on("click", ".btnReset", function () {
             const id = $(this).data("id");
-            if (!confirm("Reset mật khẩu về Customer@123 ?")) return;
+            if (!confirm("Đặt lại mật khẩu về Customer@123 ?")) return;
             $.ajax({
                 url: apiUrl + "/resetpassword",
                 method: "POST",

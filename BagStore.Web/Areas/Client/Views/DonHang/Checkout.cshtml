@@ -1,0 +1,177 @@
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Thanh toán";
+    var userId = ViewBag.UserId;
+    bool isBuyNow = true;
+    int maChiTietSP = ViewBag.MaChiTietSP ?? 3;
+    int soLuong = ViewBag.SoLuong ?? 1;
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Checkout</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="/">Home</a></p>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <form id="checkoutForm">
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Địa chỉ giao hàng</label>
+                <input type="text" id="diaChi" name="DiaChiGiaoHang" class="form-control" placeholder="Nhập địa chỉ giao hàng" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Phương thức thanh toán</label>
+                <select id="pttt" name="PhuongThucThanhToan" class="form-select">
+                    <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="Chuyển khoản">Chuyển khoản ngân hàng</option>
+                    <option value="Ví điện tử">Ví điện tử</option>
+                </select>
+            </div>
+        </div>
+
+        <table id="checkoutTable" class="table table-bordered align-middle text-center">
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th>Hình ảnh</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Màu sắc</th>
+                    <th>Kích cỡ</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Tổng cộng</th>
+                    <th id="tongTien" class="text-danger">0 ₫</th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="text-center mt-4">
+            <button id="btnOrder" type="button" class="btn btn-success px-4 py-2 fw-bold">Thanh toán</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const userId = '@userId';
+    const isBuyNow = @isBuyNow.ToString().ToLower();
+    const maChiTietSP = @maChiTietSP;
+    const soLuong = @soLuong;
+
+    $(document).ready(async function () {
+        let items = [];
+
+            if (isBuyNow) {
+        const res = await fetch(`/api/ChiTietSanPhamApi/${maChiTietSP}`);
+        const sp = await res.json();
+        items.push({
+            maChiTietSP: sp.maChiTietSP,
+            hinhAnh: sp.hinhAnh || '/uploads/088a82d7-9462-4afb-bd8c-6ec8f1b94631_Screenshot 2025-10-13 143624.png',
+            tenSP: sp.tenSanPham,
+            mauSac: sp.tenMauSac || 'Không xác định',
+            kichCo: sp.tenKichThuoc || 'Không xác định',
+            soLuong: soLuong,
+            giaBan: sp.giaBan,
+            thanhTien: sp.giaBan * soLuong
+        });
+    } else {
+        const res = await fetch(`/api/CartAPI/${userId}`);
+        const cart = await res.json();
+        items = cart.items.map(x => ({
+            maChiTietSP: x.maChiTietSP,
+            hinhAnh: x.hinhAnh ? `/uploads/${x.hinhAnh}` : '~/uploads/default.png',
+            tenSP: x.tenSanPham,
+            mauSac: x.tenMauSac || 'Không xác định',
+            kichCo: x.tenKichThuoc || 'Không xác định',
+            soLuong: x.soLuong,
+            giaBan: x.giaBan,
+            thanhTien: x.giaBan * x.soLuong
+        }));
+    }
+
+
+        renderTable(items);
+
+        $('#btnOrder').click(async function () {
+            if ($('#diaChi').val().trim() === "") {
+                Swal.fire('Thiếu thông tin', 'Vui lòng nhập địa chỉ giao hàng', 'warning');
+                return;
+            }
+
+            const dto = {
+                DiaChiGiaoHang: $('#diaChi').val(),
+                PhuongThucThanhToan: $('#pttt').val(),
+                ChiTietDonHang: items.map(x => ({
+                    MaChiTietSanPham: x.maChiTietSP,
+                    SoLuong: x.soLuong
+                }))
+            };
+
+            const confirm = await Swal.fire({
+                title: 'Xác nhận đặt hàng?',
+                text: 'Bạn chắc chắn muốn đặt đơn hàng này?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Đặt hàng',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch('/api/DonHangApi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dto)
+                });
+
+                if (res.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đặt hàng thành công!',
+                        text: 'Cảm ơn bạn đã mua hàng 💚',
+                        confirmButtonText: 'Xem đơn hàng'
+                    }).then(() => window.location.href = '/Client/DonHang/Index');
+                } else {
+                    const err = await res.text();
+                    Swal.fire('Lỗi', err, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', error.message || 'Không thể kết nối máy chủ', 'error');
+            }
+        });
+    });
+
+        function renderTable(items) {
+        const tbody = $('#checkoutTable tbody');
+        tbody.empty();
+
+        let tongTien = 0;
+        items.forEach(item => {
+            tongTien += item.thanhTien;
+            tbody.append(`
+                <tr>
+                    <td><img src="${item.hinhAnh}" alt="SP" style="width:70px;height:70px;object-fit:cover;border-radius:5px"></td>
+                    <td>${item.tenSP}</td>
+                    <td>${item.mauSac}</td>
+                    <td>${item.kichCo}</td>
+                    <td>${item.soLuong}</td>
+                    <td>${item.giaBan.toLocaleString('vi-VN')} ₫</td>
+                    <td>${item.thanhTien.toLocaleString('vi-VN')} ₫</td>
+                </tr>
+            `);
+        });
+        $('#tongTien').text(tongTien.toLocaleString('vi-VN') + ' ₫');
+    }
+</script>
