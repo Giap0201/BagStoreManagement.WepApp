@@ -1,0 +1,84 @@
+﻿﻿@*
+    Layout chính cho giao diện Client (BagStore)
+    Cấu trúc chia rõ: Navbar – Sidebar – Main Content – Footer
+    Sử dụng Bootstrap, Font Awesome và file CSS hiện có.
+*@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BagStore</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Owl Carousel -->
+    <link href="~/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Custom Style -->
+    <link href="~/css/style.css" rel="stylesheet" />
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <div class="container-scroller d-flex flex-column min-vh-100">
+
+        <!-- ========================== -->
+        <!-- 🔹 NAVBAR -->
+        <!-- ========================== -->
+        <partial name="_ClientNavbar" />
+        <!-- tạo khoảng trống dưới navbar cố định -->
+        <div style="margin-top: 80px;"></div>
+
+        <!-- ========================== -->
+        <!-- 🔹 SIDEBAR + MAIN CONTENT -->
+        <!-- ========================== -->
+        <div class="container-fluid flex-grow-1">
+            <div class="row">
+                <!-- Sidebar -->
+                <partial name="_ClientSidebar" />
+                <!-- Main Content -->
+                <div class="col-md-9 col-lg-10 py-4">
+                    <main role="main">
+                        @RenderBody()
+                    </main>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================== -->
+        <!-- 🔹 FOOTER -->
+        <!-- ========================== -->
+        <footer class="bg-dark text-light mt-auto py-3">
+            <div class="container text-center small">
+                <p class="mb-0">&copy; 2025 - BagStore | Thiết kế bởi <strong>Đăng Trung</strong></p>
+            </div>
+        </footer>
+
+        <!-- Nút trở lên đầu trang -->
+        <a href="#" class="btn btn-primary back-to-top position-fixed bottom-0 end-0 m-4">
+            <i class="fa fa-angle-double-up"></i>
+        </a>
+    </div>
+
+    <!-- ========================== -->
+    <!-- 🔹 Scripts -->
+    <!-- ========================== -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/easing/easing.min.js"></script>
+    <script src="~/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="~/js/main.js"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
