@@ -246,53 +246,40 @@ namespace BagStore.Web.Services.Implementations
             if (donHang == null)
                 return null;
 
+            // Dùng mapper tách riêng để dễ tái sử dụng
+            return MapToDonHangResponse(donHang);
+        }
+
+        private static DonHangResponse MapToDonHangResponse(DonHang d)
+        {
             var response = new DonHangResponse
             {
-                MaDonHang = donHang.MaDonHang,
-                TenKhachHang = donHang.KhachHang?.TenKH ?? "Không rõ",
-                NgayDatHang = donHang.NgayDatHang,
-                TongTien = donHang.TongTien,
-                TrangThai = donHang.TrangThai ?? "Đang xử lý",
-                PhuongThucThanhToan = donHang.PhuongThucThanhToan ?? "Chưa chọn",
-                TrangThaiThanhToan = donHang.TrangThaiThanhToan ?? "Chưa thanh toán",
-                DiaChiGiaoHang = donHang.DiaChiGiaoHang ?? donHang.KhachHang?.DiaChiMacDinh ?? ""
+                MaDonHang = d.MaDonHang,
+                TenKhachHang = d.KhachHang?.TenKH ?? "Không rõ",
+                SoDienThoai = d.KhachHang?.SoDienThoai ?? "",
+                NgayDatHang = d.NgayDatHang,
+                TongTien = d.TongTien,
+                TrangThai = string.IsNullOrEmpty(d.TrangThai) ? "Chờ xử lý" : d.TrangThai,
+                PhuongThucThanhToan = string.IsNullOrEmpty(d.PhuongThucThanhToan) ? "COD" : d.PhuongThucThanhToan,
+                TrangThaiThanhToan = string.IsNullOrEmpty(d.TrangThaiThanhToan) ? "Chờ xác nhận" : d.TrangThaiThanhToan,
+                DiaChiGiaoHang = d.DiaChiGiaoHang ?? d.KhachHang?.DiaChiMacDinh ?? "Không có địa chỉ"
             };
 
-            response.ChiTietDonHang = donHang.ChiTietDonHangs.Select(ct => new DonHangChiTietResponse
+            response.ChiTietDonHang = d.ChiTietDonHangs?.Select(ct => new DonHangChiTietResponse
             {
                 MaChiTietDonHang = ct.MaChiTietDH,
                 MaChiTietSP = ct.MaChiTietSP,
                 TenSanPham = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Không rõ",
+                KichThuoc = ct.ChiTietSanPham?.KichThuoc?.TenKichThuoc ?? "-",
+                MauSac = ct.ChiTietSanPham?.MauSac?.TenMauSac ?? "-",
                 SoLuong = ct.SoLuong,
                 GiaBan = ct.GiaBan,
                 ThanhTien = ct.GiaBan * ct.SoLuong,
                 AnhSanPham = ""
-            }).ToList();
+            }).ToList() ?? new List<DonHangChiTietResponse>();
 
             return response;
         }
-        private static DonHangResponse MapToDonHangResponse(DonHang d)
-        {
-            return new DonHangResponse
-            {
-                MaDonHang = d.MaDonHang,
-                TenKhachHang = d.KhachHang?.TenKH ?? "Khách",
-                NgayDatHang = d.NgayDatHang,
-                TongTien = d.TongTien,
-                TrangThai = d.TrangThai,
-                PhuongThucThanhToan = d.PhuongThucThanhToan,
-                TrangThaiThanhToan = d.TrangThaiThanhToan,
-                DiaChiGiaoHang = d.DiaChiGiaoHang,
-                ChiTietDonHang = d.ChiTietDonHangs?.Select(ct => new DonHangChiTietResponse
-                {
-                    MaChiTietDonHang = ct.MaChiTietDH,
-                    TenSanPham = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Sản phẩm",
-                    SoLuong = ct.SoLuong,
-                    GiaBan = ct.GiaBan,
-                    ThanhTien = ct.SoLuong * ct.GiaBan,
-                    AnhSanPham = ""
-                }).ToList() ?? new List<DonHangChiTietResponse>()
-            };
-        }
+
     }
 }
