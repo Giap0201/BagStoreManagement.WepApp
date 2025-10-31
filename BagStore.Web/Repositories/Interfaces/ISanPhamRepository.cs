@@ -1,5 +1,5 @@
 ﻿using BagStore.Domain.Entities;
-using BagStore.Web.Models.ViewModels.SanPhams;
+using BagStore.Web.Models.ViewModels;
 
 namespace BagStore.Web.Repositories.Interfaces
 {

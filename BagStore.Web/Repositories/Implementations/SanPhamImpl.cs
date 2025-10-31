@@ -1,6 +1,6 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
-using BagStore.Web.Models.ViewModels.SanPhams;
+using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
