@@ -1,122 +1,68 @@
 ﻿@model BagStore.Web.Areas.Client.Models.ProductDetailViewModel
 @{
-    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
+    Layout = "_LayoutBagStore";
     ViewData["Title"] = Model.Product?.TenSP ?? "Chi tiết sản phẩm";
 }
 
-<!-- 🔷 Header -->
-<div class="container-fluid bg-secondary mb-5">
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px;">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">@Model.Product?.TenSP</h1>
-        <div class="d-inline-flex">
-            <p class="m-0"><a href="/">Trang chủ</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0"><a href="/Client/Shop">Cửa hàng</a></p>
-            <p class="m-0 px-2">-</p>
-            <p class="m-0">Chi tiết</p>
-        </div>
-    </div>
-</div>
-
-<!-- 🛍️ Product Detail -->
-<div class="container-fluid py-5">
-    <div class="row px-xl-5">
-        <!-- 🔹 Hình ảnh -->
-        <div class="col-lg-5 pb-5">
-            <div id="product-carousel" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-inner border">
-                    @for (int i = 0; i < Model.Images.Count; i++)
-                    {
-                        var img = Model.Images[i];
-                        <div class="carousel-item @(i == 0 ? "active" : "")">
-                            <img class="w-100 h-100" src="@img.DuongDan" alt="Ảnh @i">
-                        </div>
-                    }
-                </div>
-                <a class="carousel-control-prev" href="#product-carousel" data-bs-slide="prev">
-                    <i class="fa fa-chevron-left text-dark"></i>
-                </a>
-                <a class="carousel-control-next" href="#product-carousel" data-bs-slide="next">
-                    <i class="fa fa-chevron-right text-dark"></i>
-                </a>
+<div class="container py-5">
+    <div class="row">
+        <!-- Hình ảnh -->
+        <div class="col-md-6">
+            <div class="border p-3 mb-3">
+                <img src="@(Model.Images.FirstOrDefault()?.DuongDan ?? "/uploads/no-image.png")"
+                     class="img-fluid w-100 rounded" alt="@Model.Product?.TenSP" />
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var img in Model.Images)
+                {
+                    <img src="@img.DuongDan" width="80" height="80" class="border rounded p-1" />
+                }
             </div>
         </div>
 
-        <!-- 🔹 Thông tin sản phẩm -->
-        <div class="col-lg-7 pb-5">
-            <h3 class="font-weight-semi-bold">@Model.Product?.TenSP</h3>
-            <h4 class="text-primary mb-4">
-                <span id="price">@Model.Variant.GiaBan.ToString("N0")₫</span>
+        <!-- Thông tin -->
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-3">@Model.Product?.TenSP</h2>
+            <p class="text-muted mb-1">Mã sản phẩm: @Model.Product?.MaSP</p>
+            <h4 class="text-danger mb-3">
+                @(Model.Variant?.GiaBan.ToString("N0") ?? "—") ₫
             </h4>
-            <p class="mb-4">@Model.Product?.MoTaChiTiet</p>
 
-            <div class="d-flex mb-3">
-                <strong class="text-dark mr-3">Kích thước:</strong>
-                <select id="sizeSelect" class="form-control w-auto">
-                    @foreach (var size in Model.AllVariants.Select(v => v.KichThuoc).Distinct())
+            <p><strong>Chất liệu:</strong> @Model.Product?.ChatLieu?.TenChatLieu</p>
+            <p><strong>Thương hiệu:</strong> @Model.Product?.ThuongHieu?.TenThuongHieu</p>
+            <p><strong>Loại túi:</strong> @Model.Product?.DanhMucLoaiTui?.TenLoaiTui</p>
+
+            <div class="mb-3">
+                <label class="fw-semibold">Màu sắc:</label>
+                <select class="form-select w-auto d-inline-block">
+                    @foreach (var c in Model.AllVariants.Select(v => v.MauSac).DistinctBy(m => m.MaMauSac))
                     {
-                        <option value="@size.MaKichThuoc" selected="@(size.MaKichThuoc == Model.Variant.MaKichThuoc)">
-                            @size.TenKichThuoc
-                        </option>
+                        <option>@c.TenMauSac</option>
                     }
                 </select>
             </div>
 
-            <div class="d-flex mb-4">
-                <strong class="text-dark mr-3">Màu sắc:</strong>
-                <select id="colorSelect" class="form-control w-auto">
-                    @foreach (var color in Model.AllVariants.Select(v => v.MauSac).Distinct())
+            <div class="mb-4">
+                <label class="fw-semibold">Kích thước:</label>
+                <select class="form-select w-auto d-inline-block">
+                    @foreach (var k in Model.AllVariants.Select(v => v.KichThuoc).DistinctBy(k => k.MaKichThuoc))
                     {
-                        <option value="@color.MaMauSac" selected="@(color.MaMauSac == Model.Variant.MaMauSac)">
-                            @color.TenMauSac
-                        </option>
+                        <option>@k.TenKichThuoc</option>
                     }
                 </select>
             </div>
 
-            <div class="d-flex align-items-center mb-4 pt-2">
-                <div class="input-group quantity mr-3" style="width: 130px;">
-                    <div class="input-group-btn">
-                        <button class="btn btn-primary btn-minus">
-                            <i class="fa fa-minus"></i>
-                        </button>
-                    </div>
-                    <input id="quantity" type="text" class="form-control bg-secondary border-0 text-center" value="1">
-                    <div class="input-group-btn">
-                        <button class="btn btn-primary btn-plus">
-                            <i class="fa fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                <button class="btn btn-primary px-3">
-                    <i class="fa fa-shopping-cart mr-1"></i> Thêm vào giỏ
-                </button>
-            </div>
+            <button class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
+            </button>
+        </div>
+    </div>
 
-            <p class="text-muted">Tồn kho: <span id="stock">@Model.Variant.SoLuongTon</span></p>
+    <!-- Mô tả -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="border-bottom pb-2 mb-3">Mô tả sản phẩm</h4>
+            <p>@Html.Raw(Model.Product?.MoTaChiTiet ?? "Chưa có mô tả.")</p>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        const baseUrl = '/Client/Shop/GetVariant';
-        const maSp = @Model.Product?.MaSP;
-
-        $(document).ready(function () {
-            $('#sizeSelect, #colorSelect').on('change', function () {
-                const sizeId = $('#sizeSelect').val();
-                const colorId = $('#colorSelect').val();
-
-                $.get(`${baseUrl}?maSp=${maSp}&sizeId=${sizeId}&colorId=${colorId}`, function (res) {
-                    if (res) {
-                        $('#price').text(res.giaBan.toLocaleString('vi-VN') + '₫');
-                        $('#stock').text(res.soLuongTon);
-                    }
-                }).fail(function () {
-                    console.warn('Không tìm thấy biến thể sản phẩm này.');
-                });
-            });
-        });
-    </script>
-}
