@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Quản lý đơn hàng";
+    ViewData["Title"] = "Danh sách đơn hàng";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
 
@@ -18,7 +18,11 @@
 </style>
 
 
-<h2>Quản lý đơn hàng</h2>
+<h2 class="mb-4">
+    <i class="mdi mdi-package-variant-closed text-info me-2"></i>
+    Danh sách đơn hàng
+</h2>
+
 <div class="table-responsive">
 <table id="adminOrders" class="table table-bordered table-striped align-middle text-nowrap" style="width:100%">
     <thead>

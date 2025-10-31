@@ -24,7 +24,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 1️⃣ Cấu hình DbContext
 // ============================
 builder.Services.AddDbContext<BagStoreDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("BagStoreDbContext")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("BagStoreDbContext1")));
 
 // ============================
 // 2️⃣ Đăng ký Identity
@@ -35,6 +35,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<BagStoreDbContext>()
 .AddDefaultTokenProviders();
+
+// ⚙️ ✅ Cấu hình đường dẫn Login/AccessDenied mặc định
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Client/Account/Login";        // 👈 sửa chỗ này
+    options.AccessDeniedPath = "/Client/Account/AccessDenied"; // tuỳ chọn
+});
 
 // ============================
 // 3️⃣ Cấu hình JWT (API)

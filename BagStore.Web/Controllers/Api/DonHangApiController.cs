@@ -125,5 +125,15 @@ namespace BagStore.Web.Controllers.Api
                 return StatusCode(500, "Lỗi không xác định");
             }
         }
+
+        [HttpGet("{maDH:int}")]
+        public async Task<IActionResult> GetById(int maDH)
+        {
+            var donHang = await _donHangService.GetByIdAsync(maDH);
+            if (donHang == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng." });
+
+            return Ok(donHang);
+        }
     }
 }

@@ -1,6 +1,10 @@
-﻿using BagStore.Web.Models.DTOs.Response;
+﻿using BagStore.Data;
+using BagStore.Web.Models.DTOs.Response;
+using BagStore.Web.Models.ViewModels;
+using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -13,11 +17,13 @@ namespace BagStore.Web.Areas.Client.Controllers
     [Authorize]
     public class DonHangController : Controller
     {
-        private readonly IHttpClientFactory _httpFactory;
+        private readonly IDonHangService _donHangService;
+        private readonly BagStoreDbContext _context;
 
-        public DonHangController(IHttpClientFactory httpFactory)
+        public DonHangController(BagStoreDbContext context,IDonHangService donHangService)
         {
-            _httpFactory = httpFactory;
+            _context = context;
+            _donHangService = donHangService;
         }
 
         [HttpGet]
@@ -32,27 +38,40 @@ namespace BagStore.Web.Areas.Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Checkout(int? maChiTietSP = null, int? soLuong = null)
+        public IActionResult Checkout(int? maChiTietSP = null, int? soLuong = null, int? maSanPham = null)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ViewBag.UserId = userId;
 
-            if (maChiTietSP.HasValue && soLuong.HasValue)
+            var khachHang = _context.KhachHangs.FirstOrDefault(kh => kh.ApplicationUserId == userId);
+            int maKH = khachHang.MaKH;
+            ViewBag.UserId = maKH;
+
+
+            if (maChiTietSP.HasValue && soLuong.HasValue && maSanPham.HasValue)
             {
-                // Mua ngay
-                ViewBag.BuyNow = true;
+                // ✅ Trường hợp "Mua ngay"
+                ViewBag.IsBuyNow = true;
                 ViewBag.MaChiTietSP = maChiTietSP.Value;
                 ViewBag.SoLuong = soLuong.Value;
+                ViewBag.MaSanPham = maSanPham.Value;
             }
             else
             {
-                // Từ giỏ hàng
-                ViewBag.BuyNow = true;
-                ViewBag.MaChiTietSP = 3;
-                ViewBag.SoLuong = 1;
+                // ✅ Trường hợp "Mua từ giỏ hàng"
+                ViewBag.IsBuyNow = false;
             }
 
             return View();
         }
+
+        public async Task<IActionResult> Details(int maDH)
+        {
+            var donHang = await _donHangService.GetByIdAsync(maDH);
+            if (donHang == null)
+                return NotFound();
+
+            return View(donHang); // View nhận model DonHangResponse
+        }
+
     }
 }
