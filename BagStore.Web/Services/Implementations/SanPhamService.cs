@@ -1,12 +1,12 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
 using BagStore.Models.Common;
-using BagStore.Web.Helpers;
 using BagStore.Web.Models.Common;
 using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
+using BagStore.Web.Utilities; // ✅ thêm using này
 using Microsoft.EntityFrameworkCore;
 
 namespace BagStore.Web.Services.Implementations
@@ -17,26 +17,24 @@ namespace BagStore.Web.Services.Implementations
         private readonly IDanhMucLoaiTuiRepository _repoLoaiTui;
         private readonly IThuongHieuRepository _repoThuongHieu;
         private readonly IChatLieuRepository _repoChatLieu;
-        private readonly IWebHostEnvironment _env;
         private readonly BagStoreDbContext _context;
-
+        private readonly FileUploadService _fileUploadService; // ✅ thay vì IWebHostEnvironment
 
         public SanPhamService(
             BagStoreDbContext context,
             ISanPhamRepository repo,
-            IWebHostEnvironment env,
+            FileUploadService fileUploadService,
             IDanhMucLoaiTuiRepository repoLoaiTui,
             IThuongHieuRepository repoThuongHieu,
             IChatLieuRepository repoChatLieu)
         {
-            _context = context; // ✅ đúng
+            _context = context;
             _repo = repo;
-            _env = env;
+            _fileUploadService = fileUploadService;
             _repoLoaiTui = repoLoaiTui;
             _repoThuongHieu = repoThuongHieu;
             _repoChatLieu = repoChatLieu;
         }
-
 
         public async Task<BaseResponse<SanPhamResponseDto>> CreateAsync(SanPhamCreateDto dto)
         {
@@ -45,14 +43,12 @@ namespace BagStore.Web.Services.Implementations
                     new List<ErrorDetail> { new ErrorDetail("Dto", "Dữ liệu không được null") },
                     "Tạo mới thất bại");
 
-            // Kiểm tra trùng tên
             var existing = await _repo.GetByNameAsync(dto.TenSP);
             if (existing != null)
                 return BaseResponse<SanPhamResponseDto>.Error(
                     new List<ErrorDetail> { new ErrorDetail(nameof(dto.TenSP), $"Tên sản phẩm '{dto.TenSP}' đã tồn tại") },
                     "Tạo mới thất bại");
 
-            // Map DTO → Entity
             var entity = new SanPham
             {
                 TenSP = dto.TenSP,
@@ -66,18 +62,18 @@ namespace BagStore.Web.Services.Implementations
                 AnhSanPhams = new List<AnhSanPham>()
             };
 
-            // Upload ảnh chính
-            var anhChinh = await ImageHelper.UploadSingleImageAsync(dto.AnhChinh, _env.WebRootPath);
-            if (anhChinh != null)
+            // ✅ Upload ảnh chính (nếu có)
+            if (dto.AnhChinh != null)
             {
-                anhChinh.LaHinhChinh = true;
-                entity.AnhSanPhams.Add(anhChinh);
+                var duongDan = await _fileUploadService.UploadImageAsync(dto.AnhChinh, "sanpham");
+                entity.AnhSanPhams.Add(new AnhSanPham
+                {
+                    DuongDan = duongDan,
+                    LaHinhChinh = true
+                });
             }
 
-            // Lưu vào DB
             var created = await _repo.AddAsync(entity);
-
-            // Map sang DTO Response
             var sanPhamResponDto = await MapEntityToResponse(created);
             return BaseResponse<SanPhamResponseDto>.Success(sanPhamResponDto, "Tạo mới sản phẩm thành công");
         }
@@ -101,7 +97,7 @@ namespace BagStore.Web.Services.Implementations
 
             foreach (var entity in entities)
             {
-                var dto = await MapEntityToResponse(entity); // async mapping
+                var dto = await MapEntityToResponse(entity);
                 dtos.Add(dto);
             }
 
@@ -125,8 +121,22 @@ namespace BagStore.Web.Services.Implementations
             entity.MaChatLieu = dto.MaChatLieu;
             entity.NgayCapNhat = DateTime.Now;
 
-            var updated = await _repo.UpdateAsync(entity);
+            // ✅ Nếu người dùng upload ảnh mới → thay ảnh chính
+            if (dto.AnhChinh != null)
+            {
+                var duongDan = await _fileUploadService.UploadImageAsync(dto.AnhChinh, "sanpham");
+                var anhChinhCu = entity.AnhSanPhams.FirstOrDefault(a => a.LaHinhChinh);
+                if (anhChinhCu != null)
+                    entity.AnhSanPhams.Remove(anhChinhCu);
 
+                entity.AnhSanPhams.Add(new AnhSanPham
+                {
+                    DuongDan = duongDan,
+                    LaHinhChinh = true
+                });
+            }
+
+            var updated = await _repo.UpdateAsync(entity);
             var sanPhamResponDto = await MapEntityToResponse(updated);
             return BaseResponse<SanPhamResponseDto>.Success(sanPhamResponDto, "Cập nhật sản phẩm thành công");
         }
@@ -148,8 +158,6 @@ namespace BagStore.Web.Services.Implementations
             var danhMucLoaiTui = await _repoLoaiTui.GetByIdAsync(entity.MaLoaiTui);
             var thuongHieu = await _repoThuongHieu.GetByIdAsync(entity.MaThuongHieu);
             var chatLieu = await _repoChatLieu.GetByIdAsync(entity.MaChatLieu);
-
-            // Lấy ảnh chính
             var anhChinh = entity.AnhSanPhams?.FirstOrDefault(a => a.LaHinhChinh);
 
             return new SanPhamResponseDto
@@ -166,18 +174,22 @@ namespace BagStore.Web.Services.Implementations
                 AnhChinh = anhChinh?.DuongDan
             };
         }
+
         public async Task<BaseResponse<PagedResult<SanPhamResponseDto>>> GetAllPagedAsync(
-            int page, int pageSize, string? keyword,
-            int? maLoaiTui = null, int? maThuongHieu = null, int? maChatLieu = null)
+    int page, int pageSize, string? keyword,
+    int? maLoaiTui = null, int? maThuongHieu = null, int? maChatLieu = null)
         {
+            // ✅ Base query
             var query = _context.SanPhams
                 .Include(sp => sp.DanhMucLoaiTui)
                 .Include(sp => sp.ThuongHieu)
                 .Include(sp => sp.ChatLieu)
                 .Include(sp => sp.AnhSanPhams)
+                .Include(sp => sp.ChiTietSanPhams) // 🔹 Thêm Include này để lấy MaChiTietSP
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(keyword))
+            // ✅ Bộ lọc
+            if (!string.IsNullOrWhiteSpace(keyword))
                 query = query.Where(x => x.TenSP.Contains(keyword));
 
             if (maLoaiTui.HasValue)
@@ -189,9 +201,11 @@ namespace BagStore.Web.Services.Implementations
             if (maChatLieu.HasValue)
                 query = query.Where(x => x.MaChatLieu == maChatLieu.Value);
 
+            // ✅ Phân trang
             var totalItems = await query.CountAsync();
             var skip = (page - 1) * pageSize;
 
+            // ✅ Lấy danh sách sản phẩm
             var items = await query
                 .OrderByDescending(x => x.NgayCapNhat)
                 .Skip(skip)
@@ -203,18 +217,38 @@ namespace BagStore.Web.Services.Implementations
                     MoTaChiTiet = sp.MoTaChiTiet,
                     MetaTitle = sp.MetaTitle,
                     MetaDescription = sp.MetaDescription,
-                    TenLoaiTui = sp.DanhMucLoaiTui.TenLoaiTui,
-                    TenThuongHieu = sp.ThuongHieu.TenThuongHieu,
-                    TenChatLieu = sp.ChatLieu.TenChatLieu,
+
+                    MaLoaiTui = sp.MaLoaiTui,
+                    TenLoaiTui = sp.DanhMucLoaiTui != null ? sp.DanhMucLoaiTui.TenLoaiTui : "Không rõ",
+
+                    MaThuongHieu = sp.MaThuongHieu,
+                    TenThuongHieu = sp.ThuongHieu != null ? sp.ThuongHieu.TenThuongHieu : "Không rõ",
+
+                    MaChatLieu = sp.MaChatLieu,
+                    TenChatLieu = sp.ChatLieu != null ? sp.ChatLieu.TenChatLieu : "Không rõ",
+
+                    // 🔹 Lấy giá bán nhỏ nhất của các biến thể (nếu có)
+                    GiaBan = sp.ChiTietSanPhams.Any()
+                        ? sp.ChiTietSanPhams.Min(ct => ct.GiaBan)
+                        : null,
+
+                    // 🔹 Lấy ID của biến thể đầu tiên (để mở trang chi tiết)
+                    MaChiTietSP = sp.ChiTietSanPhams
+                        .Select(ct => ct.MaChiTietSP)
+                        .FirstOrDefault(),
+
+                    // 🔹 Ảnh chính
                     AnhChinh = sp.AnhSanPhams
                         .Where(a => a.LaHinhChinh)
                         .Select(a => a.DuongDan)
                         .FirstOrDefault()
-                        ?? sp.AnhSanPhams.OrderBy(a => a.ThuTuHienThi).Select(a => a.DuongDan).FirstOrDefault(),
+                        ?? "/uploads/no-image.png",
+
                     NgayCapNhap = sp.NgayCapNhat
                 })
                 .ToListAsync();
 
+            // ✅ Kết quả phân trang
             var result = new PagedResult<SanPhamResponseDto>
             {
                 Items = items,
@@ -225,10 +259,6 @@ namespace BagStore.Web.Services.Implementations
 
             return BaseResponse<PagedResult<SanPhamResponseDto>>.Success(result, "Lấy danh sách sản phẩm thành công");
         }
-
-
-
-
 
     }
 }

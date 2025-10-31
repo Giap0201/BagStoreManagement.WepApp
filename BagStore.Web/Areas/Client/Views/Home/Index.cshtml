@@ -1,125 +1,59 @@
-﻿@{
-    ViewData["Title"] = "Sản phẩm nổi bật";
-    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
-}
-
-@* @model IEnumerable<BagStore.Web.Areas.Client.Models.SanPhamViewModel>
-
-<div class="row">
-    @foreach (var sp in Model)
-    {
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-            @await Html.PartialAsync("~/Areas/Client/Views/Shared/_ProductCard.cshtml", sp)
-        </div>
-    }
-</div> *@
-
-
-@* @{
+﻿@model IEnumerable<dynamic>
+@{
+    Layout = "_LayoutBagStore";
     ViewData["Title"] = "Trang chủ";
-    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
 }
 
-
-<div class="container-fluid mb-3">
-    <div class="row px-xl-5">
-        <div class="col-lg-12">
-            <div id="header-carousel" class="carousel slide carousel-fade mb-30 mb-lg-0" data-ride="carousel">
-                <ol class="carousel-indicators">
-                    <li data-target="#header-carousel" data-slide-to="0" class="active"></li>
-                    <li data-target="#header-carousel" data-slide-to="1"></li>
-                    <li data-target="#header-carousel" data-slide-to="2"></li>
-                </ol>
-                <div class="carousel-inner">
-                    <div class="carousel-item position-relative active" style="height: 430px;">
-                        <img class="position-absolute w-100 h-100" src="~/uploads/1.jpeg ?text=Slider+Image+1" style="object-fit: cover;">
-                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
-                            <div class="p-3" style="max-width: 700px;">
-                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Bộ sưu tập Hè 2025</h1>
-                                <a href="#" class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp">Mua ngay</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="carousel-item position-relative" style="height: 430px;">
-                        <img class="position-absolute w-100 h-100" src="~/uploads/2.jpeg?text=Slider+Image+2" style="object-fit: cover;">
-                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
-                            <div class="p-3" style="max-width: 700px;">
-                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Giảm giá 30%</h1>
-                                <a href="#" class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp">Mua ngay</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- 🔷 Banner -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Welcome to BagStore</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="/">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shop</p>
         </div>
     </div>
 </div>
+
+<!-- 🔷 Danh sách sản phẩm -->
 <div class="container-fluid pt-5">
-    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Danh mục</span></h2>
-    
-    <div class="row px-xl-5 pb-3">
-        <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
-            <a class="text-decoration-none" href="">
-                <div class="cat-item d-flex align-items-center mb-4">
-                    <div class="overflow-hidden" style="width: 100px; height: 100px;">
-                        <img class="img-fluid" src="~/uploads/3.jpeg?text=Balo" alt="">
-                    </div>
-                    <div class="flex-fill pl-3">
-                        <h6>Balo</h6>
-                        <small class="text-body">100 Sản phẩm</small>
+    <div class="text-center mb-4">
+        <h2 class="section-title px-5"><span class="px-2">Sản phẩm mới nhất</span></h2>
+    </div>
+
+    <div class="row px-xl-5">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var sp in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+                    <div class="card product-item border-0 mb-4 shadow-sm">
+                        <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                            <img class="img-fluid w-100"
+                                 src="@(string.IsNullOrEmpty(sp.AnhChinh) ? "/img/no-image.png" : sp.AnhChinh)"
+                                 alt="@sp.TenSP" />
+                        </div>
+                        <div class="card-body text-center p-3 border-left border-right">
+                            <h6 class="text-truncate mb-2">@sp.TenSP</h6>
+                            <small class="text-muted d-block mb-1">@sp.TenThuongHieu</small>
+                            <small class="text-muted">@sp.TenChatLieu</small>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between bg-light border">
+                            <a href="/Client/Shop/Detail/@sp.MaSP" class="btn btn-sm text-dark p-0">
+                                <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
+                            </a>
+                            <a href="#" class="btn btn-sm text-dark p-0">
+                                <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </a>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
-            <a class="text-decoration-none" href="">
-                <div class="cat-item d-flex align-items-center mb-4">
-                    <div class="overflow-hidden" style="width: 100px; height: 100px;">
-                        <img class="img-fluid" src="https://via.placeholder.com/100x100.png?text=Tui+Deo+Cheo" alt="">
-                    </div>
-                    <div class="flex-fill pl-3">
-                        <h6>Túi đeo chéo</h6>
-                        <small class="text-body">100 Sản phẩm</small>
-                    </div>
-                </div>
-            </a>
-        </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted py-5">Không có sản phẩm nào để hiển thị.</div>
+        }
     </div>
 </div>
-<div class="container-fluid pt-5 pb-3">
-    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Sản phẩm nổi bật</span></h2>
-    <div class="row px-xl-5">
-
-        <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
-            @await Html.PartialAsync("~/Areas/Client/Views/Shared/_ProductCard.cshtml")
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
-            @await Html.PartialAsync("~/Areas/Client/Views/Shared/_ProductCard.cshtml")
-        </div>
-    </div>
-</div>
-<div class="container-fluid pt-5 pb-3">
-    <div class="row px-xl-5">
-        <div class="col-md-6">
-            <div class="product-offer mb-30" style="height: 300px;">
-                <img class="img-fluid" src="https://via.placeholder.com/600x300.png?text=Banner+CTA+1" alt="">
-                <div class="offer-text">
-                    <h6 class="text-white text-uppercase">Giảm 20%</h6>
-                    <h3 class="text-white mb-3">Bộ sưu tập Xuân</h3>
-                    <a href="" class="btn btn-primary">Mua ngay</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="product-offer mb-30" style="height: 300px;">
-                <img class="img-fluid" src="https://via.placeholder.com/600x300.png?text=Banner+CTA+2" alt="">
-                <div class="offer-text">
-                    <h6 class="text-white text-uppercase">Hàng mới về</h6>
-                    <h3 class="text-white mb-3">Phụ kiện công sở</h3>
-                    <a href="" class="btn btn-primary">Mua ngay</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div> *@
-

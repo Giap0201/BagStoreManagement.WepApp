@@ -37,8 +37,11 @@ namespace BagStore.Web.Controllers.Api
             [FromQuery] int? maThuongHieu = null,
             [FromQuery] int? maChatLieu = null)
         {
-            var result = await _service.GetAllPagedAsync(page, pageSize, keyword, maLoaiTui, maThuongHieu, maChatLieu);
-            return Ok(result);
+            var response = await _service.GetAllPagedAsync(page, pageSize, keyword, maLoaiTui, maThuongHieu, maChatLieu);
+
+            // response expected: BaseResponse<PagedResult<SanPhamResponseDto>>
+            if (response == null) return StatusCode(500, BaseResponse<object>.Error("Lỗi server"));
+            return Ok(response);
         }
 
 

@@ -30,5 +30,7 @@ namespace BagStore.Web.Models.DTOs.SanPhams
         [Required(ErrorMessage = "Vui lòng chọn chất liệu.")]
         [Range(1, int.MaxValue, ErrorMessage = "Chất liệu không hợp lệ.")]
         public int MaChatLieu { get; set; }
+        // ✅ Thêm thuộc tính này để upload ảnh mới khi update
+        public IFormFile? AnhChinh { get; set; }
     }
 }

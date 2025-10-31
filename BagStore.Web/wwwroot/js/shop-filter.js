@@ -1,34 +1,34 @@
 ﻿function applyFilter(page = 1) {
-    let filters = { page: page };
-    $(".filter-input:checked").each(function () {
-        filters[$(this).data("type")] = $(this).val();
-    });
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    formData.append('page', page);
 
-    $.get("/Client/Shop/Filter", filters, function (result) {
-        $("#product-list").html(result);
-    });
+    const params = new URLSearchParams(formData).toString();
 
-    $(".filter-input:checked").each(function () {
-        let type = $(this).data("type");
-        let value = $(this).val();
-        filters[type] = value;
-    });
-
-    $.ajax({
-        url: "/Client/Shop/Filter",
-        type: "GET",
-        data: filters,
-        success: function (result) {
-            $("#product-list").html(result);
-        }
-    });
+    fetch(`/Client/Shop/Filter?${params}`)
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('product-list').innerHTML = html;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(() => {
+            document.getElementById('product-list').innerHTML =
+                '<div class="alert alert-danger text-center">Lỗi tải sản phẩm.</div>';
+        });
 }
 
-$(".filter-input").on("change", function () {
-    applyFilter();
+// Khi người dùng đổi filter
+document.addEventListener("change", function (e) {
+    if (e.target.classList.contains("filter-input")) {
+        applyFilter();
+    }
 });
-$(document).on("click", ".pagination a", function (e) {
-    e.preventDefault();
-    let page = $(this).data("page");
-    applyFilter(page);
+
+// Khi người dùng bấm trang
+document.addEventListener("click", function (e) {
+    if (e.target.matches(".pagination a")) {
+        e.preventDefault();
+        const page = e.target.getAttribute("data-page");
+        applyFilter(page);
+    }
 });

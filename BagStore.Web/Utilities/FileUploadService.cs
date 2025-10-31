@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BagStore.Web.Utilities
@@ -14,18 +16,18 @@ namespace BagStore.Web.Utilities
             _env = env;
         }
 
-        public async Task<string> UploadImageAsync(IFormFile file, string folder, string prefix)
+        public async Task<string> UploadImageAsync(IFormFile file, string prefix)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File không hợp lệ.");
 
-            // Kiểm tra định dạng ảnh
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(extension))
-                throw new ArgumentException("Định dạng file không được hỗ trợ. Chỉ chấp nhận .jpg, .jpeg, .png, .gif.");
+                throw new ArgumentException("Định dạng file không được hỗ trợ.");
 
-            var uploads = Path.Combine(_env.WebRootPath, $"images/{folder}");
+            // ✅ Lưu vào wwwroot/uploads
+            var uploads = Path.Combine(_env.WebRootPath, "uploads");
             if (!Directory.Exists(uploads))
                 Directory.CreateDirectory(uploads);
 
@@ -37,7 +39,8 @@ namespace BagStore.Web.Utilities
                 await file.CopyToAsync(stream);
             }
 
-            return $"/images/{folder}/{fileName}";
+            // ✅ Trả về đường dẫn có thể public
+            return $"/uploads/{fileName}";
         }
     }
 }
