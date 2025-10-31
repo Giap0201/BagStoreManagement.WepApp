@@ -1,5 +1,6 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
+using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +39,40 @@ namespace BagStore.Web.Repositories.implementations
                 .Include(p => p.ChatLieu)
                 .Include(p => p.AnhSanPhams)
                 .ToListAsync();
+        }
+
+        public async Task<PageResult<SanPham>> GetAllPagingAsync(int page, int pageSize, string? search = null)
+        {
+            //tao IQueryable co so voi cac include can thiet
+            var query = _context.SanPhams
+                .Include(p => p.DanhMucLoaiTui)
+                .Include(p => p.ThuongHieu)
+                .Include(p => p.ChatLieu)
+                .Include(p => p.AnhSanPhams)
+                .AsQueryable();
+
+            //loc theo ten neu co search
+            if (!string.IsNullOrEmpty(search))
+            {
+                var lowerSearch = search.ToLower();
+                query = query.Where(p => p.TenSP.ToLower().Contains(lowerSearch));
+            }
+            //lay tong so luong ban ghi
+            var totalRecords = await query.CountAsync();
+
+            //ap dung phan trang
+            var data = await query.OrderByDescending(p => p.NgayCapNhat).Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            //tra ve ket qua
+            return new PageResult<SanPham>
+            {
+                Data = data,
+                Total = totalRecords,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         public async Task<SanPham?> GetByIdAsync(int maSP)

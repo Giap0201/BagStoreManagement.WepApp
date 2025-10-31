@@ -187,5 +187,27 @@ namespace BagStore.Web.Services.Implementations
                 AnhChinh = anhChinh?.DuongDan
             };
         }
+
+        public async Task<BaseResponse<PageResult<SanPhamResponseDto>>> GetAllPagingAsync(int page, int pageSize, string? search = null)
+        {
+            //Dam bao gia tri phan trang hop le
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+            //goi repository de lay du lieu
+            var pagedResult = await _repo.GetAllPagingAsync(page, pageSize, search);
+
+            //map ket qua tu PageResult<SanPham> sang PageResult<SanPhamResponseDto>
+            var dtos = pagedResult.Data.Select(MapEntityToResponse).ToList();
+
+            //tao pageResult moi voi du lieu da map
+            var pagedDtoResult = new PageResult<SanPhamResponseDto>
+            {
+                Data = dtos,
+                Total = pagedResult.Total,
+                Page = pagedResult.Page,
+                PageSize = pagedResult.PageSize
+            };
+            return BaseResponse<PageResult<SanPhamResponseDto>>.Success(pagedDtoResult, "Lấy danh sách sản phẩm phân trang thành công");
+        }
     }
 }
