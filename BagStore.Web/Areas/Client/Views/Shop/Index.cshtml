@@ -1,0 +1,238 @@
+﻿@{
+    Layout = "_LayoutBagStore"; // dùng layout vừa chuyển từ shop.html
+    ViewData["Title"] = "Shop";
+}
+
+<!-- 🧩 Page Header -->
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Our Shop</h1>
+        <div class="d-inline-flex">
+            <p class="m-0"><a href="/">Home</a></p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Shop</p>
+        </div>
+    </div>
+</div>
+
+<!-- 🧩 Shop Section -->
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5">
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-12">
+            <div class="border-bottom mb-4 pb-4">
+                <h5 class="font-weight-semi-bold mb-4">Bộ lọc sản phẩm</h5>
+                <div class="filters d-flex flex-column gap-3">
+                    <div class="form-group mb-2">
+                        <label for="filterLoaiTui" class="font-weight-bold small mb-1">Loại túi</label>
+                        <select id="filterLoaiTui" class="form-control">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label for="filterThuongHieu" class="font-weight-bold small mb-1">Thương hiệu</label>
+                        <select id="filterThuongHieu" class="form-control">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label for="filterChatLieu" class="font-weight-bold small mb-1">Chất liệu</label>
+                        <select id="filterChatLieu" class="form-control">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Product List -->
+        <div class="col-lg-9 col-md-12">
+            <div class="row pb-3">
+                <div class="col-12 pb-1 d-flex justify-content-between align-items-center mb-3">
+                    <div class="w-50">
+                        <input id="searchTen" type="text" class="form-control" placeholder="Tìm theo tên..." />
+                    </div>
+                    <div>
+                        <button id="btnSearch" class="btn btn-primary">Tìm</button>
+                    </div>
+                </div>
+
+                <div id="product-list" class="row w-100"></div>
+
+                <div class="col-12 pt-3">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-3" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const apiUrl = '/api/SanPhamApi/GetAllPaged';
+            let currentPage = 1;
+            const pageSize = 6;
+
+            $(document).ready(function () {
+                loadFilters();
+                $('#btnSearch').on('click', function () {
+                    currentPage = 1;
+                    loadSanPhams();
+                });
+                $('#filterLoaiTui, #filterThuongHieu, #filterChatLieu').on('change', function () {
+                    currentPage = 1;
+                    loadSanPhams();
+                });
+                $(document).on('click', '#pagination a.page-link', function (e) {
+                    e.preventDefault();
+                    const page = parseInt($(this).data('page'));
+                    if (!isNaN(page) && page > 0) {
+                        currentPage = page;
+                        loadSanPhams();
+                    }
+                });
+                loadSanPhams();
+            });
+
+            function loadSanPhams() {
+                const keyword = $('#searchTen').val();
+                const maLoaiTui = $('#filterLoaiTui').val();
+                const maThuongHieu = $('#filterThuongHieu').val();
+                const maChatLieu = $('#filterChatLieu').val();
+
+                $('#product-list').html('<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>');
+                $('#pagination').empty();
+
+                $.ajax({
+                    url: apiUrl,
+                    method: 'GET',
+                    data: {
+                        page: currentPage,
+                        pageSize: pageSize,
+                        keyword: keyword,
+                        maLoaiTui: maLoaiTui,
+                        maThuongHieu: maThuongHieu,
+                        maChatLieu: maChatLieu
+                    },
+                    success: function (res) {
+                        if (res && res.status === 'success' && res.data) {
+                            const data = res.data;
+                            const items = Array.isArray(data.items) ? data.items : res.data;
+                            renderSanPhams(items);
+                            if (data.totalItems) {
+                                renderPagination(data.totalItems, data.page || currentPage, data.pageSize || pageSize);
+                            }
+                        } else {
+                            $('#product-list').html('<div class="col-12 text-center py-5">Không có sản phẩm nào.</div>');
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('Lỗi AJAX:', xhr);
+                        $('#product-list').html('<div class="col-12 text-center py-5 text-danger">Không thể tải sản phẩm.</div>');
+                    }
+                });
+            }
+
+            function renderSanPhams(products) {
+                if (!Array.isArray(products) || products.length === 0) {
+                    $('#product-list').html('<div class="col-12 text-center py-5">Không có sản phẩm nào.</div>');
+                    return;
+                }
+
+                let html = '';
+                products.forEach(sp => {
+                    const imageUrl = sp.anhChinh
+                        ? `/${sp.anhChinh}`
+                        : '/images/no-image.png';
+                    html += `
+                        <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+                            <div class="card product-item border-0 mb-4 shadow-sm">
+                                <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                    <img class="img-fluid w-100" src="${imageUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                </div>
+                                <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                                    <h6 class="text-truncate mb-3">${escapeHtml(sp.tenSP)}</h6>
+                                    <div class="d-flex justify-content-center small text-muted">
+                                        <span>${escapeHtml(sp.tenLoaiTui || '')}</span>&nbsp;|&nbsp;
+                                        <span>${escapeHtml(sp.tenThuongHieu || '')}</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer d-flex justify-content-between bg-light border">
+                                    <a class="btn btn-sm text-dark p-0" href="/Shop/Detail/${sp.maSP}">
+                                        <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
+                                    </a>
+                                    <a class="btn btn-sm text-dark p-0" href="#">
+                                        <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
+                                    </a>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                $('#product-list').html(html);
+            }
+
+            function renderPagination(totalItems, currentPage, pageSize) {
+                const totalPages = Math.ceil(totalItems / pageSize);
+                if (totalPages <= 1) return;
+                let html = '';
+
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
+                </li>`;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>`;
+                }
+
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
+                </li>`;
+
+                $('#pagination').html(html);
+            }
+
+            function escapeHtml(text) {
+                if (!text && text !== 0) return '';
+                return String(text).replace(/[&"'<>]/g, function (s) {
+                    return ({
+                        '&': '&amp;',
+                        '"': '&quot;',
+                        "'": '&#39;',
+                        '<': '&lt;',
+                        '>': '&gt;'
+                    })[s];
+                });
+            }
+
+            async function loadFilters() {
+                try {
+                    const [loaiRes, thuongHieuRes, chatLieuRes] = await Promise.all([
+                        $.get('/api/DanhMucLoaiTuiApi'),
+                        $.get('/api/ThuongHieuApi'),
+                        $.get('/api/ChatLieuApi')
+                    ]);
+                    fillSelect("#filterLoaiTui", loaiRes.data, "maLoaiTui", "tenLoaiTui");
+                    fillSelect("#filterThuongHieu", thuongHieuRes.data, "maThuongHieu", "tenThuongHieu");
+                    fillSelect("#filterChatLieu", chatLieuRes.data, "maChatLieu", "tenChatLieu");
+                } catch (err) {
+                    console.error("Lỗi load filter:", err);
+                }
+            }
+
+            function fillSelect(selector, items, valueKey, textKey) {
+                if (!Array.isArray(items)) return;
+                const select = $(selector);
+                select.empty().append('<option value="">Tất cả</option>');
+                items.forEach(i => {
+                    select.append(`<option value="${i[valueKey]}">${i[textKey]}</option>`);
+                });
+            }
+        })();
+    </script>
+}
