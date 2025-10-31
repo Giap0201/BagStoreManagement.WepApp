@@ -13,7 +13,10 @@ namespace BagStore.Web.Areas.Admin.Controllers
         {
             _httpFactory = httpFactory;
         }
-        // GET: /Admin/DonHang
+
+        // GET: /Admin/Orders
+        [Route("Admin/DonHang")]
+        [Route("Admin/DonHang/Index")]
         public IActionResult Index()
         {
             if (!User.IsInRole("Admin"))
