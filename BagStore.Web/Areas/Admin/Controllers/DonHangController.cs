@@ -16,7 +16,6 @@ namespace BagStore.Web.Areas.Admin.Controllers
 
         // GET: /Admin/Orders
         [Route("Admin/DonHang")]
-        [Route("Admin/DonHang/Index")]
         public IActionResult Index()
         {
             if (!User.IsInRole("Admin"))

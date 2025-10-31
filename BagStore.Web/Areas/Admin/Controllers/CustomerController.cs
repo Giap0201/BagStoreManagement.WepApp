@@ -21,7 +21,6 @@ namespace BagStore.Web.Areas.Admin.Controllers
         }
 
         [Route("Admin/Customer")]
-        [Route("Admin/Customer/Index")]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllCustomersAsync();

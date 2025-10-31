@@ -4,6 +4,7 @@ using BagStore.Web.Models.DTOs;
 using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Models.ViewModels.SanPhams;
 using BagStore.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;

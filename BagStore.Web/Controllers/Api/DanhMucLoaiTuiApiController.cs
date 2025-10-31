@@ -2,6 +2,7 @@
 using BagStore.Services.Interfaces;
 using BagStore.Web.Models.Common;
 using BagStore.Web.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BagStore.Web.Controllers.Api
@@ -9,6 +10,7 @@ namespace BagStore.Web.Controllers.Api
     [Route("api/[controller]")]
     [ApiController]
     [ValidateModel] // Tự động bắt lỗi DataAnnotation và trả BaseResponse
+    [Authorize(Roles = "Admin")]
     public class DanhMucLoaiTuiApiController : ControllerBase
     {
         private readonly IDanhMucLoaiTuiService _service;

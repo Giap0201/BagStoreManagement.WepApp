@@ -1,6 +1,7 @@
 ﻿using BagStore.Services;
 using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -8,6 +9,7 @@ namespace BagStore.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -39,10 +41,10 @@ namespace BagStore.Web.Controllers
 
             return Ok(new { message = "Đã thêm sản phẩm vào giỏ hàng thành công." });
         }
+
         [HttpDelete("{MaKH:int}/{MaChiTietSP:int}")]
         public async Task<IActionResult> DeleteCart(int MaKH, int MaChiTietSP)
         {
-
             try
             {
                 var result = await _cartService.RemoveCartItemAsync(MaKH, MaChiTietSP);
@@ -58,4 +60,3 @@ namespace BagStore.Web.Controllers
         }
     }
 }
-
