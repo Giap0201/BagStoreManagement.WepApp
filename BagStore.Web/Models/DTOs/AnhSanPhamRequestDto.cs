@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BagStore.Web.Models.DTOs.SanPhams
+namespace BagStore.Web.Models.DTOs
 {
     public class AnhSanPhamRequestDto
     {

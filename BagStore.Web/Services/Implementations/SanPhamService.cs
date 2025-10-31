@@ -2,8 +2,8 @@
 using BagStore.Models.Common;
 using BagStore.Web.Helpers;
 using BagStore.Web.Models.Common;
-using BagStore.Web.Models.DTOs.SanPhams;
-using BagStore.Web.Models.ViewModels.SanPhams;
+using BagStore.Web.Models.DTOs;
+using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Interfaces;
 
