@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 
 namespace BagStore.Web.Areas.Client.Controllers
 {
-    [Area("Client")]
     [Authorize]
+    [Area("Client")]
+    [Route("Client/[controller]/[action]")]
     public class DonHangController : Controller
     {
         private readonly IDonHangService _donHangService;
@@ -64,13 +65,12 @@ namespace BagStore.Web.Areas.Client.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Details(int maDH)
+        [HttpGet("{maDH:int}")]
+        public IActionResult Details(int maDH)
         {
-            var donHang = await _donHangService.GetByIdAsync(maDH);
-            if (donHang == null)
-                return NotFound();
-
-            return View(donHang); // View nhận model DonHangResponse
+            // Không cần truyền model, fetch từ API
+            ViewData["MaDonHang"] = maDH;
+            return View();
         }
 
     }
