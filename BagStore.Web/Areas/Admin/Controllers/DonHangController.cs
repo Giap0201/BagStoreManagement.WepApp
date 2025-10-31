@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BagStore.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize]
     public class DonHangController : Controller
     {
         private readonly IHttpClientFactory _httpFactory;
@@ -17,6 +19,11 @@ namespace BagStore.Web.Areas.Admin.Controllers
         [Route("Admin/DonHang/Index")]
         public IActionResult Index()
         {
+            if (!User.IsInRole("Admin"))
+            {
+                return NotFound();
+            }
+
             return View();
         }
 

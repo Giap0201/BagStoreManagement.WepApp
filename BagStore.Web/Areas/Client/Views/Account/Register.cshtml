@@ -44,7 +44,7 @@
 } *@
 
 @{
-    Layout = "~/Areas/Client/Views/Shared/_LayoutBagStore.cshtml";
+    Layout = "~/Areas/Client/Views/Shared/_LayoutRegisterLogin.cshtml";
     ViewData["Title"] = "Đăng ký tài khoản";
 }
 
@@ -76,14 +76,24 @@
         <input type="date" id="NgaySinh" class="form-control" />
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 position-relative">
         <label for="Password" class="form-label">Mật khẩu</label>
-        <input type="password" id="Password" class="form-control" required />
+        <div class="input-group">
+            <input type="password" class="form-control" id="Password" name="Password" placeholder="Nhập mật khẩu" required />
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('Password')">
+                <i id="icon-Password" class="fa-solid fa-eye"></i>
+            </button>
+        </div>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 position-relative">
         <label for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
-        <input type="password" id="ConfirmPassword" class="form-control" required />
+        <div class="input-group">
+            <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword" placeholder="Nhập lại mật khẩu" required />
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('ConfirmPassword')">
+                <i id="icon-ConfirmPassword" class="fa-solid fa-eye"></i>
+            </button>
+        </div>
     </div>
 
     <button type="submit" class="btn btn-primary">Đăng ký</button>
@@ -91,6 +101,22 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
     <script>
         $("#formRegister").on("submit", function (e) {
             e.preventDefault();

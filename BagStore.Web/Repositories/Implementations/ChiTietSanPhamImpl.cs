@@ -43,15 +43,13 @@ public class ChiTietSanPhamImpl : IChiTietSanPhamRepository
             .ToListAsync();
     }
 
-    /// Lấy chi tiết sản phẩm theo ID
-
-    public async Task<ChiTietSanPham?> GetByIdAsync(int maChiTietSP)
-    {
-        return await _context.ChiTietSanPhams
-            .Include(ct => ct.KichThuoc)
-            .Include(ct => ct.MauSac)
-            .FirstOrDefaultAsync(ct => ct.MaChiTietSP == maChiTietSP);
-    }
+        public async Task<ChiTietSanPham?> GetByIdAsync(int maChiTietSanPham)
+        {
+            return await _context.ChiTietSanPhams
+                .Include(ct => ct.KichThuoc)
+                .Include(ct => ct.MauSac)
+                .FirstOrDefaultAsync(ct => ct.MaChiTietSP == maChiTietSanPham);
+        }
 
     /// Lấy danh sách chi tiết sản phẩm theo ID sản phẩm
 
