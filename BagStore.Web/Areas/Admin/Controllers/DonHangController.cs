@@ -11,7 +11,10 @@ namespace BagStore.Web.Areas.Admin.Controllers
         {
             _httpFactory = httpFactory;
         }
+
         // GET: /Admin/Orders
+        [Route("Admin/DonHang")]
+        [Route("Admin/DonHang/Index")]
         public IActionResult Index()
         {
             return View();
