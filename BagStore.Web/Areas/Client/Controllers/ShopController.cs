@@ -35,31 +35,28 @@ namespace BagStore.Web.Areas.Client.Controllers
             return PartialView("~/Areas/Client/Views/Shop/_ProductList.cshtml", vm);
         }
 
-        // GET: /Client/Shop/Detail/{maChiTietSP}
-        public IActionResult Detail(int id) // 'id' = MaChiTietSP
+        // GET: /Client/Shop/Detail/{maSP}
+        public IActionResult Detail(int id) // id = MaSP
         {
-            var variant = _context.ChiTietSanPhams
-                .Include(ct => ct.SanPham)
-                    .ThenInclude(s => s.AnhSanPhams)
-                .Include(ct => ct.KichThuoc)
-                .Include(ct => ct.MauSac)
-                .FirstOrDefault(ct => ct.MaChiTietSP == id);
+            var sp = _context.SanPhams
+                .Include(s => s.DanhMucLoaiTui)
+                .Include(s => s.ThuongHieu)
+                .Include(s => s.ChatLieu)
+                .Include(s => s.AnhSanPhams)
+                .Include(s => s.ChiTietSanPhams)
+                    .ThenInclude(ct => ct.KichThuoc)
+                .Include(s => s.ChiTietSanPhams)
+                    .ThenInclude(ct => ct.MauSac)
+                .FirstOrDefault(s => s.MaSP == id);
 
-            if (variant == null) return NotFound();
+            if (sp == null) return NotFound();
 
-            var allVariants = _context.ChiTietSanPhams
-                .Include(ct => ct.KichThuoc)
-                .Include(ct => ct.MauSac)
-                .Where(ct => ct.MaSP == variant.MaSP)
-                .ToList();
-
-            var images = variant.SanPham.AnhSanPhams.OrderBy(a => a.ThuTuHienThi).ToList();
-
+            var firstVariant = sp.ChiTietSanPhams.FirstOrDefault();
             var vm = new ProductDetailViewModel
             {
-                Variant = variant,
-                AllVariants = allVariants,
-                Images = images
+                Variant = firstVariant ?? new ChiTietSanPham { SanPham = sp },
+                AllVariants = sp.ChiTietSanPhams.ToList(),
+                Images = sp.AnhSanPhams.OrderBy(a => a.ThuTuHienThi).ToList()
             };
 
             return View(vm);
