@@ -24,5 +24,7 @@ namespace BagStore.Domain.Entities
         public KhachHang KhachHang { get; set; }
 
         public ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; }
+
+
     }
 }

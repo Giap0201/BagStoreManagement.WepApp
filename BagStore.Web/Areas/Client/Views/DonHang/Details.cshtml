@@ -1,0 +1,36 @@
+﻿@model BagStore.Web.Models.Entities.DonHang
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.MaDonHang;
+    Layout = "~/Areas/Client/Views/Shared/_LayoutClient.cshtml";
+}
+
+<div class="container py-4">
+    <h3>Chi tiết đơn hàng #@Model.MaDonHang</h3>
+    <p>Ngày đặt: @Model.NgayDat.ToString("dd/MM/yyyy")</p>
+    <p>Tổng tiền: @Model.TongTien.ToString("N0") ₫</p>
+
+    <hr />
+
+    <h5>Sản phẩm trong đơn hàng:</h5>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Tên sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Giá bán</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ct in Model.ChiTietDonHangs)
+            {
+                <tr>
+                    <td>@ct.SanPham.TenSP</td>
+                    <td>@ct.SoLuong</td>
+                    <td>@ct.GiaBan.ToString("N0") ₫</td>
+                    <td>@(ct.SoLuong* ct.GiaBan).ToString("N0") ₫</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

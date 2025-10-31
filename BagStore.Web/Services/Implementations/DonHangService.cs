@@ -240,6 +240,37 @@ namespace BagStore.Web.Services.Implementations
             return MapToDonHangResponse(donHang);
         }
 
+        public async Task<DonHangResponse?> GetByIdAsync(int maDH)
+        {
+            var donHang = await _donHangRepo.GetByIdWithDetailsAsync(maDH);
+            if (donHang == null)
+                return null;
+
+            var response = new DonHangResponse
+            {
+                MaDonHang = donHang.MaDonHang,
+                TenKhachHang = donHang.KhachHang?.TenKH ?? "Không rõ",
+                NgayDatHang = donHang.NgayDatHang,
+                TongTien = donHang.TongTien,
+                TrangThai = donHang.TrangThai ?? "Đang xử lý",
+                PhuongThucThanhToan = donHang.PhuongThucThanhToan ?? "Chưa chọn",
+                TrangThaiThanhToan = donHang.TrangThaiThanhToan ?? "Chưa thanh toán",
+                DiaChiGiaoHang = donHang.DiaChiGiaoHang ?? donHang.KhachHang?.DiaChiMacDinh ?? ""
+            };
+
+            response.ChiTietDonHang = donHang.ChiTietDonHangs.Select(ct => new DonHangChiTietResponse
+            {
+                MaChiTietDonHang = ct.MaChiTietDH,
+                MaChiTietSP = ct.MaChiTietSP,
+                TenSanPham = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Không rõ",
+                SoLuong = ct.SoLuong,
+                GiaBan = ct.GiaBan,
+                ThanhTien = ct.GiaBan * ct.SoLuong,
+                AnhSanPham = ""
+            }).ToList();
+
+            return response;
+        }
         private static DonHangResponse MapToDonHangResponse(DonHang d)
         {
             return new DonHangResponse

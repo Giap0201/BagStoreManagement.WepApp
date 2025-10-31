@@ -531,17 +531,16 @@ namespace BagStore.Web.Migrations
                 name: "GioHang",
                 columns: table => new
                 {
-                    MaGioHang = table.Column<int>(type: "int", nullable: false)
+                    MaSP_GH = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MaKH = table.Column<int>(type: "int", nullable: true),
                     MaChiTietSP = table.Column<int>(type: "int", nullable: false),
                     SoLuong = table.Column<int>(type: "int", nullable: false),
-                    NgayThem = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
-                    SessionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    NgayThem = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GioHang", x => x.MaGioHang);
+                    table.PrimaryKey("PK_GioHang", x => x.MaSP_GH);
                     table.CheckConstraint("CK_GioHang_SoLuong", "[SoLuong] > 0");
                     table.ForeignKey(
                         name: "FK_GioHang_ChiTietSanPham_MaChiTietSP",
@@ -676,13 +675,6 @@ namespace BagStore.Web.Migrations
                 columns: new[] { "MaKH", "MaChiTietSP" },
                 unique: true,
                 filter: "[MaKH] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GioHang_SessionID_MaChiTietSP",
-                table: "GioHang",
-                columns: new[] { "SessionID", "MaChiTietSP" },
-                unique: true,
-                filter: "[SessionID] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_KhachHang_ApplicationUserId",

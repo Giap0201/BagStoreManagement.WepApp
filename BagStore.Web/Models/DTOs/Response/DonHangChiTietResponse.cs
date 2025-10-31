@@ -5,6 +5,8 @@
         public int MaChiTietDonHang { get; set; }
         public int MaChiTietSP { get; set; }
         public string TenSanPham { get; set; } = string.Empty;
+        public string KichThuoc { get; set; } = string.Empty;
+        public string MauSac { get; set; } = string.Empty;
         public int SoLuong { get; set; }
         public decimal GiaBan { get; set; }
         public decimal ThanhTien { get; set; } // Tính ở backend, không dùng expression

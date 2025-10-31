@@ -41,37 +41,24 @@ namespace BagStore.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // quan trọng để Identity hoạt động
+            base.OnModelCreating(modelBuilder); // Quan trọng để Identity hoạt động
 
-            // Tự động áp dụng tất cả các cấu hình trong assembly này
-            // Cách này giúp không phải khai báo từng config một
+            // ✅ Giữ lại phần cấu hình tự động
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BagStoreDbContext).Assembly);
 
-            // ========================= Identity seed data ví dụ =========================
-            // Tạo 1 admin mặc định
-            // Password có thể hash bằng Identity khi seed hoặc để tạo sau khi chạy
-            /*
-            var adminId = "admin-id-guid";
-            modelBuilder.Entity<ApplicationUser>().HasData(new ApplicationUser
+            // ✅ Thêm check constraint cho DonHang
+            modelBuilder.Entity<DonHang>(entity =>
             {
-                Id = adminId,
-                UserName = "admin",
-                NormalizedUserName = "ADMIN",
-                Email = "admin@bagstore.com",
-                NormalizedEmail = "ADMIN@BAGSTORE.COM",
-                EmailConfirmed = true,
-                SecurityStamp = string.Empty,
-                // PasswordHash có thể tạo bằng UserManager trước
+                entity.ToTable("DonHang", t =>
+                {
+                    t.HasCheckConstraint("CK_DonHang_PTTT", "[PhuongThucThanhToan] IN (N'COD', N'Chuyển khoản', N'Ví điện tử')");
+                    t.HasCheckConstraint("CK_DonHang_ThanhToan", "[TrangThaiThanhToan] IN (N'Thành công', N'Thất bại', N'Chờ xác nhận', N'Đã hoàn tiền')");
+                    t.HasCheckConstraint("CK_DonHang_TrangThai", "[TrangThai] IN (N'Chờ xử lý', N'Đang giao hàng', N'Hoàn thành', N'Đã huỷ')");
+                });
             });
-            */
 
-            // ========================= Note =========================
-            // - Nếu muốn phân quyền Admin/Client:
-            //   + Tạo Role: Admin, Client
-            //   + Gán Role cho ApplicationUser
-            //   + Trong code, check User.IsInRole("Admin") hoặc "Client"
-            // - KhachHang có thể dùng ApplicationUser.Id nếu muốn liên kết
-            // - NhanVienProfile có thể dùng ApplicationUser.Id để quản lý nhân viên
+            // ✅ (tuỳ chọn) nếu bạn muốn seed user/role thì để phần HasData ở đây
         }
+
     }
 }
