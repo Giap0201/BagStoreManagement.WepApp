@@ -1,15 +1,8 @@
 ﻿using BagStore.Data;
-using BagStore.Web.Models.DTOs.Response;
-using BagStore.Web.Models.ViewModels;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace BagStore.Web.Areas.Client.Controllers
 {

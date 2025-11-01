@@ -29,7 +29,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 1️⃣ DbContext
 // ============================
 builder.Services.AddDbContext<BagStoreDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("BagStoreDbContext1")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("BagStoreDbContext")));
 
 // ============================
 // 2️⃣ Identity
@@ -58,10 +58,10 @@ var jwtAudience = jwtSection["Audience"];
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
 })
-.AddJwtBearer(options =>
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     options.RequireHttpsMetadata = true;
     options.SaveToken = true;
@@ -73,11 +73,10 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.FromSeconds(30)
     };
 });
-
 // ============================
 // 4️⃣ CORS
 // ============================
@@ -221,7 +220,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{area:Client}/{controller=Home}/{action=Index}/{id?}");
+    pattern: "{area=Client}/{controller=Home}/{action=Index}/{id?}");
 
 // ✅ Optional: Debug route viewer (fix lỗi Body inferred)
 app.MapGet("/routes", ([FromServices] IEnumerable<EndpointDataSource> sources) =>
