@@ -51,8 +51,7 @@
             <div class="row pb-3">
                 <!-- 🔍 Search -->
                 <div class="col-12 pb-1 d-flex justify-content-between align-items-center mb-3">
-                    <input id="searchTen" type="text" class="form-control w-50"
-                        placeholder="Tìm theo tên sản phẩm..." />
+                    <input id="searchTen" type="text" class="form-control w-50" placeholder="Tìm theo tên sản phẩm..." />
                     <button id="btnSearch" class="btn btn-primary ml-2">Tìm</button>
                 </div>
 
@@ -73,7 +72,7 @@
 @section Scripts {
     <script>
         (function () {
-            const apiUrl = '/api/SanPhamApi'; // ✅ Sử dụng action GetAll với query parameters
+            const apiUrl = '/api/SanPhamApi/GetAllPaged'; // 🔧 khớp tên action
             let currentPage = 1;
             const pageSize = 9;
 
@@ -117,23 +116,18 @@
                     data: {
                         page: currentPage,
                         pageSize: pageSize,
-                        search: keyword, // ✅ Đổi từ keyword sang search để khớp với API
+                        keyword: keyword,
                         maLoaiTui: maLoaiTui,
                         maThuongHieu: maThuongHieu,
                         maChatLieu: maChatLieu
                     },
                     success: function (res) {
                         if (res && res.status === 'success' && res.data) {
-                            const pagedResult = res.data;
-                            // ✅ Format đúng: PageResult có Data, Total, Page, PageSize
-                            const items = pagedResult.data || pagedResult.Data || [];
+                            const data = res.data;
+                            const items = data.items || [];
                             renderSanPhams(items);
-                            if (pagedResult.total > 0 || pagedResult.Total > 0) {
-                                const total = pagedResult.total || pagedResult.Total;
-                                const page = pagedResult.page || pagedResult.Page;
-                                const pageSize = pagedResult.pageSize || pagedResult.PageSize;
-                                renderPagination(total, page, pageSize);
-                            }
+                            if (data.totalItems > 0)
+                                renderPagination(data.totalItems, data.page, data.pageSize);
                         } else {
                             $('#product-list').html('<div class="col-12 text-center py-5 text-muted">Không có sản phẩm nào.</div>');
                         }
@@ -159,26 +153,26 @@
                         : '/uploads/no-image.png';
 
                     html += `
-                                                                    <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-                                                                        <div class="card product-item border-0 mb-4 shadow-sm">
-                                                                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                                                                                <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
-                                                                            </div>
-                                                                            <div class="card-body text-center p-3 border-left border-right">
-                                                                                <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
-                                                                                <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
-                                                                                <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
-                                                                            </div>
-                                                                            <div class="card-footer d-flex justify-content-between bg-light border">
-                                                                             <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
-                                                                                 <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
-                                                                             </a>
-                                                                             <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
-                                                                                 <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
-                                                                             </a>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>`;
+                        <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+                            <div class="card product-item border-0 mb-4 shadow-sm">
+                                <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                    <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                </div>
+                                <div class="card-body text-center p-3 border-left border-right">
+                                    <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
+                                    <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
+                                    <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
+                                </div>
+                                <div class="card-footer d-flex justify-content-between bg-light border">
+                                    <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
+                                        <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
+                                    </a>
+                                    <a href="#" class="btn btn-sm text-dark p-0">
+                                        <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
+                                    </a>
+                                </div>
+                            </div>
+                        </div>`;
                 });
 
                 $('#product-list').html(html);
@@ -190,21 +184,21 @@
                 if (totalPages <= 1) return;
 
                 let html = `
-                                                                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                                                                    <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
-                                                                </li>`;
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
+                    </li>`;
 
                 for (let i = 1; i <= totalPages; i++) {
                     html += `
-                                                                    <li class="page-item ${i === currentPage ? 'active' : ''}">
-                                                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                                                    </li>`;
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>`;
                 }
 
                 html += `
-                                                                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                                                                    <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
-                                                                </li>`;
+                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
+                    </li>`;
 
                 $('#pagination').html(html);
             }
@@ -241,212 +235,6 @@
                     $select.append(`<option value="${i[valueKey]}">${i[textKey]}</option>`);
                 });
             }
-            // ✅ Xử lý button "Thêm vào giỏ"
-            $(document).on('click', '.btn-add-to-cart', function (e) {
-                e.preventDefault();
-                const maSP = $(this).data('ma-sp');
-                if (!maSP) return;
-
-                openAddToCartModal(maSP);
-            });
-
-            // ✅ Hàm mở modal chọn màu/kích thước
-            function openAddToCartModal(maSP) {
-                // Hiển thị modal loading
-                const modalElement = document.getElementById('addToCartModal');
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
-                $('#modalProductInfo').html('<div class="text-center py-3"><div class="spinner-border"></div></div>');
-                $('#modalMauSac, #modalKichThuoc').empty().append('<option value="">Đang tải...</option>');
-
-                // Load thông tin sản phẩm
-                $.get('/Client/Shop/GetProductOptions', { maSP: maSP })
-                    .done(function (data) {
-                        // Hiển thị thông tin sản phẩm
-                        const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
-                        $('#modalProductInfo').html(`
-                                    <div class="row align-items-center">
-                                        <div class="col-3">
-                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
-                                        </div>
-                                        <div class="col-9">
-                                            <h5>${escapeHtml(data.tenSP)}</h5>
-                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                        </div>
-                                    </div>
-                                `);
-
-                        // Load màu sắc
-                        const $mauSac = $('#modalMauSac');
-                        $mauSac.empty().append('<option value="">-- Chọn màu sắc --</option>');
-                        if (data.mauSacs && data.mauSacs.length > 0) {
-                            data.mauSacs.forEach(function (mau) {
-                                $mauSac.append(`<option value="${mau.maMauSac || mau.MaMauSac}">${mau.tenMauSac || mau.TenMauSac}</option>`);
-                            });
-                        }
-
-                        // Load kích thước
-                        const $kichThuoc = $('#modalKichThuoc');
-                        $kichThuoc.empty().append('<option value="">-- Chọn kích thước --</option>');
-                        if (data.kichThuocs && data.kichThuocs.length > 0) {
-                            data.kichThuocs.forEach(function (kt) {
-                                $kichThuoc.append(`<option value="${kt.maKichThuoc || kt.MaKichThuoc}">${kt.tenKichThuoc || kt.TenKichThuoc}</option>`);
-                            });
-                        }
-
-                        // Lưu maSP vào modal
-                        $('#modalMaSP').val(maSP);
-                    })
-                    .fail(function () {
-                        alert('Không thể tải thông tin sản phẩm!');
-                        const modalElement = document.getElementById('addToCartModal');
-                        const modal = bootstrap.Modal.getInstance(modalElement);
-                        if (modal) modal.hide();
-                    });
-            }
-
-            // ✅ Cập nhật số lượng tồn khi chọn màu/kích thước
-            $('#modalMauSac, #modalKichThuoc').on('change', function () {
-                const maSP = $('#modalMaSP').val();
-                const maMauSac = $('#modalMauSac').val();
-                const maKichThuoc = $('#modalKichThuoc').val();
-
-                if (!maSP || !maMauSac || !maKichThuoc) {
-                    $('#modalSoLuongTon').text('-');
-                    return;
-                }
-
-                $.get('/Client/Shop/GetVariant', {
-                    maSp: maSP,
-                    colorId: maMauSac,
-                    sizeId: maKichThuoc
-                })
-                    .done(function (variant) {
-                        const soLuongTon = variant.soLuongTon || variant.SoLuongTon || 0;
-                        $('#modalSoLuongTon').text(soLuongTon);
-                        $('#modalSoLuong').attr('max', soLuongTon);
-                    })
-                    .fail(function () {
-                        $('#modalSoLuongTon').text('-');
-                    });
-            });
-
-            // ✅ Xử lý submit form thêm vào giỏ
-            $('#formAddToCart').on('submit', function (e) {
-                e.preventDefault();
-
-                const maSP = $('#modalMaSP').val();
-                const maMauSac = $('#modalMauSac').val();
-                const maKichThuoc = $('#modalKichThuoc').val();
-                const soLuong = parseInt($('#modalSoLuong').val()) || 1;
-
-                if (!maMauSac || !maKichThuoc) {
-                    alert('Vui lòng chọn màu sắc và kích thước!');
-                    return;
-                }
-
-                // Lấy MaChiTietSP
-                $.get('/Client/Shop/GetVariant', {
-                    maSp: maSP,
-                    colorId: maMauSac,
-                    sizeId: maKichThuoc
-                })
-                    .done(function (variant) {
-                        const maChiTietSP = variant.maChiTietSP || variant.MaChiTietSP;
-                        if (!maChiTietSP) {
-                            alert('Không tìm thấy biến thể sản phẩm này!');
-                            return;
-                        }
-
-                        // Lấy MaKH từ user hiện tại (cần đăng nhập)
-                        $.get('/Client/Shop/GetMaKH')
-                            .done(function (response) {
-                                if (!response || !response.maKH) {
-                                    alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
-                                    window.location.href = '/Client/Account/Login';
-                                    return;
-                                }
-
-                                // Gọi API thêm vào giỏ
-                                $.ajax({
-                                    url: '/api/Cart/add',
-                                    method: 'POST',
-                                    contentType: 'application/json',
-                                    data: JSON.stringify({
-                                        maKH: response.maKH,
-                                        maChiTietSP: maChiTietSP,
-                                        soLuong: soLuong
-                                    }),
-                                    success: function (result) {
-                                        alert('Đã thêm vào giỏ hàng thành công!');
-                                        const modalElement = document.getElementById('addToCartModal');
-                                        const modal = bootstrap.Modal.getInstance(modalElement);
-                                        if (modal) modal.hide();
-                                    },
-                                    error: function (xhr) {
-                                        if (xhr.status === 401) {
-                                            alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
-                                            window.location.href = '/Client/Account/Login';
-                                        } else {
-                                            alert(xhr.responseJSON?.message || 'Không thể thêm vào giỏ hàng!');
-                                        }
-                                    }
-                                });
-                            })
-                            .fail(function () {
-                                alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
-                                window.location.href = '/Client/Account/Login';
-                            });
-                    })
-                    .fail(function () {
-                        alert('Không thể lấy thông tin sản phẩm!');
-                    });
-            });
         })();
     </script>
 }
-
-<!-- ✅ Modal chọn màu sắc và kích thước -->
-<div class="modal fade" id="addToCartModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Chọn màu sắc và kích thước</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <form id="formAddToCart">
-                <div class="modal-body">
-                    <div id="modalProductInfo" class="mb-3"></div>
-                    <input type="hidden" id="modalMaSP" />
-
-                    <div class="form-group">
-                        <label class="font-weight-bold">Màu sắc: <span class="text-danger">*</span></label>
-                        <select id="modalMauSac" class="form-control" required>
-                            <option value="">-- Chọn màu sắc --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="font-weight-bold">Kích thước: <span class="text-danger">*</span></label>
-                        <select id="modalKichThuoc" class="form-control" required>
-                            <option value="">-- Chọn kích thước --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="font-weight-bold">Số lượng:</label>
-                        <input type="number" id="modalSoLuong" class="form-control" value="1" min="1" required />
-                        <small class="text-muted">Còn lại: <span id="modalSoLuongTon">-</span></small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
