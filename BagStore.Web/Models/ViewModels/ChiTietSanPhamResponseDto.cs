@@ -1,4 +1,4 @@
-﻿namespace BagStore.Web.Models.ViewModels.SanPhams
+﻿namespace BagStore.Web.Models.ViewModels
 {
     public class ChiTietSanPhamResponseDto
     {

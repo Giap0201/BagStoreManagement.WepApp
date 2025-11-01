@@ -1,6 +1,7 @@
 ﻿using BagStore.Models.Common;
 using BagStore.Web.Models.DTOs.SanPhams;
 using BagStore.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BagStore.Web.Controllers.Api
@@ -8,6 +9,7 @@ namespace BagStore.Web.Controllers.Api
     [Route("api/sanpham/{maSanPham}/[controller]")]
     [ApiController]
     [ValidateModel] // Tự động validate DataAnnotation trên DTO
+    [Authorize(Roles = "Admin")]
     public class ChiTietSanPhamApiController : ControllerBase
     {
         private readonly IChiTietSanPhamService _service;

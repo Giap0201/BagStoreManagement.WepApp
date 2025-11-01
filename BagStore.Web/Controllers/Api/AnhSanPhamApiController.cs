@@ -1,5 +1,6 @@
-﻿using BagStore.Web.Models.DTOs.SanPhams;
+﻿using BagStore.Web.Models.DTOs;
 using BagStore.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BagStore.Web.Controllers.Api
@@ -7,6 +8,7 @@ namespace BagStore.Web.Controllers.Api
     [Route("api/sanpham/{maSanPham}/[controller]")]
     [ApiController]
     [ValidateModel] // Tự động validate DataAnnotation trên DTO
+    [Authorize(Roles = "Admin")]
     public class AnhSanPhamApiController : ControllerBase
     {
         private readonly IAnhSanPhamService _service;
@@ -66,6 +68,19 @@ namespace BagStore.Web.Controllers.Api
         {
             // Có thể validate xem ảnh có thuộc sản phẩm maSanPham không nếu muốn
             var response = await _service.DeleteAsync(maAnh);
+            return response.Status == "error" ? BadRequest(response) : Ok(response);
+        }
+
+        /// Đặt một ảnh làm ảnh chính
+        /// POST: /api/sanpham/{maSanPham}/AnhSanPhamApi/{maAnh}/SetPrimary
+        [HttpPost("{maAnh}/SetPrimary")]
+        public async Task<IActionResult> SetPrimary(int maSanPham, int maAnh)
+        {
+            // (maSanPham từ URL không thực sự cần, vì service
+            // đã có thể tự tìm maSP từ maAnh, nhưng giữ
+            // nguyên cho cấu trúc route được nhất quán)
+
+            var response = await _service.SetPrimaryAsync(maAnh);
             return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
     }
