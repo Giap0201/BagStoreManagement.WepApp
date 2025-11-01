@@ -38,5 +38,10 @@ namespace BagStore.Web.Areas.Client.Controllers
 
             return View(sanPhams);
         }
+
+        public IActionResult TestView()
+        {
+            return View();
+        }
     }
 }
