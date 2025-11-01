@@ -1,0 +1,40 @@
+﻿@model BagStore.Web.Areas.Client.Models.ShopFilterViewModel
+
+<!-- Filter: Color -->
+<div class="border-bottom mb-4 pb-4">
+    <h5 class="font-weight-semi-bold mb-4">Filter by color</h5>
+    @foreach (var color in Model.Colors)
+    {
+        var id = $"color-{color.MaMauSac}";
+        <div class="form-check d-flex align-items-center justify-content-between mb-3">
+            <input class="form-check-input filter-input" type="checkbox" value="@color.MaMauSac" id="@id" data-type="ColorId" />
+            <label class="form-check-label" for="@id">@color.TenMauSac</label>
+        </div>
+    }
+</div>
+
+<!-- Filter: Size -->
+<div class="border-bottom mb-4 pb-4">
+    <h5 class="font-weight-semi-bold mb-4">Filter by size</h5>
+    @foreach (var size in Model.Sizes)
+    {
+        var id = $"size-{size.MaKichThuoc}";
+        <div class="form-check d-flex align-items-center justify-content-between mb-3">
+            <input class="form-check-input filter-input" type="checkbox" value="@size.MaKichThuoc" id="@id" data-type="SizeId" />
+            <label class="form-check-label" for="@id">@size.TenKichThuoc</label>
+        </div>
+    }
+</div>
+
+<!-- Filter: Category -->
+<div class="mb-4 pb-4">
+    <h5 class="font-weight-semi-bold mb-4">Danh mục</h5>
+    @foreach (var c in Model.Categories)
+    {
+        var id = $"cat-{c.MaLoaiTui}";
+        <div class="form-check d-flex align-items-center justify-content-between mb-3">
+            <input class="form-check-input filter-input" type="checkbox" value="@c.MaLoaiTui" id="@id" data-type="CategoryId" />
+            <label class="form-check-label" for="@id">@c.TenLoaiTui</label>
+        </div>
+    }
+</div>

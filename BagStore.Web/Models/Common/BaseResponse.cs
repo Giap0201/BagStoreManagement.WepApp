@@ -26,5 +26,10 @@ namespace BagStore.Models.Common
         {
             return new BaseResponse<T>("error", message, default, errors);
         }
+
+        internal static object? Error(string v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
