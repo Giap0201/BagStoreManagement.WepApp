@@ -9,13 +9,13 @@
         public string? MetaTitle { get; set; }
         public string? MetaDescription { get; set; }
 
-        public int? MaLoaiTui { get; set; }
+        public int MaLoaiTui { get; set; }
         public string? TenLoaiTui { get; set; }
 
-        public int? MaThuongHieu { get; set; }
+        public int MaThuongHieu { get; set; }
         public string? TenThuongHieu { get; set; }
 
-        public int? MaChatLieu { get; set; }
+        public int MaChatLieu { get; set; }
         public string? TenChatLieu { get; set; }
 
         public decimal? GiaBan { get; set; }

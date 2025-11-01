@@ -1,4 +1,5 @@
-﻿using BagStore.Web.Models.ViewModels.SanPhams;
+﻿using BagStore.Web.Models.DTOs.SanPhams;
+using BagStore.Web.Models.ViewModels.SanPhams;
 
 namespace BagStore.Web.Models.ViewModels
 {
