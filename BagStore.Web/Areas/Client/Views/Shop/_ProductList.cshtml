@@ -1,0 +1,14 @@
+﻿@model BagStore.Web.Areas.Client.Models.ShopFilterViewModel
+
+<div class="row pb-3">
+    @foreach (var sp in Model.SanPhams)
+    {
+        <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+            @await Html.PartialAsync("~/Areas/Client/Views/Shared/_ProductCard.cshtml", sp)
+        </div>
+    }
+
+    <div class="col-12 pb-1">
+        @await Html.PartialAsync("~/Areas/Client/Views/Shared/_Pagination.cshtml", Model)
+    </div>
+</div>

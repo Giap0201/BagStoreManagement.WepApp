@@ -13,15 +13,18 @@ namespace BagStore.Web.Services.Implementations
         private readonly IChiTietSanPhamRepository _repo;
         private readonly IKichThuocRepository _repoKichThuoc;
         private readonly IMauSacRepository _repoMauSac;
+        private readonly ISanPhamRepository _repoSanPham;
 
         public ChiTietSanPhamService(
             IChiTietSanPhamRepository repo,
             IKichThuocRepository repoKichThuoc,
-            IMauSacRepository repoMauSac)
+            IMauSacRepository repoMauSac,
+            ISanPhamRepository repoSanPham)
         {
             _repo = repo;
             _repoKichThuoc = repoKichThuoc;
             _repoMauSac = repoMauSac;
+            _repoSanPham = repoSanPham;
         }
 
         /// Tạo mới chi tiết sản phẩm
@@ -141,11 +144,13 @@ namespace BagStore.Web.Services.Implementations
         {
             var kichThuoc = await _repoKichThuoc.GetByIdAsync(entity.MaKichThuoc);
             var mauSac = await _repoMauSac.GetByIdAsync(entity.MaMauSac);
+            var sanPham = await _repoSanPham.GetByIdAsync(entity.MaSP);
 
             return new ChiTietSanPhamResponseDto
             {
                 MaSP = entity.MaSP,
                 MaChiTietSP = entity.MaChiTietSP,
+                TenSanPham = sanPham?.TenSP ?? "N/A",
                 MaKichThuoc = entity.MaKichThuoc,
                 TenKichThuoc = kichThuoc?.TenKichThuoc ?? "N/A",
                 MaMauSac = entity.MaMauSac,

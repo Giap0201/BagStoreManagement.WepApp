@@ -240,28 +240,46 @@ namespace BagStore.Web.Services.Implementations
             return MapToDonHangResponse(donHang);
         }
 
+        public async Task<DonHangResponse?> GetByIdAsync(int maDH)
+        {
+            var donHang = await _donHangRepo.GetByIdWithDetailsAsync(maDH);
+            if (donHang == null)
+                return null;
+
+            // Dùng mapper tách riêng để dễ tái sử dụng
+            return MapToDonHangResponse(donHang);
+        }
+
         private static DonHangResponse MapToDonHangResponse(DonHang d)
         {
-            return new DonHangResponse
+            var response = new DonHangResponse
             {
                 MaDonHang = d.MaDonHang,
-                TenKhachHang = d.KhachHang?.TenKH ?? "Khách",
+                TenKhachHang = d.KhachHang?.TenKH ?? "Không rõ",
+                SoDienThoai = d.KhachHang?.SoDienThoai ?? "",
                 NgayDatHang = d.NgayDatHang,
                 TongTien = d.TongTien,
-                TrangThai = d.TrangThai,
-                PhuongThucThanhToan = d.PhuongThucThanhToan,
-                TrangThaiThanhToan = d.TrangThaiThanhToan,
-                DiaChiGiaoHang = d.DiaChiGiaoHang,
-                ChiTietDonHang = d.ChiTietDonHangs?.Select(ct => new DonHangChiTietResponse
-                {
-                    MaChiTietDonHang = ct.MaChiTietDH,
-                    TenSanPham = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Sản phẩm",
-                    SoLuong = ct.SoLuong,
-                    GiaBan = ct.GiaBan,
-                    ThanhTien = ct.SoLuong * ct.GiaBan,
-                    AnhSanPham = ""
-                }).ToList() ?? new List<DonHangChiTietResponse>()
+                TrangThai = string.IsNullOrEmpty(d.TrangThai) ? "Chờ xử lý" : d.TrangThai,
+                PhuongThucThanhToan = string.IsNullOrEmpty(d.PhuongThucThanhToan) ? "COD" : d.PhuongThucThanhToan,
+                TrangThaiThanhToan = string.IsNullOrEmpty(d.TrangThaiThanhToan) ? "Chờ xác nhận" : d.TrangThaiThanhToan,
+                DiaChiGiaoHang = d.DiaChiGiaoHang ?? d.KhachHang?.DiaChiMacDinh ?? "Không có địa chỉ"
             };
+
+            response.ChiTietDonHang = d.ChiTietDonHangs?.Select(ct => new DonHangChiTietResponse
+            {
+                MaChiTietDonHang = ct.MaChiTietDH,
+                MaChiTietSP = ct.MaChiTietSP,
+                TenSanPham = ct.ChiTietSanPham?.SanPham?.TenSP ?? "Không rõ",
+                KichThuoc = ct.ChiTietSanPham?.KichThuoc?.TenKichThuoc ?? "-",
+                MauSac = ct.ChiTietSanPham?.MauSac?.TenMauSac ?? "-",
+                SoLuong = ct.SoLuong,
+                GiaBan = ct.GiaBan,
+                ThanhTien = ct.GiaBan * ct.SoLuong,
+                AnhSanPham = ""
+            }).ToList() ?? new List<DonHangChiTietResponse>();
+
+            return response;
         }
+
     }
 }

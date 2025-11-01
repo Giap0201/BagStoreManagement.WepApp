@@ -1,9 +1,9 @@
 ﻿@{
-    ViewData["Title"] = "Quản lý đơn hàng";
+    ViewData["Title"] = "Danh sách đơn hàng";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<!-- ✅ DataTables Bootstrap 5 (phù hợp với Purple Admin, SB Admin, v.v.) -->
+<!-- ✅ DataTables Bootstrap 5 -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css" />
 
 <style>
@@ -15,56 +15,87 @@
     .main-panel {
         background-color: #fff !important;
     }
+
+    .modal-lg {
+        max-width: 900px;
+    }
 </style>
 
+<h2 class="mb-4">
+    <i class="mdi mdi-package-variant-closed text-info me-2"></i>
+    Danh sách đơn hàng
+</h2>
 
-<h2>Quản lý đơn hàng</h2>
 <div class="table-responsive">
-<table id="adminOrders" class="table table-bordered table-striped align-middle text-nowrap" style="width:100%">
-    <thead>
-        <tr>
-            <th>Mã</th>
-            <th>Khách hàng</th>
-            <th>Ngày đặt</th>
-            <th>Tổng tiền</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-</table>
+    <table id="adminOrders" class="table table-bordered table-striped align-middle text-nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Khách hàng</th>
+                <th>Ngày đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<!-- ✅ Modal hiển thị chi tiết -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="orderDetailsLabel">Chi tiết đơn hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+                <p>Đang tải dữ liệu...</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <!-- ✅ DataTables + Bootstrap 5 integration -->
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         $(function () {
-            var table = $('#adminOrders').DataTable({
+            const table = $('#adminOrders').DataTable({
                 responsive: true,
                 autoWidth: false,
                 ajax: {
-                    url: '/api/DonHangApi', // ensure API supports GET all
-                    xhrFields: { withCredentials: true }, // nếu cần gửi cookie
+                    url: '/api/DonHangApi',
+                    xhrFields: { withCredentials: true },
                     dataSrc: '',
                 },
                 columns: [
                     { data: 'maDonHang' },
                     { data: 'tenKhachHang' },
-                    { data: 'ngayDatHang', render: d => new Date(d).toLocaleString() },
-                    { data: 'tongTien', render: d => d.toLocaleString() },
+                    { data: 'ngayDatHang', render: d => new Date(d).toLocaleString('vi-VN') },
+                    { data: 'tongTien', render: d => d.toLocaleString('vi-VN') + ' ₫' },
                     { data: 'trangThai' },
                     {
                         data: null,
                         orderable: false,
-                        render: function (row) {
-                            // render dropdown with current status selected
-                            const statuses = ['Chờ xử lý', 'Đang giao hàng', 'Hoàn thành', 'Đã huỷ'];
-                            let options = statuses.map(s => `<option value="${s}" ${s === row.trangThai ? 'selected' : ''}>${s}</option>`).join('');
-                            return `<select onchange="updateStatus(${row.maDonHang}, this.value)">${options}</select>`;
-                        }
+                        render: row => `
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="showOrderDetails(${row.maDonHang})">
+                                    <i class="mdi mdi-eye"></i> Xem
+                                </button>
+                                <select class="form-select form-select-sm w-auto"
+                                    onchange="updateStatus(${row.maDonHang}, this.value)">
+                                    ${['Chờ xử lý', 'Đang giao hàng', 'Hoàn thành', 'Đã huỷ']
+                                        .map(s => `<option value="${s}" ${s === row.trangThai ? 'selected' : ''}>${s}</option>`).join('')}
+                                </select>
+                            </div>`
                     }
                 ],
                 language: {
@@ -73,13 +104,12 @@
                 }
             });
 
-            // Expose reload function
             window.reloadOrders = function() {
                 table.ajax.reload(null, false);
             };
         });
 
-            async function updateStatus(maDonHang, trangThai) {
+        async function updateStatus(maDonHang, trangThai) {
             const confirmRes = await Swal.fire({
                 title: 'Xác nhận',
                 text: `Bạn muốn đổi trạng thái sang "${trangThai}"?`,
@@ -87,7 +117,6 @@
                 showCancelButton: true
             });
             if (!confirmRes.isConfirmed) {
-                // optional: reload table to revert selection if cancelled
                 window.reloadOrders();
                 return;
             }
@@ -100,17 +129,96 @@
                 });
 
                 if (res.ok) {
-                    const data = await res.json();
                     await Swal.fire('Thành công', 'Cập nhật trạng thái thành công', 'success');
                     window.reloadOrders();
                 } else {
-                    const txt = await res.text();
-                    await Swal.fire('Lỗi', txt, 'error');
+                    await Swal.fire('Lỗi', await res.text(), 'error');
                     window.reloadOrders();
                 }
             } catch (err) {
                 await Swal.fire('Lỗi', err.message || 'Lỗi mạng', 'error');
                 window.reloadOrders();
+            }
+        }
+
+        // ✅ Hiển thị chi tiết đơn hàng trong modal
+        async function showOrderDetails(maDH) {
+            const modalBody = $('#orderDetailsContent');
+            modalBody.html('<p>Đang tải dữ liệu...</p>');
+
+            try {
+                const res = await fetch(`/api/DonHangApi/${maDH}`);
+                if (!res.ok) {
+                    modalBody.html('<p class="text-danger text-center">Không tìm thấy đơn hàng.</p>');
+                    return;
+                }
+
+                const dh = await res.json();
+                const ngayDat = new Date(dh.ngayDatHang).toLocaleDateString('vi-VN');
+
+                let html = `
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Ngày giao hàng:</strong> ${ngayDat}</p>
+                                <p><strong>Tên khách hàng:</strong> ${dh.tenKhachHang}</p>
+                                <p><strong>Số điện thoại:</strong> ${dh.soDienThoai || '(chưa có)'}</p>
+                                <p><strong>Địa chỉ giao hàng:</strong> ${dh.diaChiGiaoHang}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Phương thức thanh toán:</strong> ${dh.phuongThucThanhToan}</p>
+                                <p><strong>Trạng thái đơn hàng:</strong> ${dh.trangThai}</p>
+                                <p><strong>Trạng thái thanh toán:</strong> ${dh.trangThaiThanhToan}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Danh sách sản phẩm</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" style="width: 100px;">Ảnh</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th class="text-center">Màu sắc</th>
+                                    <th class="text-center">Kích thước</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${dh.chiTietDonHang.map(ct => `
+                                    <tr>
+                                        <td class="text-center">
+                                            ${ct.anhSanPham
+                                                ? `<img src="${ct.anhSanPham}" alt="${ct.tenSanPham}" style="width: 80px; height: 80px; object-fit: cover;" />`
+                                                : `<div class="text-muted fst-italic">Không có ảnh</div>`}
+                                        </td>
+                                        <td>${ct.tenSanPham}</td>
+                                        <td class="text-center">${ct.mauSac || '-'}</td>
+                                        <td class="text-center">${ct.kichThuoc || '-'}</td>
+                                        <td class="text-center">${ct.soLuong}</td>
+                                        <td class="text-end">${ct.giaBan.toLocaleString('vi-VN')} ₫</td>
+                                        <td class="text-end">${ct.thanhTien.toLocaleString('vi-VN')} ₫</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="6" class="text-end">Tổng tiền:</th>
+                                    <th class="text-end text-danger fs-5">${dh.tongTien.toLocaleString('vi-VN')} ₫</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+
+                modalBody.html(html);
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+                modal.show();
+            } catch (err) {
+                modalBody.html('<p class="text-danger text-center">Lỗi tải dữ liệu: ' + err.message + '</p>');
             }
         }
     </script>

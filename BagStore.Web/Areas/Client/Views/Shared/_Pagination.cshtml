@@ -1,0 +1,27 @@
+﻿@model BagStore.Web.Areas.Client.Models.ShopFilterViewModel
+
+@{
+    int current = Model.PageNumber;
+    int total = Model.TotalPages;
+    int prev = current - 1;
+    int next = current + 1;
+}
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mb-3">
+        <li class="page-item @(current == 1 ? "disabled" : "")">
+            <a class="page-link" href="#" data-page="@prev">«</a>
+        </li>
+
+        @for (int i = 1; i <= total; i++)
+        {
+            <li class="page-item @(i == current ? "active" : "")">
+                <a class="page-link" href="#" data-page="@i">@i</a>
+            </li>
+        }
+
+        <li class="page-item @(current == total ? "disabled" : "")">
+            <a class="page-link" href="#" data-page="@next">»</a>
+        </li>
+    </ul>
+</nav>

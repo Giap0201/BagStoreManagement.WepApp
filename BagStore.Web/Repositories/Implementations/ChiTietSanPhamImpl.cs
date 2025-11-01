@@ -46,6 +46,7 @@ public class ChiTietSanPhamImpl : IChiTietSanPhamRepository
         public async Task<ChiTietSanPham?> GetByIdAsync(int maChiTietSanPham)
         {
             return await _context.ChiTietSanPhams
+                .Include(ct => ct.SanPham)
                 .Include(ct => ct.KichThuoc)
                 .Include(ct => ct.MauSac)
                 .FirstOrDefaultAsync(ct => ct.MaChiTietSP == maChiTietSanPham);
