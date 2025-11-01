@@ -1,6 +1,7 @@
 ﻿using BagStore.Data;
 using BagStore.Domain.Entities;
 using BagStore.Web.Models.DTOs.Responses;
+using BagStore.Web.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,10 +17,16 @@ namespace BagStore.Repositories
             _context = context;
         }
 
-        public async Task<CartResponse> GetCartByUserIdAsync(int userId)
+        public async Task<CartResponse> GetCartByUserIdAsync(string userId)
         {
+            var khachHang = await _context.KhachHangs
+       .FirstOrDefaultAsync(kh => kh.ApplicationUserId == userId);
+
+            if (khachHang == null)
+                return null;
+
             var items = await _context.GioHangs
-                .Where(g => g.MaKH == userId)
+                .Where(g => g.MaKH == khachHang.MaKH)
                 .Select(g => new CartItemResponse
                 {
                     MaSP_GH = g.MaSP_GH,
@@ -41,7 +48,7 @@ namespace BagStore.Repositories
 
             return new CartResponse
             {
-                MaKH = userId,
+                MaKH = khachHang.MaKH,
                 Items = items
             };
         }

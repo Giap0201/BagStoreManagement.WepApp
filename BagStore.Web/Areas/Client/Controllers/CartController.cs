@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BagStore.Web.Areas.Client.Controllers
 {
@@ -7,10 +8,9 @@ namespace BagStore.Web.Areas.Client.Controllers
     public class CartController : Controller
     {
 
-        [HttpGet("{id:int}")]
         public IActionResult Index (int id)
         {
-            ViewBag.UserId = id;
+            ViewBag.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             return View();
         }
     }
