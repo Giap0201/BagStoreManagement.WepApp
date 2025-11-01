@@ -205,7 +205,8 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    //pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{area=Client}/{controller=Home}/{action=Index}/{id?}");
 
 // ============================
 // 12️⃣ Run
