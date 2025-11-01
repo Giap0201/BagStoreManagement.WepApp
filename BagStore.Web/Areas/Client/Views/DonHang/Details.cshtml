@@ -1,0 +1,107 @@
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Chi tiết đơn hàng #" + ViewData["MaDonHang"];
+}
+
+<div class="container py-4" id="donHangDetails">
+    <!-- ✅ Nút quay lại -->
+    <div class="mb-3">
+        <a href="/Client/DonHang/Index" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <h3 class="mb-4 text-center text-primary">Chi tiết đơn hàng #@ViewData["MaDonHang"]</h3>
+    <p>Đang tải dữ liệu...</p>
+</div>
+
+<!-- Bootstrap icons (để có icon mũi tên) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(async function() {
+        const maDH = parseInt('@ViewData["MaDonHang"]'); // đảm bảo parse đúng số
+
+        try {
+            const res = await fetch(`/api/DonHangApi/${maDH}`);
+            if (!res.ok) {
+                $('#donHangDetails').html('<p class="text-danger text-center">Không tìm thấy đơn hàng.</p>');
+                return;
+            }
+
+            const dh = await res.json();
+            const ngayDat = new Date(dh.ngayDatHang).toLocaleDateString('vi-VN');
+
+            let html = `
+                <div class="card shadow-sm p-4 mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Ngày giao hàng:</strong> ${ngayDat}</p>
+                            <p><strong>Tên khách hàng:</strong> ${dh.tenKhachHang}</p>
+                            <p><strong>Số điện thoại:</strong> ${dh.soDienThoai || '(chưa có)'}</p>
+                            <p><strong>Địa chỉ giao hàng:</strong> ${dh.diaChiGiaoHang}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Phương thức thanh toán:</strong> ${dh.phuongThucThanhToan}</p>
+                            <p><strong>Trạng thái đơn hàng:</strong> ${dh.trangThai}</p>
+                            <p><strong>Trạng thái thanh toán:</strong> ${dh.trangThaiThanhToan}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3">Danh sách sản phẩm</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 100px;">Ảnh</th>
+                                <th>Tên sản phẩm</th>
+                                <th class="text-center">Màu sắc</th>
+                                <th class="text-center">Kích thước</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dh.chiTietDonHang.map(ct => `
+                                <tr>
+                                    <td class="text-center">
+                                        ${ct.anhSanPham
+                                            ? `<img src="${ct.anhSanPham}" alt="${ct.tenSanPham}" style="width: 80px; height: 80px; object-fit: cover;" />`
+                                            : `<div class="text-muted fst-italic">Không có ảnh</div>`
+                                        }
+                                    </td>
+                                    <td>${ct.tenSanPham}</td>
+                                    <td class="text-center">${ct.mauSac || '-'}</td>
+                                    <td class="text-center">${ct.kichThuoc || '-'}</td>
+                                    <td class="text-center">${ct.soLuong}</td>
+                                    <td class="text-end">${ct.giaBan.toLocaleString('vi-VN')} ₫</td>
+                                    <td class="text-end">${ct.thanhTien.toLocaleString('vi-VN')} ₫</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="6" class="text-end">Tổng tiền:</th>
+                                <th class="text-end text-danger fs-5">${dh.tongTien.toLocaleString('vi-VN')} ₫</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+
+            $('#donHangDetails').html(`
+                <div class="mb-3">
+                    <a href="/Client/DonHang/Index" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left-circle me-1"></i> Quay lại danh sách
+                    </a>
+                </div>
+                ${html}
+            `);
+        } catch (err) {
+            $('#donHangDetails').html('<p class="text-danger text-center">Lỗi tải dữ liệu: ' + err.message + '</p>');
+        }
+    });
+</script>

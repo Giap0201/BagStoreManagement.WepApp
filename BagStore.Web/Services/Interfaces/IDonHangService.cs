@@ -10,5 +10,7 @@ namespace BagStore.Web.Services.Interfaces
         Task<IEnumerable<DonHangResponse>> LayDonHangTheoUserAsync(string userId);
         Task<DonHangResponse> TaoDonHangAsync(CreateDonHangRequest request, string userId);
         Task<DonHangResponse> CapNhatTrangThaiAsync(UpdateDonHangStatusRequest dto);
+
+        Task<DonHangResponse?> GetByIdAsync(int maDH);
     }
 }

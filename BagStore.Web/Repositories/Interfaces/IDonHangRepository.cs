@@ -9,5 +9,7 @@ namespace BagStore.Web.Repositories.Interfaces
         Task<IEnumerable<DonHang>> LayDonHangTheoTrangThaiAsync(string trangThai);
         Task<IEnumerable<DonHang>> LayTatCaDonHangAsync();
         Task<DonHang?> LayTheoIdAsync(int maDonHang);
+
+        Task<DonHang?> GetByIdWithDetailsAsync(int maDH);
     }
 }

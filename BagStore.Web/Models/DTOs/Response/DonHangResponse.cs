@@ -4,6 +4,7 @@
     {
         public int MaDonHang { get; set; }
         public string TenKhachHang { get; set; } = string.Empty;
+        public string SoDienThoai { get; set; } = string.Empty;
         public DateTime NgayDatHang { get; set; }
         public decimal TongTien { get; set; }
         public string TrangThai { get; set; } = string.Empty;

@@ -66,5 +66,19 @@ namespace BagStore.Web.Repositories.implementations
                         .ThenInclude(sp => sp.SanPham)
                 .FirstOrDefaultAsync(d => d.MaDonHang == maDonHang);
         }
+
+        public async Task<DonHang?> GetByIdWithDetailsAsync(int maDH)
+        {
+            return await _context.DonHangs
+                .Include(d => d.KhachHang)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(sp => sp.SanPham)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham.MauSac)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham.KichThuoc)
+                .FirstOrDefaultAsync(d => d.MaDonHang == maDH);
+        }
     }
 }
