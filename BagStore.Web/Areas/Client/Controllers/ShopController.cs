@@ -66,84 +66,142 @@ namespace BagStore.Web.Areas.Client.Controllers
         // GET: /Client/Shop/GetVariant?maSp=...&sizeId=...&colorId=...
         public IActionResult GetVariant(int maSp, int? sizeId, int? colorId)
         {
-            var q = _context.ChiTietSanPhams.AsQueryable().Where(ct => ct.MaSP == maSp);
-
-            if (sizeId.HasValue)
-                q = q.Where(ct => ct.MaKichThuoc == sizeId.Value);
-
-            if (colorId.HasValue)
-                q = q.Where(ct => ct.MaMauSac == colorId.Value);
-
-            var variant = q.FirstOrDefault();
-
-            if (variant == null) return NotFound();
-
-            // trả về JSON nhỏ gọn
-            return Json(new
+            try
             {
-                MaChiTietSP = variant.MaChiTietSP,
-                GiaBan = variant.GiaBan,
-                SoLuongTon = variant.SoLuongTon
-            });
+                var q = _context.ChiTietSanPhams.AsQueryable().Where(ct => ct.MaSP == maSp);
+
+                if (sizeId.HasValue)
+                    q = q.Where(ct => ct.MaKichThuoc == sizeId.Value);
+
+                if (colorId.HasValue)
+                    q = q.Where(ct => ct.MaMauSac == colorId.Value);
+
+                var variant = q.FirstOrDefault();
+
+                if (variant == null)
+                    return Json(new { status = "error", message = "Không tìm thấy biến thể sản phẩm" });
+
+                // trả về JSON nhỏ gọn (dùng camelCase để nhất quán với JavaScript)
+                return Json(new
+                {
+                    maChiTietSP = variant.MaChiTietSP,
+                    MaChiTietSP = variant.MaChiTietSP, // Giữ cả 2 để tương thích
+                    giaBan = variant.GiaBan,
+                    GiaBan = variant.GiaBan,
+                    soLuongTon = variant.SoLuongTon,
+                    SoLuongTon = variant.SoLuongTon
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { status = "error", message = "Lỗi server", error = ex.Message });
+            }
         }
 
         // ✅ API lấy MaKH của user hiện tại (dùng cho modal thêm vào giỏ)
         // GET: /Client/Shop/GetMaKH
         public IActionResult GetMaKH()
         {
-            var userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+            try
             {
-                return Json(new { maKH = (int?)null });
-            }
+                var userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { maKH = (int?)null });
+                }
 
-            var khachHang = _context.KhachHangs.FirstOrDefault(k => k.ApplicationUserId == userId);
-            if (khachHang == null)
+                var khachHang = _context.KhachHangs.FirstOrDefault(k => k.ApplicationUserId == userId);
+                if (khachHang == null)
+                {
+                    return Json(new { maKH = (int?)null });
+                }
+
+                return Json(new { maKH = khachHang.MaKH });
+            }
+            catch (Exception ex)
             {
-                return Json(new { maKH = (int?)null });
+                return StatusCode(500, new { status = "error", message = "Lỗi server", error = ex.Message });
             }
-
-            return Json(new { maKH = khachHang.MaKH });
         }
 
         // ✅ API lấy danh sách màu sắc và kích thước của sản phẩm (cho popup)
         // GET: /Client/Shop/GetProductOptions?maSP=...
         public IActionResult GetProductOptions(int maSP)
         {
-            var sanPham = _context.SanPhams
-                .Include(sp => sp.ChiTietSanPhams)
-                    .ThenInclude(ct => ct.KichThuoc)
-                .Include(sp => sp.ChiTietSanPhams)
-                    .ThenInclude(ct => ct.MauSac)
-                .Include(sp => sp.AnhSanPhams)
-                .FirstOrDefault(sp => sp.MaSP == maSP);
-
-            if (sanPham == null)
-                return NotFound(new { message = "Không tìm thấy sản phẩm" });
-
-            // Lấy danh sách màu sắc và kích thước duy nhất
-            var mauSacs = sanPham.ChiTietSanPhams
-                .Select(ct => ct.MauSac)
-                .Distinct()
-                .Select(m => new { m.MaMauSac, m.TenMauSac })
-                .ToList();
-
-            var kichThuocs = sanPham.ChiTietSanPhams
-                .Select(ct => ct.KichThuoc)
-                .Distinct()
-                .Select(k => new { k.MaKichThuoc, k.TenKichThuoc })
-                .ToList();
-
-            var anhChinh = sanPham.AnhSanPhams?.FirstOrDefault(a => a.LaHinhChinh)?.DuongDan;
-
-            return Json(new
+            try
             {
-                maSP = sanPham.MaSP,
-                tenSP = sanPham.TenSP,
-                anhChinh = anhChinh,
-                mauSacs = mauSacs,
-                kichThuocs = kichThuocs
-            });
+                var sanPham = _context.SanPhams
+                    .AsNoTracking() // ✅ Tránh circular reference khi serialize
+                    .Include(sp => sp.ChiTietSanPhams)
+                        .ThenInclude(ct => ct.KichThuoc)
+                    .Include(sp => sp.ChiTietSanPhams)
+                        .ThenInclude(ct => ct.MauSac)
+                    .Include(sp => sp.AnhSanPhams)
+                    .FirstOrDefault(sp => sp.MaSP == maSP);
+
+                if (sanPham == null)
+                    return Json(new { status = "error", message = "Không tìm thấy sản phẩm" });
+
+                // ✅ Kiểm tra null cho ChiTietSanPhams và lấy màu sắc/kích thước
+                var mauSacsList = new List<Dictionary<string, object>>();
+                if (sanPham.ChiTietSanPhams != null && sanPham.ChiTietSanPhams.Any())
+                {
+                    mauSacsList = sanPham.ChiTietSanPhams
+                        .Where(ct => ct != null && ct.MauSac != null)
+                        .Select(ct => new { maMauSac = ct.MauSac.MaMauSac, tenMauSac = ct.MauSac.TenMauSac ?? "" })
+                        .GroupBy(m => m.maMauSac)
+                        .Select(g => new Dictionary<string, object>
+                        {
+                            { "maMauSac", g.Key },
+                            { "tenMauSac", g.First().tenMauSac }
+                        })
+                        .ToList();
+                }
+
+                var kichThuocsList = new List<Dictionary<string, object>>();
+                if (sanPham.ChiTietSanPhams != null && sanPham.ChiTietSanPhams.Any())
+                {
+                    kichThuocsList = sanPham.ChiTietSanPhams
+                        .Where(ct => ct != null && ct.KichThuoc != null)
+                        .Select(ct => new { maKichThuoc = ct.KichThuoc.MaKichThuoc, tenKichThuoc = ct.KichThuoc.TenKichThuoc ?? "" })
+                        .GroupBy(k => k.maKichThuoc)
+                        .Select(g => new Dictionary<string, object>
+                        {
+                            { "maKichThuoc", g.Key },
+                            { "tenKichThuoc", g.First().tenKichThuoc }
+                        })
+                        .ToList();
+                }
+
+                // Lấy ảnh chính hoặc ảnh đầu tiên
+                string anhChinh = null;
+                if (sanPham.AnhSanPhams != null && sanPham.AnhSanPhams.Any())
+                {
+                    var anh = sanPham.AnhSanPhams.FirstOrDefault(a => a.LaHinhChinh)
+                        ?? sanPham.AnhSanPhams.FirstOrDefault();
+                    anhChinh = anh?.DuongDan;
+                }
+
+                return Json(new
+                {
+                    maSP = sanPham.MaSP,
+                    tenSP = sanPham.TenSP ?? "",
+                    anhChinh = anhChinh ?? "",
+                    mauSacs = mauSacsList,
+                    kichThuocs = kichThuocsList
+                });
+            }
+            catch (Exception ex)
+            {
+                // ✅ Log lỗi chi tiết
+                return StatusCode(500, new
+                {
+                    status = "error",
+                    message = "Lỗi server",
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
         }
 
         // ------- Helper -------

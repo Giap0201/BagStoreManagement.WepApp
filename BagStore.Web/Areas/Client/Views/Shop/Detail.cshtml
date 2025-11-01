@@ -1,6 +1,6 @@
 ﻿@model BagStore.Web.Areas.Client.Models.ProductDetailViewModel
 @{
-    Layout = "_LayoutBagStore";
+    Layout = "~/Areas/Client/Views/LayoutShop/_LayoutShopNew.cshtml";
     ViewData["Title"] = Model.Product?.TenSP ?? "Chi tiết sản phẩm";
 }
 
@@ -63,10 +63,8 @@
 
             // ✅ Hàm mở modal chọn màu/kích thước
             function openAddToCartModal(maSP) {
-                // Hiển thị modal loading
-                const modalElement = document.getElementById('addToCartModal');
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
+                // Hiển thị modal loading (Bootstrap 4 syntax)
+                $('#addToCartModal').modal('show');
                 $('#modalProductInfo').html('<div class="text-center py-3"><div class="spinner-border"></div></div>');
                 $('#modalMauSac, #modalKichThuoc').empty().append('<option value="">Đang tải...</option>');
 
@@ -76,16 +74,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                    <div class="row align-items-center">
-                                        <div class="col-3">
-                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
-                                        </div>
-                                        <div class="col-9">
-                                            <h5>${escapeHtml(data.tenSP)}</h5>
-                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                        </div>
-                                    </div>
-                                `);
+                                            <div class="row align-items-center">
+                                                <div class="col-3">
+                                                    <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                                </div>
+                                                <div class="col-9">
+                                                    <h5>${escapeHtml(data.tenSP)}</h5>
+                                                    <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                                </div>
+                                            </div>
+                                        `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');
@@ -110,9 +108,7 @@
                     })
                     .fail(function () {
                         alert('Không thể tải thông tin sản phẩm!');
-                        const modalElement = document.getElementById('addToCartModal');
-                        const modal = bootstrap.Modal.getInstance(modalElement);
-                        if (modal) modal.hide();
+                        $('#addToCartModal').modal('hide');
                     });
             }
 
@@ -190,9 +186,7 @@
                                     }),
                                     success: function (result) {
                                         alert('Đã thêm vào giỏ hàng thành công!');
-                                        const modalElement = document.getElementById('addToCartModal');
-                                        const modal = bootstrap.Modal.getInstance(modalElement);
-                                        if (modal) modal.hide();
+                                        $('#addToCartModal').modal('hide');
                                     },
                                     error: function (xhr) {
                                         if (xhr.status === 401) {
@@ -230,8 +224,9 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Chọn màu sắc và kích thước</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form id="formAddToCart">
                 <div class="modal-body">
@@ -259,7 +254,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                     </button>
