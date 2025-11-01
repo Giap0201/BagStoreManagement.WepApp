@@ -1,16 +1,39 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BagStore.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Security.Claims;
 
 namespace BagStore.Web.Areas.Client.Controllers
 {
     [Area("Client")]
-    [Route("Client/[controller]")]
+    [Authorize] // ✅ Yêu cầu đăng nhập để xem giỏ hàng
     public class CartController : Controller
     {
+        private readonly BagStoreDbContext _context;
 
-        [HttpGet("{id:int}")]
-        public IActionResult Index (int id)
+        public CartController(BagStoreDbContext context)
         {
-            ViewBag.UserId = id;
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult Index()
+        {
+            // ✅ Lấy MaKH từ user hiện tại
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var khachHang = _context.KhachHangs.FirstOrDefault(k => k.ApplicationUserId == userId);
+            if (khachHang == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.UserId = khachHang.MaKH;
             return View();
         }
     }

@@ -9,7 +9,7 @@ namespace BagStore.Web.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class DonHangApiController : ControllerBase
     {
         private readonly IDonHangService _donHangService;

@@ -10,7 +10,7 @@
         <div class="col-md-6">
             <div class="border p-3 mb-3">
                 <img src="@(Model.Images.FirstOrDefault()?.DuongDan ?? "/uploads/no-image.png")"
-                     class="img-fluid w-100 rounded" alt="@Model.Product?.TenSP" />
+                    class="img-fluid w-100 rounded" alt="@Model.Product?.TenSP" />
             </div>
             <div class="d-flex flex-wrap gap-2">
                 @foreach (var img in Model.Images)
@@ -32,29 +32,11 @@
             <p><strong>Thương hiệu:</strong> @Model.Product?.ThuongHieu?.TenThuongHieu</p>
             <p><strong>Loại túi:</strong> @Model.Product?.DanhMucLoaiTui?.TenLoaiTui</p>
 
-            <div class="mb-3">
-                <label class="fw-semibold">Màu sắc:</label>
-                <select class="form-select w-auto d-inline-block">
-                    @foreach (var c in Model.AllVariants.Select(v => v.MauSac).DistinctBy(m => m.MaMauSac))
-                    {
-                        <option>@c.TenMauSac</option>
-                    }
-                </select>
-            </div>
-
             <div class="mb-4">
-                <label class="fw-semibold">Kích thước:</label>
-                <select class="form-select w-auto d-inline-block">
-                    @foreach (var k in Model.AllVariants.Select(v => v.KichThuoc).DistinctBy(k => k.MaKichThuoc))
-                    {
-                        <option>@k.TenKichThuoc</option>
-                    }
-                </select>
+                <a href="#" class="btn btn-primary btn-lg btn-add-to-cart" data-ma-sp="@Model.Product?.MaSP">
+                    <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
+                </a>
             </div>
-
-            <button class="btn btn-primary btn-lg">
-                <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
-            </button>
         </div>
     </div>
 
@@ -63,6 +45,226 @@
         <div class="col-12">
             <h4 class="border-bottom pb-2 mb-3">Mô tả sản phẩm</h4>
             <p>@Html.Raw(Model.Product?.MoTaChiTiet ?? "Chưa có mô tả.")</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // ✅ Xử lý button "Thêm vào giỏ"
+            $('.btn-add-to-cart').on('click', function (e) {
+                e.preventDefault();
+                const maSP = $(this).data('ma-sp');
+                if (!maSP) return;
+
+                openAddToCartModal(maSP);
+            });
+
+            // ✅ Hàm mở modal chọn màu/kích thước
+            function openAddToCartModal(maSP) {
+                // Hiển thị modal loading
+                const modalElement = document.getElementById('addToCartModal');
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+                $('#modalProductInfo').html('<div class="text-center py-3"><div class="spinner-border"></div></div>');
+                $('#modalMauSac, #modalKichThuoc').empty().append('<option value="">Đang tải...</option>');
+
+                // Load thông tin sản phẩm
+                $.get('/Client/Shop/GetProductOptions', { maSP: maSP })
+                    .done(function (data) {
+                        // Hiển thị thông tin sản phẩm
+                        const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
+                        $('#modalProductInfo').html(`
+                                    <div class="row align-items-center">
+                                        <div class="col-3">
+                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                        </div>
+                                        <div class="col-9">
+                                            <h5>${escapeHtml(data.tenSP)}</h5>
+                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                        </div>
+                                    </div>
+                                `);
+
+                        // Load màu sắc
+                        const $mauSac = $('#modalMauSac');
+                        $mauSac.empty().append('<option value="">-- Chọn màu sắc --</option>');
+                        if (data.mauSacs && data.mauSacs.length > 0) {
+                            data.mauSacs.forEach(function (mau) {
+                                $mauSac.append(`<option value="${mau.maMauSac || mau.MaMauSac}">${mau.tenMauSac || mau.TenMauSac}</option>`);
+                            });
+                        }
+
+                        // Load kích thước
+                        const $kichThuoc = $('#modalKichThuoc');
+                        $kichThuoc.empty().append('<option value="">-- Chọn kích thước --</option>');
+                        if (data.kichThuocs && data.kichThuocs.length > 0) {
+                            data.kichThuocs.forEach(function (kt) {
+                                $kichThuoc.append(`<option value="${kt.maKichThuoc || kt.MaKichThuoc}">${kt.tenKichThuoc || kt.TenKichThuoc}</option>`);
+                            });
+                        }
+
+                        // Lưu maSP vào modal
+                        $('#modalMaSP').val(maSP);
+                    })
+                    .fail(function () {
+                        alert('Không thể tải thông tin sản phẩm!');
+                        const modalElement = document.getElementById('addToCartModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) modal.hide();
+                    });
+            }
+
+            // ✅ Cập nhật số lượng tồn khi chọn màu/kích thước
+            $('#modalMauSac, #modalKichThuoc').on('change', function () {
+                const maSP = $('#modalMaSP').val();
+                const maMauSac = $('#modalMauSac').val();
+                const maKichThuoc = $('#modalKichThuoc').val();
+
+                if (!maSP || !maMauSac || !maKichThuoc) {
+                    $('#modalSoLuongTon').text('-');
+                    return;
+                }
+
+                $.get('/Client/Shop/GetVariant', {
+                    maSp: maSP,
+                    colorId: maMauSac,
+                    sizeId: maKichThuoc
+                })
+                    .done(function (variant) {
+                        const soLuongTon = variant.soLuongTon || variant.SoLuongTon || 0;
+                        $('#modalSoLuongTon').text(soLuongTon);
+                        $('#modalSoLuong').attr('max', soLuongTon);
+                    })
+                    .fail(function () {
+                        $('#modalSoLuongTon').text('-');
+                    });
+            });
+
+            // ✅ Xử lý submit form thêm vào giỏ
+            $('#formAddToCart').on('submit', function (e) {
+                e.preventDefault();
+
+                const maSP = $('#modalMaSP').val();
+                const maMauSac = $('#modalMauSac').val();
+                const maKichThuoc = $('#modalKichThuoc').val();
+                const soLuong = parseInt($('#modalSoLuong').val()) || 1;
+
+                if (!maMauSac || !maKichThuoc) {
+                    alert('Vui lòng chọn màu sắc và kích thước!');
+                    return;
+                }
+
+                // Lấy MaChiTietSP
+                $.get('/Client/Shop/GetVariant', {
+                    maSp: maSP,
+                    colorId: maMauSac,
+                    sizeId: maKichThuoc
+                })
+                    .done(function (variant) {
+                        const maChiTietSP = variant.maChiTietSP || variant.MaChiTietSP;
+                        if (!maChiTietSP) {
+                            alert('Không tìm thấy biến thể sản phẩm này!');
+                            return;
+                        }
+
+                        // Lấy MaKH từ user hiện tại (cần đăng nhập)
+                        $.get('/Client/Shop/GetMaKH')
+                            .done(function (response) {
+                                if (!response || !response.maKH) {
+                                    alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+                                    window.location.href = '/Client/Account/Login';
+                                    return;
+                                }
+
+                                // Gọi API thêm vào giỏ
+                                $.ajax({
+                                    url: '/api/Cart/add',
+                                    method: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({
+                                        maKH: response.maKH,
+                                        maChiTietSP: maChiTietSP,
+                                        soLuong: soLuong
+                                    }),
+                                    success: function (result) {
+                                        alert('Đã thêm vào giỏ hàng thành công!');
+                                        const modalElement = document.getElementById('addToCartModal');
+                                        const modal = bootstrap.Modal.getInstance(modalElement);
+                                        if (modal) modal.hide();
+                                    },
+                                    error: function (xhr) {
+                                        if (xhr.status === 401) {
+                                            alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+                                            window.location.href = '/Client/Account/Login';
+                                        } else {
+                                            alert(xhr.responseJSON?.message || 'Không thể thêm vào giỏ hàng!');
+                                        }
+                                    }
+                                });
+                            })
+                            .fail(function () {
+                                alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+                                window.location.href = '/Client/Account/Login';
+                            });
+                    })
+                    .fail(function () {
+                        alert('Không thể lấy thông tin sản phẩm!');
+                    });
+            });
+
+            function escapeHtml(text) {
+                if (!text && text !== 0) return '';
+                return String(text).replace(/[&"'<>]/g, s => ({
+                    '&': '&amp;', '"': '&quot;', "'": '&#39;', '<': '&lt;', '>': '&gt;'
+                }[s]));
+            }
+        });
+    </script>
+}
+
+<!-- ✅ Modal chọn màu sắc và kích thước -->
+<div class="modal fade" id="addToCartModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Chọn màu sắc và kích thước</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form id="formAddToCart">
+                <div class="modal-body">
+                    <div id="modalProductInfo" class="mb-3"></div>
+                    <input type="hidden" id="modalMaSP" />
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Màu sắc: <span class="text-danger">*</span></label>
+                        <select id="modalMauSac" class="form-control" required>
+                            <option value="">-- Chọn màu sắc --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Kích thước: <span class="text-danger">*</span></label>
+                        <select id="modalKichThuoc" class="form-control" required>
+                            <option value="">-- Chọn kích thước --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Số lượng:</label>
+                        <input type="number" id="modalSoLuong" class="form-control" value="1" min="1" required />
+                        <small class="text-muted">Còn lại: <span id="modalSoLuongTon">-</span></small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
