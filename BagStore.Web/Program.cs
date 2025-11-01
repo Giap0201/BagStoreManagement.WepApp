@@ -1,33 +1,38 @@
 ﻿using BagStore.Data;
+
+using BagStore.Domain.Entities;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;
 using BagStore.Web.Repositories.Interfaces;
 using BagStore.Web.Services.Implementations;
 using BagStore.Web.Services.Interfaces;
+using BagStore.Web.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 using BagStore.Services.Interfaces;
 using BagStore.Services.Implementations;
 using BagStore.Repositories;
 using BagStore.Services;
 using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.AppConfig.Implementations;
-using BagStore.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================
-// 1️⃣ Cấu hình DbContext
+// 1️⃣ DbContext
 // ============================
 builder.Services.AddDbContext<BagStoreDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BagStoreDbContext1")));
 
 // ============================
-// 2️⃣ Đăng ký Identity
+// 2️⃣ Identity
 // ============================
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -44,7 +49,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 // ============================
-// 3️⃣ Cấu hình JWT (API)
+// 3️⃣ JWT Authentication
 // ============================
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
@@ -53,10 +58,10 @@ var jwtAudience = jwtSection["Audience"];
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+.AddJwtBearer(options =>
 {
     options.RequireHttpsMetadata = true;
     options.SaveToken = true;
@@ -68,7 +73,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!)),
         ClockSkew = TimeSpan.FromSeconds(30)
     };
 });
@@ -80,14 +85,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
 
 // ============================
-// 5️⃣ Đăng ký Repositories & Services
+// 5️⃣ Register Repositories & Services
 // ============================
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDanhMucLoaiTuiRepository, DanhMucLoaiTuiImpl>();
@@ -109,18 +112,18 @@ builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
 builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
 builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
 builder.Services.AddScoped<IDonHangService, DonHangService>();
-builder.Services.AddScoped<IAnhSanPhamRepository, AnhSanPhamImpl>();
-builder.Services.AddScoped<IAnhSanPhamService, AnhSanPhamService>();
+
 
 // Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
+builder.Services.AddScoped<FileUploadService>();
 builder.Services.AddScoped<IEnumMapper, EnumMapper>();
 
 // ============================
-// 6️⃣ Controllers + Global Filter
+// 6️⃣ Controllers
 // ============================
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.Add<ValidateModelAttribute>(); // tự động validate model trả BaseResponse
+    options.Filters.Add<ValidateModelAttribute>();
 })
 .ConfigureApiBehaviorOptions(options =>
 {
@@ -133,12 +136,12 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddHttpClient();
 
 // ============================
-// 8️⃣ Build app
+// 8️⃣ Build App
 // ============================
 var app = builder.Build();
 
 // ============================
-// 9️⃣ Tạo role + admin mặc định nếu chưa có
+// 9️⃣ Create default admin
 // ============================
 using (var scope = app.Services.CreateScope())
 {
@@ -179,7 +182,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ============================
-// 10️⃣ Middleware
+// 🔟 Middleware
 // ============================
 if (app.Environment.IsDevelopment())
 {
@@ -191,18 +194,22 @@ else
     app.UseHsts();
 }
 
-app.UseMiddleware<ExceptionMiddleware>(); // Global exception
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
+
 app.UseRouting();
-
 app.UseCors("AllowAll");
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 // ============================
-// 11️⃣ Map Controllers & Routes
+// 11️⃣ Map Routes
 // ============================
 app.MapControllers();
 
@@ -213,6 +220,17 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// ✅ Optional: Debug route viewer (fix lỗi Body inferred)
+app.MapGet("/routes", ([FromServices] IEnumerable<EndpointDataSource> sources) =>
+{
+    var routeNames = sources
+        .SelectMany(ds => ds.Endpoints)
+        .Select(e => e.DisplayName)
+        .Where(n => !string.IsNullOrEmpty(n))
+        .ToList();
+    return Results.Ok(routeNames);
+});
 
 // ============================
 // 12️⃣ Run
