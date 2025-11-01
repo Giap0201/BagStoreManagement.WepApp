@@ -18,6 +18,15 @@ namespace BagStore.Web.Areas.Admin.Controllers
         [Route("Admin/DonHang")]
         public IActionResult Index()
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized("User chưa đăng nhập");
+            }
+
+            if (!User.IsInRole("Admin"))
+            {
+                return Forbid("Không có quyền Admin");
+            }
             if (!User.IsInRole("Admin"))
             {
                 return NotFound();

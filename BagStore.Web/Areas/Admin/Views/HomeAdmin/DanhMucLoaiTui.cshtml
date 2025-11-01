@@ -78,10 +78,7 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function () {
@@ -129,6 +126,7 @@
                 $.ajax({
                     url: apiUrl,
                     method: 'GET',
+                    xhrFields: { withCredentials: true },
                     success: function (res) {
                         if (res.status && res.status.toLowerCase() === 'success') {
                             allCategories = res.data || res;
@@ -185,6 +183,9 @@
                 $.ajax({
                     url: `${apiUrl}/${id}`,
                     method: 'GET',
+                        xhrFields: {
+                            withCredentials: true
+                        },
                     success: function (res) {
                         if (res.status && res.status.toLowerCase() === 'success') {
                             const item = res.data || res;
@@ -218,6 +219,9 @@
                         $.ajax({
                             url: `${apiUrl}/${id}`,
                             method: 'DELETE',
+                            xhrFields: {
+                                withCredentials: true
+                            },
                             success: function (res) {
                                 if (res.status && res.status.toLowerCase() === 'success') {
                                     Swal.fire('Đã xóa!', res.message || 'Danh mục đã bị xóa.', 'success');
@@ -253,6 +257,9 @@
                 $.ajax({
                     url: url,
                     method: method,
+                    xhrFields: {
+                        withCredentials: true
+                    },
                     contentType: 'application/json',
                     data: JSON.stringify(data),
                     success: function (res) {
