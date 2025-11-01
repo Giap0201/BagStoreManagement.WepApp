@@ -1,6 +1,6 @@
 ﻿namespace BagStore.Web.Models.ViewModels
 {
-    public class SanPhamResponseDto2
+    public class SanPhamResponseDto
     {
         public int MaSP { get; set; }
         public string TenSP { get; set; }

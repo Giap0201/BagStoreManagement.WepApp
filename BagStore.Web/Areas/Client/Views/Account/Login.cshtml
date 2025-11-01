@@ -68,7 +68,7 @@
                 // data: JSON.stringify({ userName: username, password: password }),
                 data: JSON.stringify({
                     userName: $("#UserName").val(),
-                    password: $("#Password").val()
+                    password: $("#Password").val() 
                 }),
                 success: function (res) {
                     console.log("Token nhận được:", res.token);
@@ -82,7 +82,7 @@
                         const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
                         if (role === "Admin")
-                            window.location.href = "/Admin/Customer/Index";
+                            window.location.href = "/Admin/Customer";
                         else
                             window.location.href = "/Client/Home/Index";
                     } catch (err) {

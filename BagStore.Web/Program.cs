@@ -1,6 +1,5 @@
 ﻿using BagStore.Data;
 
-using BagStore.Domain.Entities;
 using BagStore.Web.Models.Entities;
 using BagStore.Web.Repositories.implementations;
 using BagStore.Web.Repositories.Implementations;
@@ -22,6 +21,7 @@ using BagStore.Repositories;
 using BagStore.Services;
 using BagStore.Web.AppConfig.Interface;
 using BagStore.Web.AppConfig.Implementations;
+using BagStore.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,6 +112,8 @@ builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
 builder.Services.AddScoped<IDonHangRepository, DonHangImpl>();
 builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
 builder.Services.AddScoped<IDonHangService, DonHangService>();
+builder.Services.AddScoped<IAnhSanPhamRepository, AnhSanPhamImpl>();
+builder.Services.AddScoped<IAnhSanPhamService, AnhSanPhamService>();
 
 
 // Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
@@ -219,7 +221,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{area:Client}/{controller=Home}/{action=Index}/{id?}");
 
 // ✅ Optional: Debug route viewer (fix lỗi Body inferred)
 app.MapGet("/routes", ([FromServices] IEnumerable<EndpointDataSource> sources) =>
