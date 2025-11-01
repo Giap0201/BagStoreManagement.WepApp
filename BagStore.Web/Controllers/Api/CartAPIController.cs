@@ -3,13 +3,14 @@ using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BagStore.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -20,6 +21,7 @@ namespace BagStore.Web.Controllers
         }
 
         [HttpGet("{userId}")]
+        [AllowAnonymous] // ✅ Cho phép Client xem giỏ hàng của mình
         public async Task<IActionResult> GetCart(int userId)
         {
             var cart = await _cartService.GetCartByUserIdAsync(userId);
@@ -30,6 +32,7 @@ namespace BagStore.Web.Controllers
         }
 
         [HttpPost("add")]
+        [AllowAnonymous] // ✅ Cho phép Client thêm vào giỏ hàng
         public async Task<IActionResult> AddToCart([FromBody] AddCartItemRequest request)
         {
             if (!ModelState.IsValid)
@@ -39,10 +42,11 @@ namespace BagStore.Web.Controllers
             if (!result)
                 return BadRequest(new { message = "Không thể thêm sản phẩm vào giỏ hàng." });
 
-            return Ok(new { message = "Đã thêm sản phẩm vào giỏ hàng thành công." });
+            return Ok(new { success = true, message = "Đã thêm sản phẩm vào giỏ hàng thành công." });
         }
 
         [HttpDelete("{MaKH:int}/{MaChiTietSP:int}")]
+        [AllowAnonymous] // ✅ Cho phép Client xóa khỏi giỏ hàng
         public async Task<IActionResult> DeleteCart(int MaKH, int MaChiTietSP)
         {
             try
