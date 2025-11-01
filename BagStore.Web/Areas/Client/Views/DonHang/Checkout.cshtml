@@ -37,33 +37,115 @@
                 </select>
             </div>
         </div>
-
-        <table id="checkoutTable" class="table table-bordered align-middle text-center">
-            <thead class="bg-primary text-white">
-                <tr>
-                    <th>Hình ảnh</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Màu sắc</th>
-                    <th>Kích cỡ</th>
-                    <th>Số lượng</th>
-                    <th>Đơn giá</th>
-                    <th>Thành tiền</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="6" class="text-end">Tổng cộng</th>
-                    <th id="tongTien" class="text-danger">0 ₫</th>
-                </tr>
-            </tfoot>
-        </table>
+        <!-- ✅ Responsive Table -->
+        <div class="table-responsive shadow-sm rounded-3">
+            <table id="checkoutTable" class="table table-bordered align-middle text-center">
+                <thead class="bg-primary text-white">
+                    <tr>
+                        <th>Hình ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Màu sắc</th>
+                        <th>Kích cỡ</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="6" class="text-end">Tổng cộng</th>
+                        <th id="tongTien" class="text-danger">0 ₫</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
 
         <div class="text-center mt-4">
             <button id="btnOrder" type="button" class="btn btn-success px-4 py-2 fw-bold">Thanh toán</button>
         </div>
     </form>
 </div>
+
+<!-- ✅ Responsive CSS -->
+<style>
+    @@media (max-width: 992px) {
+        h1 .font-weight-semi-bold
+
+    {
+        font-size: 1.75rem;
+    }
+
+    #checkoutForm .form-label {
+        font-size: 0.95rem;
+    }
+
+    #checkoutTable th,
+    #checkoutTable td {
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    }
+
+    @@media (max-width: 768px) {
+        .container.mb-5
+
+    {
+        padding: 0 10px;
+    }
+
+    #checkoutTable {
+        font-size: 0.85rem;
+    }
+
+        #checkoutTable img {
+            width: 55px !important;
+            height: 55px !important;
+        }
+
+    .table-responsive {
+        border: 1px solid #dee2e6;
+    }
+
+    .btnOrder {
+        width: 100%;
+    }
+
+    }
+
+    @@media (max-width: 576px) {
+        .d-flex.flex-column.align-items-center.justify-content-center
+
+    {
+        min-height: 200px !important;
+    }
+
+    h1.font-weight-semi-bold {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    #checkoutTable th,
+    #checkoutTable td {
+        padding: 0.5rem 0.3rem;
+    }
+
+    #checkoutForm .form-control,
+    #checkoutForm .form-select {
+        font-size: 0.9rem;
+    }
+
+    .text-end {
+        text-align: right !important;
+    }
+
+    #tongTien {
+        font-size: 1rem;
+    }
+
+    }
+</style>
 
 <script>
     const userId = '@userId';
