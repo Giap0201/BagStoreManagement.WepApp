@@ -1,6 +1,6 @@
 ﻿using BagStore.Domain.Entities;
 using BagStore.Models.Common;
-using BagStore.Web.Models.DTOs.SanPhams;
+using BagStore.Web.Models.DTOs;
 using BagStore.Web.Models.ViewModels.SanPhams;
 
 namespace BagStore.Web.Services.Interfaces
@@ -20,5 +20,7 @@ namespace BagStore.Web.Services.Interfaces
         Task<BaseResponse<List<AnhSanPhamResponseDto>>> GetAllAsync();
 
         Task<BaseResponse<List<AnhSanPham>>> CreateMultipleAsync(int maSP, List<IFormFile> files);
+
+        Task<BaseResponse<AnhSanPhamResponseDto>> SetPrimaryAsync(int maAnh);
     }
 }

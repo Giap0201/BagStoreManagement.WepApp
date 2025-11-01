@@ -20,6 +20,7 @@ namespace BagStore.Web.Areas.Admin.Controllers
             _userService = userService;
         }
 
+        [Route("Admin/Customer")]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllCustomersAsync();
