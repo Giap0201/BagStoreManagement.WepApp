@@ -94,7 +94,7 @@ namespace BagStore.Web.Services.Implementations
             else
             {
                 // 🟢 Trường hợp lấy từ GIỎ HÀNG
-                var cart = await _cartService.GetCartByUserIdAsync(maKH);
+                var cart = await _cartService.GetCartByUserIdAsync(userId);
                 if (cart == null || !cart.Items.Any())
                     throw new InvalidOperationException("Giỏ hàng của bạn đang trống.");
 
@@ -149,10 +149,10 @@ namespace BagStore.Web.Services.Implementations
             await _dbContext.SaveChangesAsync();
 
             // 6️⃣ Nếu đơn hàng được lấy từ giỏ → xoá giỏ hàng
-            if (request.ChiTietDonHang == null || !request.ChiTietDonHang.Any())
-            {
-                await _cartService.ClearCartAsync(maKH);
-            }
+            //if (request.ChiTietDonHang == null || !request.ChiTietDonHang.Any())
+            //{
+            //    await _cartService.ClearCartAsync(userId);
+            //}
 
             return MapToDonHangResponse(donHang);
         }

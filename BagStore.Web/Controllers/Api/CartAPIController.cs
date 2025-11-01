@@ -9,7 +9,7 @@ namespace BagStore.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+   // [Authorize(Roles = "Admin")]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -20,7 +20,7 @@ namespace BagStore.Web.Controllers
         }
 
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetCart(int userId)
+        public async Task<IActionResult> GetCart(string userId)
         {
             var cart = await _cartService.GetCartByUserIdAsync(userId);
             if (cart == null || !cart.Items.Any())
