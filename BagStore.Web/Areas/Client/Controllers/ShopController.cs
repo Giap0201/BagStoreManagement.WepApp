@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BagStore.Domain.Entities;
 using BagStore.Data; // đổi nếu DbContext ở namespace khác
 using BagStore.Web.Areas.Client.Models;
+using BagStore.Data;
 
 namespace BagStore.Web.Areas.Client.Controllers
 {
@@ -84,65 +84,6 @@ namespace BagStore.Web.Areas.Client.Controllers
                 MaChiTietSP = variant.MaChiTietSP,
                 GiaBan = variant.GiaBan,
                 SoLuongTon = variant.SoLuongTon
-            });
-        }
-
-        // ✅ API lấy MaKH của user hiện tại (dùng cho modal thêm vào giỏ)
-        // GET: /Client/Shop/GetMaKH
-        public IActionResult GetMaKH()
-        {
-            var userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Json(new { maKH = (int?)null });
-            }
-
-            var khachHang = _context.KhachHangs.FirstOrDefault(k => k.ApplicationUserId == userId);
-            if (khachHang == null)
-            {
-                return Json(new { maKH = (int?)null });
-            }
-
-            return Json(new { maKH = khachHang.MaKH });
-        }
-
-        // ✅ API lấy danh sách màu sắc và kích thước của sản phẩm (cho popup)
-        // GET: /Client/Shop/GetProductOptions?maSP=...
-        public IActionResult GetProductOptions(int maSP)
-        {
-            var sanPham = _context.SanPhams
-                .Include(sp => sp.ChiTietSanPhams)
-                    .ThenInclude(ct => ct.KichThuoc)
-                .Include(sp => sp.ChiTietSanPhams)
-                    .ThenInclude(ct => ct.MauSac)
-                .Include(sp => sp.AnhSanPhams)
-                .FirstOrDefault(sp => sp.MaSP == maSP);
-
-            if (sanPham == null)
-                return NotFound(new { message = "Không tìm thấy sản phẩm" });
-
-            // Lấy danh sách màu sắc và kích thước duy nhất
-            var mauSacs = sanPham.ChiTietSanPhams
-                .Select(ct => ct.MauSac)
-                .Distinct()
-                .Select(m => new { m.MaMauSac, m.TenMauSac })
-                .ToList();
-
-            var kichThuocs = sanPham.ChiTietSanPhams
-                .Select(ct => ct.KichThuoc)
-                .Distinct()
-                .Select(k => new { k.MaKichThuoc, k.TenKichThuoc })
-                .ToList();
-
-            var anhChinh = sanPham.AnhSanPhams?.FirstOrDefault(a => a.LaHinhChinh)?.DuongDan;
-
-            return Json(new
-            {
-                maSP = sanPham.MaSP,
-                tenSP = sanPham.TenSP,
-                anhChinh = anhChinh,
-                mauSacs = mauSacs,
-                kichThuocs = kichThuocs
             });
         }
 

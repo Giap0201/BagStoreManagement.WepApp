@@ -3,7 +3,6 @@ using BagStore.Web.Models.DTOs;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 
 namespace BagStore.Web.Controllers.Api
 {
@@ -79,9 +78,7 @@ namespace BagStore.Web.Controllers.Api
         //pageSize: so luong muc (mac dinh 10)
         // GET: /api/SanPhamApi?page=1&pageSize=5 (Lấy trang 1, 5 mục)
         [HttpGet]
-        [AllowAnonymous] // ✅ Cho phép Client truy cập không cần đăng nhập
-        public async Task<IActionResult> GetAll([FromQuery] int? page, [FromQuery] int? pageSize, [FromQuery] string? search,
-            [FromQuery] int? maLoaiTui, [FromQuery] int? maThuongHieu, [FromQuery] int? maChatLieu)
+        public async Task<IActionResult> GetAll([FromQuery] int? page, [FromQuery] int? pageSize, [FromQuery] string? search)
         {
             // Nếu không cung cấp page hoặc pageSize, gọi phương thức GetAllAsync() cũ
             if (!page.HasValue || !pageSize.HasValue)
@@ -92,26 +89,6 @@ namespace BagStore.Web.Controllers.Api
 
             // Nếu có phân trang, gọi phương thức mới
             var pagedResponse = await _service.GetAllPagingAsync(page.Value, pageSize.Value, search);
-
-            // ✅ Áp dụng filter nếu có
-            if (pagedResponse.Status == "success" && pagedResponse.Data != null)
-            {
-                var filteredData = pagedResponse.Data.Data;
-
-                if (maLoaiTui.HasValue)
-                    filteredData = filteredData.Where(x => x.MaLoaiTui == maLoaiTui.Value).ToList();
-
-                if (maThuongHieu.HasValue)
-                    filteredData = filteredData.Where(x => x.MaThuongHieu == maThuongHieu.Value).ToList();
-
-                if (maChatLieu.HasValue)
-                    filteredData = filteredData.Where(x => x.MaChatLieu == maChatLieu.Value).ToList();
-
-                // Cập nhật lại total và data
-                pagedResponse.Data.Data = filteredData;
-                pagedResponse.Data.Total = filteredData.Count;
-            }
-
             return pagedResponse.Status == "error" ? BadRequest(pagedResponse) : Ok(pagedResponse);
         }
     }
