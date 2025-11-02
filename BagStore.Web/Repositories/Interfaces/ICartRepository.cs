@@ -1,6 +1,7 @@
 ﻿
 using BagStore.Domain.Entities;
 using BagStore.Web.Models.DTOs.Responses;
+using BagStore.Web.Models.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -25,5 +26,7 @@ namespace BagStore.Repositories
 
         // Lưu thay đổi
         Task<int> SaveChangesAsync();
+
+       Task<KhachHang?> GetCustomerByUserIdAsync(string userId);
     }
 }

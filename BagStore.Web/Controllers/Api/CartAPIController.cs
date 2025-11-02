@@ -45,13 +45,13 @@ namespace BagStore.Web.Controllers
             return Ok(new { success = true, message = "Đã thêm sản phẩm vào giỏ hàng thành công." });
         }
 
-        [HttpDelete("{MaKH:int}/{MaChiTietSP:int}")]
+        [HttpDelete("{UserId}/{MaChiTietSP:int}")]
         [AllowAnonymous] // ✅ Cho phép Client xóa khỏi giỏ hàng
-        public async Task<IActionResult> DeleteCart(int MaKH, int MaChiTietSP)
+        public async Task<IActionResult> DeleteCart(string UserId, int MaChiTietSP)
         {
             try
             {
-                var result = await _cartService.RemoveCartItemAsync(MaKH, MaChiTietSP);
+                var result = await _cartService.RemoveCartItemAsync(UserId, MaChiTietSP);
                 if (result)
                     return Ok(new { message = "Đã xóa sản phẩm khỏi giỏ hàng thành công." });
 
