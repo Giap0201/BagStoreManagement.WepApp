@@ -10,6 +10,7 @@ namespace BagStore.Web.Controllers.Api
     [Route("api/[controller]")]
     [ApiController]
     [ValidateModel] // Tự động validate DataAnnotation trên DTO, trả BaseResponse nếu lỗi
+    [Authorize(Roles = "Admin")]
     public class SanPhamApiController : ControllerBase
     {
         private readonly ISanPhamService _service;
