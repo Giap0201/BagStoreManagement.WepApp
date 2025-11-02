@@ -263,7 +263,7 @@
 
                currentSearch = $("#searchInput").val() || '';
                $.ajax({
-                url: apiUrl,
+                url:  '/api/SanPhamApi/Admin',
                 method: 'GET',
                 data: {
                     page: currentPage,       // Gửi số trang

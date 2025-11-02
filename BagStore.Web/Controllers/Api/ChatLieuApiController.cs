@@ -22,6 +22,7 @@ namespace BagStore.Web.Controllers.Api
 
         // GET: /api/ChatLieu
         [HttpGet]
+        [AllowAnonymous] // Allow client to access filter options
         public async Task<IActionResult> GetAll()
         {
             var response = await _service.GetAllAsync();
