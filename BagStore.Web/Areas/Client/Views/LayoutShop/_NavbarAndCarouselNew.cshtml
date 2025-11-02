@@ -11,7 +11,7 @@
         <div class="navbar-nav mr-auto py-0">
             <a asp-area="Client" asp-action="Index" asp-controller="Home" class="nav-item nav-link active">Trang chủ</a>
             <a asp-controller="Shop" asp-action="Index" asp-area="Client" class="nav-item nav-link">Sản phẩm</a>
-            <a href="detail.html" class="nav-item nav-link">Đơn hàng</a>
+            <a asp-area="Client" asp-action="Index" asp-controller="DonHang" class="nav-item nav-link">Đơn hàng</a>
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
                 <div class="dropdown-menu rounded-0 m-0">
@@ -22,8 +22,8 @@
             <a href="contact.html" class="nav-item nav-link">Liên hệ</a>
         </div>
         <div class="navbar-nav ml-auto py-0">
-            <a href="" class="nav-item nav-link">Đăng nhập</a>
-            <a href="" class="nav-item nav-link">Đăng kí</a>
+            <a asp-area="Client" asp-action="Login" asp-controller="Account" class="nav-item nav-link">Đăng nhập</a>
+            <a asp-area="Client" asp-action="Register" asp-controller="Account" class="nav-item nav-link">Đăng kí</a>
         </div>
     </div>
 </nav>
