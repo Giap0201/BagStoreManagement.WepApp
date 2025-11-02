@@ -20,9 +20,15 @@ namespace BagStore.Web.Areas.Client.Controllers
         }
 
         // GET: /Client/Shop
-        public IActionResult Index(int? sizeId, int? colorId, int? categoryId, int page = 1)
+        public IActionResult Index(int? sizeId, int? colorId, int? categoryId, int? loaiTuiId, int? maThuongHieu, int? maChatLieu, int page = 1)
         {
-            var vm = BuildFilterViewModel(sizeId, colorId, categoryId, page);
+            // Support both categoryId (old) and loaiTuiId (from DanhMucLoaiTui component)
+            var finalCategoryId = categoryId ?? loaiTuiId;
+            var vm = BuildFilterViewModel(sizeId, colorId, finalCategoryId, page);
+            // Pass filter values to view for initialization
+            ViewBag.MaThuongHieu = maThuongHieu;
+            ViewBag.MaChatLieu = maChatLieu;
+            ViewBag.LoaiTuiId = finalCategoryId;
             return View(vm);
         }
 
@@ -193,5 +199,6 @@ namespace BagStore.Web.Areas.Client.Controllers
 
             return vm;
         }
+
     }
 }
