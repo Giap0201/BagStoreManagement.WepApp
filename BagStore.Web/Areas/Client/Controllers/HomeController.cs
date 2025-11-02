@@ -15,7 +15,7 @@ namespace BagStore.Web.Areas.Client.Controllers
             _context = context;
         }
 
-        // Trang chủ: hiển thị danh sách sản phẩm mới
+        // Trang chủ: hiển thị top 10 sản phẩm mới nhất
         public IActionResult Index(int? loaiTuiId)
         {
             // Query base
@@ -31,10 +31,10 @@ namespace BagStore.Web.Areas.Client.Controllers
                 query = query.Where(sp => sp.MaLoaiTui == loaiTuiId.Value);
             }
 
-            // Lấy sản phẩm (nếu có filter thì lấy tất cả, không thì lấy 8 sản phẩm mới nhất)
+            // Lấy top 10 sản phẩm mới nhất (sắp xếp theo NgayCapNhat giảm dần)
             var sanPhams = query
                 .OrderByDescending(sp => sp.NgayCapNhat)
-                .Take(loaiTuiId.HasValue ? 100 : 8) // Nếu có filter, lấy nhiều hơn
+                .Take(10)
                 .Select(sp => new
                 {
                     sp.MaSP,

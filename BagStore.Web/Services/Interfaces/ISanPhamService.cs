@@ -19,6 +19,6 @@ namespace BagStore.Web.Services.Interfaces
         Task<BaseResponse<bool>> DeleteAsync(int maSanPham);
 
         //lay danh sach san pham co phan trang
-        Task<BaseResponse<PageResult<SanPhamResponseDto>>> GetAllPagingAsync(int page, int pageSize, string? search = null);
+        Task<BaseResponse<PageResult<SanPhamResponseDto>>> GetAllPagingAsync(int page, int pageSize, string? search = null, int? maLoaiTui = null, int? maThuongHieu = null, int? maChatLieu = null);
     }
 }

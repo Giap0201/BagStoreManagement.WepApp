@@ -188,13 +188,13 @@ namespace BagStore.Web.Services.Implementations
             };
         }
 
-        public async Task<BaseResponse<PageResult<SanPhamResponseDto>>> GetAllPagingAsync(int page, int pageSize, string? search = null)
+        public async Task<BaseResponse<PageResult<SanPhamResponseDto>>> GetAllPagingAsync(int page, int pageSize, string? search = null, int? maLoaiTui = null, int? maThuongHieu = null, int? maChatLieu = null)
         {
             //Dam bao gia tri phan trang hop le
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
-            //goi repository de lay du lieu
-            var pagedResult = await _repo.GetAllPagingAsync(page, pageSize, search);
+            //goi repository de lay du lieu (co filter)
+            var pagedResult = await _repo.GetAllPagingAsync(page, pageSize, search, maLoaiTui, maThuongHieu, maChatLieu);
 
             //map ket qua tu PageResult<SanPham> sang PageResult<SanPhamResponseDto>
             var dtos = pagedResult.Data.Select(MapEntityToResponse).ToList();

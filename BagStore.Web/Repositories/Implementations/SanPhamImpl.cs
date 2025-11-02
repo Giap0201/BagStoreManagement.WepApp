@@ -41,7 +41,7 @@ namespace BagStore.Web.Repositories.implementations
                 .ToListAsync();
         }
 
-        public async Task<PageResult<SanPham>> GetAllPagingAsync(int page, int pageSize, string? search = null)
+        public async Task<PageResult<SanPham>> GetAllPagingAsync(int page, int pageSize, string? search = null, int? maLoaiTui = null, int? maThuongHieu = null, int? maChatLieu = null)
         {
             //tao IQueryable co so voi cac include can thiet
             var query = _context.SanPhams
@@ -57,7 +57,26 @@ namespace BagStore.Web.Repositories.implementations
                 var lowerSearch = search.ToLower();
                 query = query.Where(p => p.TenSP.ToLower().Contains(lowerSearch));
             }
-            //lay tong so luong ban ghi
+
+            //loc theo loai tui
+            if (maLoaiTui.HasValue)
+            {
+                query = query.Where(p => p.MaLoaiTui == maLoaiTui.Value);
+            }
+
+            //loc theo thuong hieu
+            if (maThuongHieu.HasValue)
+            {
+                query = query.Where(p => p.MaThuongHieu == maThuongHieu.Value);
+            }
+
+            //loc theo chat lieu
+            if (maChatLieu.HasValue)
+            {
+                query = query.Where(p => p.MaChatLieu == maChatLieu.Value);
+            }
+
+            //lay tong so luong ban ghi (SAU khi filter)
             var totalRecords = await query.CountAsync();
 
             //ap dung phan trang
