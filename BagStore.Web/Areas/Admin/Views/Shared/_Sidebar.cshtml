@@ -16,45 +16,54 @@
         </li>
         <li class="nav-item">
             <a class="nav-link" asp-area="Admin" asp-action="Index" asp-controller="SanPham">
-                <span class="menu-title">Sản phẩm</span>
+                <span class="menu-title font-weight-bold">Sản phẩm</span>
                 <i class="mdi mdi-home menu-icon"></i>
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                <span class="menu-title">Danh mục</span>
+                <span class="menu-title font-weight-bold font-weight-bold">Danh mục</span>
                 <i class="menu-arrow"></i>
                 <i class="mdi mdi-crosshairs-gps menu-icon"></i>
             </a>
             <div class="collapse" id="ui-basic">
                 <ul class="nav flex-column sub-menu">
-                    <li class="nav-item"> <a class="nav-link" asp-action="DanhMucLoaiTui" asp-area="Admin" asp-controller="HomeAdmin">Danh mục loại túi</a></li>
-                    <li class="nav-item"> <a class="nav-link" asp-action="MauSac" asp-area="Admin" asp-controller="HomeAdmin">Màu sắc</a></li>
-                    <li class="nav-item"> <a class="nav-link" asp-action="ChatLieu" asp-area="Admin" asp-controller="HomeAdmin">Chất liệu</a></li>
-                    <li class="nav-item"> <a class="nav-link" asp-action="ThuongHieu" asp-area="Admin" asp-controller="HomeAdmin">Thương hiệu</a></li>
-                    <li class="nav-item"> <a class="nav-link" asp-action="KichThuoc" asp-area="Admin" asp-controller="HomeAdmin">Kích thước</a></li>
+                    <li class="nav-item"> <a class="nav-link font-weight-bold" asp-action="DanhMucLoaiTui" asp-area="Admin" asp-controller="HomeAdmin">Danh mục loại túi</a></li>
+                    <li class="nav-item"> <a class="nav-link font-weight-bold" asp-action="MauSac" asp-area="Admin" asp-controller="HomeAdmin">Màu sắc</a></li>
+                    <li class="nav-item"> <a class="nav-link font-weight-bold" asp-action="ChatLieu" asp-area="Admin" asp-controller="HomeAdmin">Chất liệu</a></li>
+                    <li class="nav-item"> <a class="nav-link font-weight-bold" asp-action="ThuongHieu" asp-area="Admin" asp-controller="HomeAdmin">Thương hiệu</a></li>
+                    <li class="nav-item"> <a class="nav-link font-weight-bold" asp-action="KichThuoc" asp-area="Admin" asp-controller="HomeAdmin">Kích thước</a></li>
                 </ul>
             </div>
         </li>
         <li class="nav-item">
             <a class="nav-link" asp-action="Index" asp-area="Admin" asp-controller="Customer">
-                <span class="menu-title">Khách hàng</span>
+                <span class="menu-title font-weight-bold">Khách hàng</span>
                 <i class="mdi mdi-contacts menu-icon"></i>
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" asp-action="Index" asp-area="Admin" asp-controller="DonHang">
-                <span class="menu-title">Đơn hàng</span>
+                <span class="menu-title font-weight-bold">Đơn hàng</span>
                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
             </a>
         </li>
+       
         <li class="nav-item">
-            <a class="nav-link" asp-area="Client" asp-controller="Account" asp-action="Login">
-                <span class="menu-title">Đăng xuất</span>
-                <i class="mdi mdi-account-circle menu-icon"></i>
-            </a>
+            <form asp-area="Client" asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                <button type="submit"
+                        class="nav-link d-flex justify-content-between align-items-center w-100 border-0"
+                        style="background:none;">
+                    <span class="menu-title font-weight-bold">Đăng xuất</span>
+                    <i class="mdi mdi-account-circle menu-icon"></i>
+                </button>
+            </form>
         </li>
+       
+
         
+
+       
          
     </ul>
 </nav>
