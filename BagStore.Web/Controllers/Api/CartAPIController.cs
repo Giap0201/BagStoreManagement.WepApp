@@ -11,7 +11,6 @@ namespace BagStore.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-   // [Authorize(Roles = "Admin")]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;

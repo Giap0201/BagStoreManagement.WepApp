@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BagStore.Web.Areas.Admin.Controllers
@@ -6,6 +7,7 @@ namespace BagStore.Web.Areas.Admin.Controllers
     [Area("Admin")]
     [Route("Admin")]
     [Route("Admin/[controller]/[action]")]
+    [Authorize(Roles = "Admin")]
     public class HomeAdminController : Controller
     {
         public IActionResult Index()

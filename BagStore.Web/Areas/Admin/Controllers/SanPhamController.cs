@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BagStore.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class SanPhamController : Controller
     {
         private readonly ISanPhamService _service;
