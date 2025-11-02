@@ -16,25 +16,41 @@ namespace BagStore.Web.Areas.Client.Controllers
         }
 
         // Trang chủ: hiển thị danh sách sản phẩm mới
-        public IActionResult Index()
+        public IActionResult Index(int? loaiTuiId)
         {
-            // Lấy 8 sản phẩm mới nhất, có ảnh chính
-            var sanPhams = _context.SanPhams
+            // Query base
+            var query = _context.SanPhams
                 .Include(sp => sp.AnhSanPhams)
                 .Include(sp => sp.ThuongHieu)
                 .Include(sp => sp.ChatLieu)
+                .AsQueryable();
+
+            // Lọc theo loại túi nếu có
+            if (loaiTuiId.HasValue)
+            {
+                query = query.Where(sp => sp.MaLoaiTui == loaiTuiId.Value);
+            }
+
+            // Lấy sản phẩm (nếu có filter thì lấy tất cả, không thì lấy 8 sản phẩm mới nhất)
+            var sanPhams = query
                 .OrderByDescending(sp => sp.NgayCapNhat)
-                .Take(8)
+                .Take(loaiTuiId.HasValue ? 100 : 8) // Nếu có filter, lấy nhiều hơn
                 .Select(sp => new
                 {
                     sp.MaSP,
                     sp.TenSP,
                     sp.MoTaChiTiet,
-                    sp.ThuongHieu.TenThuongHieu,
-                    sp.ChatLieu.TenChatLieu,
-                    AnhChinh = sp.AnhSanPhams.FirstOrDefault(a => a.LaHinhChinh).DuongDan
+                    TenThuongHieu = sp.ThuongHieu != null ? sp.ThuongHieu.TenThuongHieu : "",
+                    TenChatLieu = sp.ChatLieu != null ? sp.ChatLieu.TenChatLieu : "",
+                    AnhChinh = sp.AnhSanPhams.FirstOrDefault(a => a.LaHinhChinh) != null 
+                        ? sp.AnhSanPhams.FirstOrDefault(a => a.LaHinhChinh).DuongDan 
+                        : ""
                 })
                 .ToList();
+
+            // Pass filter info to view
+            ViewBag.LoaiTuiId = loaiTuiId;
+            ViewBag.HasFilter = loaiTuiId.HasValue;
 
             return View(sanPhams);
         }
