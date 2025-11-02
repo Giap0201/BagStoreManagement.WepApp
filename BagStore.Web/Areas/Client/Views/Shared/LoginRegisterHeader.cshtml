@@ -1,0 +1,77 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using BagStore.Web.Models.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<div class="row bg-secondary py-2 px-xl-5">
+    <div class="col-lg-6 d-none d-lg-block">
+        <div class="d-inline-flex align-items-center">
+            <a class="text-dark" href="">FAQs</a>
+            <span class="text-muted px-2">|</span>
+            <a class="text-dark" href="">Help</a>
+            <span class="text-muted px-2">|</span>
+            <a class="text-dark" href="">Support</a>
+        </div>
+    </div>
+    <div class="col-lg-6 text-center text-lg-right">
+        <div class="d-inline-flex align-items-center">
+            <a class="text-dark px-2" href="">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a class="text-dark px-2" href="">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a class="text-dark px-2" href="">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a class="text-dark px-2" href="">
+                <i class="fab fa-instagram"></i>
+            </a>
+            <a class="text-dark pl-2" href="">
+                <i class="fab fa-youtube"></i>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="row align-items-center py-3 px-xl-5">
+    <div class="col-lg-9 d-none d-lg-block">
+        <a class="text-decoration-none" asp-area="Client" asp-controller="Home" asp-action="Index">
+            <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">UTC</span>Shopper</h1>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-12 text-right">
+        <!-- 👤 User Menu -->
+        <ul class="navbar-nav flex-row justify-content-end align-items-center">
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <!-- 👤 User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userMenu" data-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-user-circle fa-lg me-1 text-primary"></i>
+                        <span class="fw-normal">@UserManager.GetUserName(User)</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right shadow-sm text-center">
+                        <li><a class="dropdown-item" asp-area="Client" asp-controller="Account" asp-action="Profile">Hồ sơ</a></li>
+                        <li><a class="dropdown-item" asp-area="Client" asp-controller="Account" asp-action="ChangePassword">Đổi mật khẩu</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <form asp-area="Client" asp-controller="Account" asp-action="Logout" method="post">
+                                <button type="submit" class="dropdown-item text-danger fw-normal">Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            }
+            else
+            {
+                <li class="nav-item me-2">
+                    <a class="btn btn-primary-custom" asp-area="Client" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-custom" asp-area="Client" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
