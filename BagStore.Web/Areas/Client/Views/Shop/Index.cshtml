@@ -105,9 +105,13 @@
                 $(document).on('click', '#pagination a.page-link', function (e) {
                     e.preventDefault();
                     const page = parseInt($(this).data('page'));
-                    if (!isNaN(page) && page > 0) {
+                    if (!isNaN(page) && page > 0 && !$(this).parent().hasClass('disabled')) {
                         currentPage = page;
                         loadSanPhams();
+                        // Scroll lên đầu trang sản phẩm
+                        $('html, body').animate({
+                            scrollTop: $('#product-list').offset().top - 100
+                        }, 300);
                     }
                 });
             });
@@ -142,14 +146,20 @@
                             // ✅ Format đúng: PageResult có Data, Total, Page, PageSize
                             const items = pagedResult.data || pagedResult.Data || [];
                             renderSanPhams(items);
-                            if (pagedResult.total > 0 || pagedResult.Total > 0) {
-                                const total = pagedResult.total || pagedResult.Total;
-                                const page = pagedResult.page || pagedResult.Page;
-                                const pageSize = pagedResult.pageSize || pagedResult.PageSize;
+                            
+                            // ✅ Render phân trang nếu có dữ liệu
+                            const total = pagedResult.total || pagedResult.Total || 0;
+                            const page = pagedResult.page || pagedResult.Page || 1;
+                            const pageSize = pagedResult.pageSize || pagedResult.PageSize || 9;
+                            
+                            if (total > 0) {
                                 renderPagination(total, page, pageSize);
+                            } else {
+                                $('#pagination').empty();
                             }
                         } else {
                             $('#product-list').html('<div class="col-12 text-center py-5 text-muted">Không có sản phẩm nào.</div>');
+                            $('#pagination').empty();
                         }
                     },
                     error: function (xhr) {
@@ -173,52 +183,86 @@
                         : '/uploads/no-image.png';
 
                     html += `
-                                                                        <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-                                                                            <div class="card product-item border-0 mb-4 shadow-sm">
-                                                                                <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                                                                                    <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                                                            <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+                                                                                <div class="card product-item border-0 mb-4 shadow-sm">
+                                                                                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                                                                        <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                                                                    </div>
+                                                                                    <div class="card-body text-center p-3 border-left border-right">
+                                                                                        <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
+                                                                                        <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
+                                                                                        <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
+                                                                                    </div>
+                                                                                    <div class="card-footer d-flex justify-content-between bg-light border">
+                                                                                     <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
+                                                                                         <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
+                                                                                     </a>
+                                                                                     <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
+                                                                                         <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
+                                                                                     </a>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div class="card-body text-center p-3 border-left border-right">
-                                                                                    <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
-                                                                                    <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
-                                                                                    <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
-                                                                                </div>
-                                                                                <div class="card-footer d-flex justify-content-between bg-light border">
-                                                                                 <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
-                                                                                     <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
-                                                                                 </a>
-                                                                                 <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
-                                                                                     <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
-                                                                                 </a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>`;
+                                                                            </div>`;
                 });
 
                 $('#product-list').html(html);
             }
 
             // 🔹 Render phân trang
-            function renderPagination(totalItems, currentPage, pageSize) {
+            function renderPagination(totalItems, currentPageNum, pageSize) {
                 const totalPages = Math.ceil(totalItems / pageSize);
-                if (totalPages <= 1) return;
-
-                let html = `
-                                                                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                                                                        <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
-                                                                    </li>`;
-
-                for (let i = 1; i <= totalPages; i++) {
-                    html += `
-                                                                        <li class="page-item ${i === currentPage ? 'active' : ''}">
-                                                                            <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                                                        </li>`;
+                if (totalPages <= 1) {
+                    $('#pagination').empty();
+                    return;
                 }
 
-                html += `
-                                                                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                                                                        <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
-                                                                    </li>`;
+                let html = '';
+                
+                // Nút Previous
+                html += `<li class="page-item ${currentPageNum === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${currentPageNum - 1}" ${currentPageNum === 1 ? 'onclick="return false;"' : ''}>&laquo;</a>
+                         </li>`;
+
+                // Hiển thị số trang (tối đa 5 trang xung quanh trang hiện tại)
+                let startPage = Math.max(1, currentPageNum - 2);
+                let endPage = Math.min(totalPages, currentPageNum + 2);
+
+                // Nếu ở đầu, hiển thị thêm trang cuối
+                if (currentPageNum <= 3) {
+                    endPage = Math.min(5, totalPages);
+                }
+                // Nếu ở cuối, hiển thị thêm trang đầu
+                if (currentPageNum >= totalPages - 2) {
+                    startPage = Math.max(1, totalPages - 4);
+                }
+
+                // Trang đầu
+                if (startPage > 1) {
+                    html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                    if (startPage > 2) {
+                        html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
+                }
+
+                // Các trang giữa
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<li class="page-item ${i === currentPageNum ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                             </li>`;
+                }
+
+                // Trang cuối
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
+                    html += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+                }
+
+                // Nút Next
+                html += `<li class="page-item ${currentPageNum === totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${currentPageNum + 1}" ${currentPageNum === totalPages ? 'onclick="return false;"' : ''}>&raquo;</a>
+                         </li>`;
 
                 $('#pagination').html(html);
             }
@@ -302,16 +346,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                        <div class="row align-items-center">
-                                            <div class="col-3">
-                                                <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                            <div class="row align-items-center">
+                                                <div class="col-3">
+                                                    <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                                </div>
+                                                <div class="col-9">
+                                                    <h5>${escapeHtml(data.tenSP)}</h5>
+                                                    <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                                </div>
                                             </div>
-                                            <div class="col-9">
-                                                <h5>${escapeHtml(data.tenSP)}</h5>
-                                                <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                            </div>
-                                        </div>
-                                    `);
+                                        `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');

@@ -17,6 +17,6 @@ namespace BagStore.Web.Repositories.Interfaces
 
         Task<SanPham> GetByNameAsync(string tenSanPham);
 
-        Task<PageResult<SanPham>> GetAllPagingAsync(int page, int pageSize, string? search = null);
+        Task<PageResult<SanPham>> GetAllPagingAsync(int page, int pageSize, string? search = null, int? maLoaiTui = null, int? maThuongHieu = null, int? maChatLieu = null);
     }
 }

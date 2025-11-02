@@ -85,27 +85,8 @@ namespace BagStore.Web.Controllers.Api
                 return response.Status == "error" ? BadRequest(response) : Ok(response);
             }
 
-            // Nếu có phân trang, gọi phương thức mới
-            var pagedResponse = await _service.GetAllPagingAsync(page.Value, pageSize.Value, search);
-
-            // ✅ Áp dụng filter nếu có
-            if (pagedResponse.Status == "success" && pagedResponse.Data != null)
-            {
-                var filteredData = pagedResponse.Data.Data;
-
-                if (maLoaiTui.HasValue)
-                    filteredData = filteredData.Where(x => x.MaLoaiTui == maLoaiTui.Value).ToList();
-
-                if (maThuongHieu.HasValue)
-                    filteredData = filteredData.Where(x => x.MaThuongHieu == maThuongHieu.Value).ToList();
-
-                if (maChatLieu.HasValue)
-                    filteredData = filteredData.Where(x => x.MaChatLieu == maChatLieu.Value).ToList();
-
-                // Cập nhật lại total và data
-                pagedResponse.Data.Data = filteredData;
-                pagedResponse.Data.Total = filteredData.Count;
-            }
+            // ✅ Gọi phương thức phân trang với filter (filter được áp dụng TRƯỚC khi phân trang)
+            var pagedResponse = await _service.GetAllPagingAsync(page.Value, pageSize.Value, search, maLoaiTui, maThuongHieu, maChatLieu);
 
             return pagedResponse.Status == "error" ? BadRequest(pagedResponse) : Ok(pagedResponse);
         }
