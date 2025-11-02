@@ -2,21 +2,20 @@
 
 <div class="col-lg-3 d-none d-lg-block">
     <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
-       data-toggle="collapse" href="#navbar-vertical" style="height: 65px; margin-top: -1px; padding: 0 30px;">
+        data-toggle="collapse" href="#navbar-vertical" style="height: 65px; margin-top: -1px; padding: 0 30px;">
         <h6 class="m-0">Danh mục túi</h6>
         <i class="fa fa-angle-down text-dark"></i>
     </a>
 
     <nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0"
-         id="navbar-vertical">
+        id="navbar-vertical">
         <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
 
             @if (Model != null && Model.Any())
             {
                 @foreach (var item in Model)
                 {
-                    <a href="@Url.Action("Index", "Shop", new { loaiTuiId = item.MaLoaiTui })"
-                       class="nav-item nav-link">
+                    <a href="@Url.Action("Index", "Home", new { loaiTuiId = item.MaLoaiTui })" class="nav-item nav-link">
                         @item.TenLoaiTui
                     </a>
                 }
@@ -28,4 +27,29 @@
 
         </div>
     </nav>
+
+    <!-- Bộ lọc sản phẩm -->
+    @* <div class="border-top mt-3 pt-3">
+        <h6 class="font-weight-semi-bold mb-3 px-3">Bộ lọc</h6>
+        
+        <div class="px-3 mb-3">
+            <label for="sidebarFilterThuongHieu" class="font-weight-bold small d-block mb-2">Thương hiệu</label>
+            <select id="sidebarFilterThuongHieu" class="form-control form-control-sm">
+                <option value="">Tất cả</option>
+            </select>
+        </div>
+        
+        <div class="px-3 mb-3">
+            <label for="sidebarFilterChatLieu" class="font-weight-bold small d-block mb-2">Chất liệu</label>
+            <select id="sidebarFilterChatLieu" class="form-control form-control-sm">
+                <option value="">Tất cả</option>
+            </select>
+        </div>
+        
+        <div class="px-3">
+            <button id="sidebarFilterApply" class="btn btn-primary btn-sm w-100">
+                <i class="fas fa-filter mr-1"></i>Áp dụng bộ lọc
+            </button>
+        </div>
+    </div> *@
 </div>
