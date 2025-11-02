@@ -1,0 +1,114 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>EShopper - Bootstrap Shop Template</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Free HTML Templates" name="keywords">
+    <meta content="Free HTML Templates" name="description">
+
+    <!-- Favicon -->
+    <link href="~/LayoutClient/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="~/LayoutClient/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="~/LayoutClient/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        @await Html.PartialAsync("_TopbarNew.cshtml")
+    </div>
+    <!-- Topbar End -->
+    <!-- Navbar Start -->
+    <div class="container-fluid mb-5">
+        <div class="row border-top px-xl-5">
+            <!-- Load danh mục túi từ ViewComponent -->
+            @await Component.InvokeAsync("DanhMucLoaiTui")
+
+            <!-- Phần còn lại -->
+            <div class="col-lg-9">
+                <partial name="_NavBarAndCarouselNew.cshtml" />
+            </div>
+        </div>
+    </div>
+    <!-- Navbar End -->
+    <!-- Featured Start -->
+    @* <div class="container-fluid pt-5">
+        @await Html.PartialAsync("_FeaturedNew.cshtml")
+    </div> *@
+    <!-- Featured End -->
+    <!-- Categories Start -->
+    @RenderBody()
+    <!-- Products End -->
+    <!-- Vendor Start -->
+    @* <div class="container-fluid py-5">
+        <div class="row px-xl-5">
+            <div class="col">
+                <div class="owl-carousel vendor-carousel">
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-1.jpg" alt="">
+                    </div>
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-2.jpg" alt="">
+                    </div>
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-3.jpg" alt="">
+                    </div>
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-4.jpg" alt="">
+                    </div>
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-5.jpg" alt="">
+                    </div>
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-6.jpg" alt="">
+                    </div>
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-7.jpg" alt="">
+                    </div>
+                    <div class="vendor-item border p-4">
+                        <img src="~/LayoutClient/img/vendor-8.jpg" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> *@
+    <!-- Vendor End -->
+    <!-- Footer Start -->
+    <div class="container-fluid bg-secondary text-dark mt-5 pt-5">
+        <partial name="_FooterNew.cshtml" />
+    </div>
+    <!-- Footer End -->
+    <!-- Back to Top -->
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="~/LayoutClient/lib/easing/easing.min.js"></script>
+    <script src="@Url.Content("~/lib/owlcarousel/owl.carousel.min.js")"></script>
+
+    <!-- Contact Javascript File -->
+    <script src="~/LayoutClient/mail/jqBootstrapValidation.min.js"></script>
+    <script src="~/LayoutClient/mail/contact.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="~/LayoutClient/js/main.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+
+</html>
