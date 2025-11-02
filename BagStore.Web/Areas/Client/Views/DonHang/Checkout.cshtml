@@ -187,7 +187,7 @@
             const cart = await res.json();
             items = cart.items.map(x => ({
                 maChiTietSP: x.maChiTietSP,
-                hinhAnh: x.duongDanAnh ? `/uploads/${x.duongDanAnh}` : '/uploads/default.png',
+                hinhAnh: x.duongDanAnh ? `${x.duongDanAnh}` : '/uploads/default.png',
                 tenSP: x.tenSP,
                 mauSac: x.mauSac,
                 kichCo: x.kichThuoc,

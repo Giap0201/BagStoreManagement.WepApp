@@ -149,10 +149,7 @@ namespace BagStore.Web.Services.Implementations
             await _dbContext.SaveChangesAsync();
 
             // 6️⃣ Nếu đơn hàng được lấy từ giỏ → xoá giỏ hàng
-            if (request.ChiTietDonHang == null || !request.ChiTietDonHang.Any())
-            {
-                await _cartService.ClearCartAsync(maKH);
-            }
+            await _cartService.ClearCartAsync(maKH);
 
             return MapToDonHangResponse(donHang);
         }
@@ -275,7 +272,8 @@ namespace BagStore.Web.Services.Implementations
                 SoLuong = ct.SoLuong,
                 GiaBan = ct.GiaBan,
                 ThanhTien = ct.GiaBan * ct.SoLuong,
-                AnhSanPham = ""
+                AnhSanPham = ct.ChiTietSanPham?.SanPham?.AnhSanPhams?
+                    .FirstOrDefault(a => a.LaHinhChinh)?.DuongDan ?? ""
             }).ToList() ?? new List<DonHangChiTietResponse>();
 
             return response;
