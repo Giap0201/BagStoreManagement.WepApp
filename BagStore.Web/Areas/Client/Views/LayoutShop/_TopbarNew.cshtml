@@ -61,18 +61,17 @@
             {
                 <!-- 🛒 Giỏ hàng -->
                 <li class="nav-item me-3" style="margin: 0 10px 0 0">
-                    <a href="#" class="btn btn-light border-0 position-relative rounded-circle shadow-sm p-2 d-flex align-items-center justify-content-center" style="width:42px; height:42px;">
-                        <i class="fas fa-shopping-cart text-primary fs-5"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">
-                            0
-                        </span>
+                    <a asp-area="Client" asp-controller="Cart" asp-action="Index" class="btn">
+                        <i class="fas fa-shopping-cart text-primary"></i>
+                        <span class="badge">0</span>
                     </a>
                 </li>
+                
 
                 <!-- 👤 Dropdown người dùng -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration:none;">
-                        <i class="fa-solid fa-user-circle fs-4 text-primary"></i>
+                        <i class="fa-solid fa-user-circle fs-4 text-primary" style="margin: 0 3px 0 0"></i>
                         <span class="fw-medium text-dark">@UserManager.GetUserName(User)</span>
                     </a>
 
