@@ -9,9 +9,9 @@
     </button>
     <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
         <div class="navbar-nav mr-auto py-0">
-            <a href="index.html" class="nav-item nav-link active">Trang chủ</a>
-            <a href="shop.html" class="nav-item nav-link">Sản phẩm</a>
-            <a href="detail.html" class="nav-item nav-link">Chi tiết sản phẩm</a>
+            <a asp-area="Client" asp-action="Index" asp-controller="Home" class="nav-item nav-link active">Trang chủ</a>
+            <a asp-controller="Shop" asp-action="Index" asp-area="Client" class="nav-item nav-link">Sản phẩm</a>
+            <a href="detail.html" class="nav-item nav-link">Đơn hàng</a>
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
                 <div class="dropdown-menu rounded-0 m-0">
