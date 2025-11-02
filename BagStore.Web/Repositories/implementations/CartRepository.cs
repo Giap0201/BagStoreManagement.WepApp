@@ -58,6 +58,12 @@ namespace BagStore.Repositories
             return await _context.GioHangs
                 .FirstOrDefaultAsync(g => g.MaKH == userId && g.MaChiTietSP == maCTSP);
         }
+        //lay khach hang co userid theo tham so truyen vao
+        public async Task<KhachHang?> GetCustomerByUserIdAsync(string userId)
+        {
+            return await  _context.KhachHangs
+            .FirstOrDefaultAsync(kh => kh.ApplicationUserId == userId);
+        }
 
         public async Task AddCartItemAsync(GioHang item)
         {
