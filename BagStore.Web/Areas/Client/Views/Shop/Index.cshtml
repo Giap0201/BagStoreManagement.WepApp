@@ -78,8 +78,19 @@
             const pageSize = 9;
 
             $(document).ready(function () {
-                loadFilters();
-                loadSanPhams();
+                // Initialize filters from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const loaiTuiId = urlParams.get('loaiTuiId') || urlParams.get('categoryId');
+                const maThuongHieu = urlParams.get('maThuongHieu');
+                const maChatLieu = urlParams.get('maChatLieu');
+
+                loadFilters().then(() => {
+                    // Set initial filter values from URL
+                    if (loaiTuiId) $('#filterLoaiTui').val(loaiTuiId);
+                    if (maThuongHieu) $('#filterThuongHieu').val(maThuongHieu);
+                    if (maChatLieu) $('#filterChatLieu').val(maChatLieu);
+                    loadSanPhams();
+                });
 
                 $('#btnSearch').on('click', () => {
                     currentPage = 1;
@@ -104,24 +115,27 @@
             // 🔹 Load sản phẩm theo filter
             function loadSanPhams() {
                 const keyword = $('#searchTen').val();
-                const maLoaiTui = $('#filterLoaiTui').val();
-                const maThuongHieu = $('#filterThuongHieu').val();
-                const maChatLieu = $('#filterChatLieu').val();
+                const maLoaiTui = $('#filterLoaiTui').val() || null;
+                const maThuongHieu = $('#filterThuongHieu').val() || null;
+                const maChatLieu = $('#filterChatLieu').val() || null;
 
                 $('#product-list').html('<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>');
                 $('#pagination').empty();
 
+                // Construct query parameters
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    pageSize: pageSize
+                });
+
+                if (keyword) params.append('search', keyword);
+                if (maLoaiTui) params.append('maLoaiTui', maLoaiTui);
+                if (maThuongHieu) params.append('maThuongHieu', maThuongHieu);
+                if (maChatLieu) params.append('maChatLieu', maChatLieu);
+
                 $.ajax({
-                    url: apiUrl,
+                    url: `${apiUrl}?${params.toString()}`,
                     method: 'GET',
-                    data: {
-                        page: currentPage,
-                        pageSize: pageSize,
-                        search: keyword, // ✅ Đổi từ keyword sang search để khớp với API
-                        maLoaiTui: maLoaiTui,
-                        maThuongHieu: maThuongHieu,
-                        maChatLieu: maChatLieu
-                    },
                     success: function (res) {
                         if (res && res.status === 'success' && res.data) {
                             const pagedResult = res.data;
@@ -159,26 +173,26 @@
                         : '/uploads/no-image.png';
 
                     html += `
-                                                                    <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-                                                                        <div class="card product-item border-0 mb-4 shadow-sm">
-                                                                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                                                                                <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                                                        <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+                                                                            <div class="card product-item border-0 mb-4 shadow-sm">
+                                                                                <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                                                                    <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                                                                </div>
+                                                                                <div class="card-body text-center p-3 border-left border-right">
+                                                                                    <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
+                                                                                    <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
+                                                                                    <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
+                                                                                </div>
+                                                                                <div class="card-footer d-flex justify-content-between bg-light border">
+                                                                                 <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
+                                                                                     <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
+                                                                                 </a>
+                                                                                 <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
+                                                                                     <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
+                                                                                 </a>
+                                                                                </div>
                                                                             </div>
-                                                                            <div class="card-body text-center p-3 border-left border-right">
-                                                                                <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
-                                                                                <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
-                                                                                <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
-                                                                            </div>
-                                                                            <div class="card-footer d-flex justify-content-between bg-light border">
-                                                                             <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
-                                                                                 <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
-                                                                             </a>
-                                                                             <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
-                                                                                 <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
-                                                                             </a>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>`;
+                                                                        </div>`;
                 });
 
                 $('#product-list').html(html);
@@ -190,21 +204,21 @@
                 if (totalPages <= 1) return;
 
                 let html = `
-                                                                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                                                                    <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
-                                                                </li>`;
+                                                                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                                                                        <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
+                                                                    </li>`;
 
                 for (let i = 1; i <= totalPages; i++) {
                     html += `
-                                                                    <li class="page-item ${i === currentPage ? 'active' : ''}">
-                                                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                                                    </li>`;
+                                                                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                                                                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                                                        </li>`;
                 }
 
                 html += `
-                                                                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                                                                    <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
-                                                                </li>`;
+                                                                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                                                                        <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
+                                                                    </li>`;
 
                 $('#pagination').html(html);
             }
@@ -220,25 +234,50 @@
             // 🔹 Load các filter
             async function loadFilters() {
                 try {
+                    $('#filterLoaiTui, #filterThuongHieu, #filterChatLieu')
+                        .prop('disabled', true)
+                        .html('<option value="">Đang tải...</option>');
+
                     const [loai, thuongHieu, chatLieu] = await Promise.all([
                         $.get('/api/DanhMucLoaiTuiApi'),
                         $.get('/api/ThuongHieuApi'),
                         $.get('/api/ChatLieuApi')
                     ]);
-                    fillSelect("#filterLoaiTui", loai.data, "maLoaiTui", "tenLoaiTui");
-                    fillSelect("#filterThuongHieu", thuongHieu.data, "maThuongHieu", "tenThuongHieu");
-                    fillSelect("#filterChatLieu", chatLieu.data, "maChatLieu", "tenChatLieu");
+
+                    if (loai.data) fillSelect("#filterLoaiTui", loai.data, "maLoaiTui", "tenLoaiTui");
+                    if (thuongHieu.data) fillSelect("#filterThuongHieu", thuongHieu.data, "maThuongHieu", "tenThuongHieu");
+                    if (chatLieu.data) fillSelect("#filterChatLieu", chatLieu.data, "maChatLieu", "tenChatLieu");
                 } catch (err) {
                     console.error("Lỗi load filter:", err);
+                    $('#filterLoaiTui, #filterThuongHieu, #filterChatLieu')
+                        .html('<option value="">Lỗi tải dữ liệu</option>');
+                } finally {
+                    $('#filterLoaiTui, #filterThuongHieu, #filterChatLieu').prop('disabled', false);
                 }
             }
 
             function fillSelect(selector, items, valueKey, textKey) {
                 const $select = $(selector);
                 $select.empty().append('<option value="">Tất cả</option>');
-                if (!Array.isArray(items)) return;
-                items.forEach(i => {
-                    $select.append(`<option value="${i[valueKey]}">${i[textKey]}</option>`);
+
+                if (!Array.isArray(items) || items.length === 0) {
+                    $select.append('<option value="" disabled>Không có dữ liệu</option>');
+                    return;
+                }
+
+                // Sort items alphabetically by text
+                items.sort((a, b) => {
+                    const textA = (a[textKey] || '').toString().toLowerCase();
+                    const textB = (b[textKey] || '').toString().toLowerCase();
+                    return textA.localeCompare(textB);
+                });
+
+                items.forEach(item => {
+                    const value = item[valueKey];
+                    const text = item[textKey];
+                    if (value !== undefined && value !== null && text) {
+                        $select.append(`<option value="${value}">${text}</option>`);
+                    }
                 });
             }
             // ✅ Xử lý button "Thêm vào giỏ"
@@ -253,9 +292,7 @@
             // ✅ Hàm mở modal chọn màu/kích thước
             function openAddToCartModal(maSP) {
                 // Hiển thị modal loading
-                const modalElement = document.getElementById('addToCartModal');
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
+                $('#addToCartModal').modal('show');
                 $('#modalProductInfo').html('<div class="text-center py-3"><div class="spinner-border"></div></div>');
                 $('#modalMauSac, #modalKichThuoc').empty().append('<option value="">Đang tải...</option>');
 
@@ -265,16 +302,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                    <div class="row align-items-center">
-                                        <div class="col-3">
-                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                        <div class="row align-items-center">
+                                            <div class="col-3">
+                                                <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                            </div>
+                                            <div class="col-9">
+                                                <h5>${escapeHtml(data.tenSP)}</h5>
+                                                <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                            </div>
                                         </div>
-                                        <div class="col-9">
-                                            <h5>${escapeHtml(data.tenSP)}</h5>
-                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                        </div>
-                                    </div>
-                                `);
+                                    `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');
@@ -299,9 +336,7 @@
                     })
                     .fail(function () {
                         alert('Không thể tải thông tin sản phẩm!');
-                        const modalElement = document.getElementById('addToCartModal');
-                        const modal = bootstrap.Modal.getInstance(modalElement);
-                        if (modal) modal.hide();
+                        $('#addToCartModal').modal('hide');
                     });
             }
 
@@ -379,9 +414,7 @@
                                     }),
                                     success: function (result) {
                                         alert('Đã thêm vào giỏ hàng thành công!');
-                                        const modalElement = document.getElementById('addToCartModal');
-                                        const modal = bootstrap.Modal.getInstance(modalElement);
-                                        if (modal) modal.hide();
+                                        $('#addToCartModal').modal('hide');
                                     },
                                     error: function (xhr) {
                                         if (xhr.status === 401) {
@@ -412,8 +445,9 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Chọn màu sắc và kích thước</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form id="formAddToCart">
                 <div class="modal-body">
@@ -441,7 +475,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                     </button>
