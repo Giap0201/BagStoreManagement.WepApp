@@ -9,7 +9,7 @@ namespace BagStore.Repositories
     public interface ICartRepository
     {
         // Lấy danh sách sản phẩm trong giỏ hàng theo userId
-        Task<CartResponse> GetCartByUserIdAsync(int userId);
+        Task<CartResponse> GetCartByUserIdAsync(string userId);
 
         // Lấy 1 item trong giỏ hàng theo userId và MaCTSP
         Task<GioHang> GetCartItemAsync(int userId, int maCTSP);

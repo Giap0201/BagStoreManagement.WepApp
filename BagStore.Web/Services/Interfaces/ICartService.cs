@@ -8,7 +8,7 @@ namespace BagStore.Services
     public interface ICartService
     {
         // Lấy danh sách giỏ hàng của người dùng
-        Task<CartResponse> GetCartByUserIdAsync(int userId);
+        Task<CartResponse> GetCartByUserIdAsync(string userId);
 
         // Thêm sản phẩm vào giỏ
         Task<bool> AddToCartAsync(AddCartItemRequest request);
@@ -17,6 +17,6 @@ namespace BagStore.Services
         Task<bool> RemoveCartItemAsync(int MaKH, int MaChiTietSP);
 
         // Xóa toàn bộ giỏ hàng (nếu cần)
-        Task<bool> ClearCartAsync(int userId);
+       // Task<bool> ClearCartAsync(int userId);
     }
 }

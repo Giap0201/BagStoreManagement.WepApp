@@ -1,7 +1,6 @@
 ﻿using BagStore.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Security.Claims;
 
 namespace BagStore.Web.Areas.Client.Controllers
@@ -17,23 +16,9 @@ namespace BagStore.Web.Areas.Client.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index (int id)
         {
-            // ✅ Lấy MaKH từ user hiện tại
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var khachHang = _context.KhachHangs.FirstOrDefault(k => k.ApplicationUserId == userId);
-            if (khachHang == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            ViewBag.UserId = khachHang.MaKH;
+            ViewBag.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             return View();
         }
     }
