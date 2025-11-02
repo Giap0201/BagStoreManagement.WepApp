@@ -9,12 +9,12 @@ namespace BagStore.Web.Areas.Client.Controllers
     [Authorize] // ✅ Yêu cầu đăng nhập để xem giỏ hàng
     public class CartController : Controller
     {
-        private readonly BagStoreDbContext _context;
+        //private readonly BagStoreDbContext _context;
 
-        public CartController(BagStoreDbContext context)
-        {
-            _context = context;
-        }
+        //public CartController(BagStoreDbContext context)
+        //{
+        //    _context = context;
+        //}
 
         public IActionResult Index (int id)
         {
