@@ -18,7 +18,7 @@ namespace BagStore.Services
         }
 
         //  Lấy giỏ hàng theo user
-        public async Task<CartResponse> GetCartByUserIdAsync(int userId)
+        public async Task<CartResponse> GetCartByUserIdAsync(string userId)
         {
             return await _cartRepository.GetCartByUserIdAsync(userId);
         }
@@ -63,21 +63,21 @@ namespace BagStore.Services
         }
 
         //  Xóa toàn bộ giỏ hàng
-        public async Task<bool> ClearCartAsync(int userId)
-        {
-            var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-            if (cart == null || !cart.Items.Any())
-                return false;
+        //public async Task<bool> ClearCartAsync(int userId)
+        //{
+        //    var cart = await _cartRepository.GetCartByUserIdAsync(userId);
+        //    if (cart == null || !cart.Items.Any())
+        //        return false;
 
-            foreach (var item in cart.Items)
-            {
-                var entity = await _cartRepository.GetCartItemAsync(userId, item.MaSP_GH);
-                if (entity != null)
-                    await _cartRepository.RemoveCartItemAsync(entity);
-            }
+        //    foreach (var item in cart.Items)
+        //    {
+        //        var entity = await _cartRepository.GetCartItemAsync(userId, item.MaSP_GH);
+        //        if (entity != null)
+        //            await _cartRepository.RemoveCartItemAsync(entity);
+        //    }
 
-            await _cartRepository.SaveChangesAsync();
-            return true;
-        }
+        //    await _cartRepository.SaveChangesAsync();
+        //    return true;
+        //}
     }
 }
