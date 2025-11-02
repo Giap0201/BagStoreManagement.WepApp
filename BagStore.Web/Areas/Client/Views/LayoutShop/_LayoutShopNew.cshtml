@@ -25,6 +25,45 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="~/LayoutClient/css/style.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --white: #fff;
+            --gray: #6c757d;
+            --gray-dark: #343a40;
+            --primary: #D19C97;
+            --secondary: #EDF1FF;
+            --light: #FFFFFF;
+            --dark: #1C1C1C;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif !important;
+        }
+        /* Buttons */
+        .btn-primary-custom {
+            background-color: var(--primary);
+            border: none;
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #c1847c;
+            color: var(--white);
+        }
+
+        .btn-outline-custom {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-custom:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+    </style>
 </head>
 
 <body>
