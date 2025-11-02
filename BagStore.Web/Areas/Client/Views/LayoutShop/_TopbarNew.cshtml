@@ -1,4 +1,11 @@
-﻿<div class="row bg-secondary py-2 px-xl-5">
+﻿@using Microsoft.AspNetCore.Identity
+@using BagStore.Web.Models.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="row bg-secondary py-2 px-xl-5">
     <div class="col-lg-6 d-none d-lg-block">
         <div class="d-inline-flex align-items-center">
             <a class="text-dark" href="">FAQs</a>
@@ -35,7 +42,7 @@
         </a>
     </div>
     <div class="col-lg-6 col-6 text-left">
-        <form action="">
+        @* <form action="">
             <div class="input-group">
                 <input type="text" class="form-control" placeholder="Search for products">
                 <div class="input-group-append">
@@ -44,17 +51,60 @@
                     </span>
                 </div>
             </div>
-        </form>
+        </form> *@
     </div>
-    <div class="col-lg-3 col-6 text-right">
-        <a href="" class="btn border">
-            <i class="fas fa-heart text-primary"></i>
-            <span class="badge">0</span>
-        </a>
-        <a asp-area="Client" asp-controller="Cart" asp-action="Index" class="btn border">
-            <i class="fas fa-shopping-cart text-primary"></i>
-            <span class="badge">0</span>
-        </a>
+    <div class="col-lg-3 col-6 text-end">
+        <!-- 👤 User Menu -->
+        <ul class="navbar-nav flex-row justify-content-end align-items-center">
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <!-- 🛒 Giỏ hàng -->
+                <li class="nav-item me-3" style="margin: 0 10px 0 0">
+                    <a asp-area="Client" asp-controller="Cart" asp-action="Index" class="btn">
+                        <i class="fas fa-shopping-cart text-primary"></i>
+                        <span class="badge">0</span>
+                    </a>
+                </li>
 
+                <!-- 👤 Dropdown người dùng -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration:none;">
+                        <i class="fa-solid fa-user-circle fs-4 text-primary" style="margin: 0 3px 0 0"></i>
+                        <span class="fw-medium text-dark">@UserManager.GetUserName(User)</span>
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2" style="min-width:180px;">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" asp-area="Client" asp-controller="Account" asp-action="Profile">
+                                Hồ sơ
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" asp-area="Client" asp-controller="Account" asp-action="ChangePassword">
+                                Đổi mật khẩu
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-area="Client" asp-controller="Account" asp-action="Logout" method="post">
+                                <button type="submit" class="dropdown-item d-flex align-items-center justify-content-center text-danger py-2">
+                                    Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            }
+            else
+            {
+                <!-- 🔐 Khi chưa đăng nhập -->
+                <li class="nav-item me-2">
+                    <a class="btn btn-primary-custom" style="margin: 0 7px 0 0" asp-area="Client" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-custom" asp-area="Client" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                </li>
+            }
+        </ul>
     </div>
 </div>
