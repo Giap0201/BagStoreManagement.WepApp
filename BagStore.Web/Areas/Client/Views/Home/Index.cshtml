@@ -1,15 +1,32 @@
-﻿@model IEnumerable<dynamic>
+﻿﻿
+@model IEnumerable<dynamic>
+
 @{
     ViewData["Title"] = "Chi tiết sản phẩm";
     Layout = "~/Areas/Client/Views/LayoutShop/_LayoutShopNew.cshtml";
 }
 
+<!-- 🔷 Home Hero Section with CTA -->
+
+
+
 
 <!-- 🔷 Danh sách sản phẩm -->
 <div class="container-fluid pt-5">
     <div class="text-center mb-4">
-        <h2 class="section-title px-5"><span class="px-2">Sản phẩm mới nhất</span></h2>
-        <p class="text-muted mt-1 mb-0">Khám phá bộ sưu tập túi xách thời thượng vừa cập nhật!</p>
+        @if (ViewBag.HasFilter == true)
+        {
+            <h2 class="section-title px-5"><span class="px-2">Sản phẩm đã lọc</span></h2>
+            <p class="text-muted mt-1 mb-2">Danh sách sản phẩm theo danh mục đã chọn</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-times mr-1"></i>Bỏ lọc - Xem tất cả
+            </a>
+        }
+        else
+        {
+            <h2 class="section-title px-5"><span class="px-2">Sản phẩm mới nhất</span></h2>
+            <p class="text-muted mt-1 mb-0">Khám phá bộ sưu tập túi xách thời thượng vừa cập nhật!</p>
+        }
     </div>
 
     <div class="row px-xl-5">
@@ -48,16 +65,12 @@
     </div>
 </div>
 
-
-
-<!-- 🔷 Home Hero Section with CTA -->
 <section class="container-fluid px-0 mb-5"
-         style="background: linear-gradient(90deg, #D19C97 60%, #fff 100%); position: relative;">
+    style="background: linear-gradient(90deg, #D19C97 60%, #fff 100%); position: relative;">
     <div class="row align-items-center" style="min-height: 350px;">
         <div class="col-lg-6 text-center text-lg-left px-5 py-4">
             <h2 class="display-4 font-weight-bold mb-3 text-dark" style="line-height: 1.1;">
-                Khám phá những mẫu
-                túi xách thời trang mới nhất
+                Khám phá những mẫu túi xách thời trang mới nhất
             </h2>
             <p class="lead text-secondary mb-4">
                 Sản phẩm chất lượng, mẫu mã đa dạng, giá cả hợp lý.<br />
@@ -70,12 +83,12 @@
         </div>
         <div class="col-lg-6 d-none d-lg-flex justify-content-end align-items-center h-100 pr-5">
             <img src="/img/banner-bagstore.png" alt="Banner BagStore"
-                 style="max-width: 340px; width:100%; border-radius: 2.5rem; box-shadow: 0 6px 40px rgba(0,0,0,0.13);"
-                 onerror="this.onerror=null;this.src='/img/no-image.png';" />
+                style="max-width: 340px; width:100%; border-radius: 2.5rem; box-shadow: 0 6px 40px rgba(0,0,0,0.13);"
+                onerror="this.onerror=null;this.src='/img/no-image.png';" />
         </div>
     </div>
-</section>
 
+</section>
 <!-- 🔷 Why Choose Us - Feature Highlights -->
 <section class="container mb-4">
     <div class="row justify-content-center text-center">
@@ -110,25 +123,6 @@
     </div>
 </section>
 
-@* <!-- 🔷 Call-to-Action Newsletter -->
-<section class="container my-5 py-4 rounded position-relative"
-         style="background: linear-gradient(90deg,#DFC4C9 60%,#fff 100%);">
-    <div class="row align-items-center">
-        <div class="col-lg-9">
-            <h5 class="font-weight-bold mb-2">Nhận ưu đãi độc quyền từ BagStore</h5>
-            <p class="mb-3 mb-lg-0">Đăng ký nhận bản tin để không bỏ lỡ xu hướng mới nhất & khuyến mãi hấp dẫn!</p>
-        </div>
-        <div class="col-lg-3 text-lg-right">
-            <form class="d-flex">
-                <input type="email" class="form-control rounded-pill mr-2" placeholder="Nhập email của bạn..." required
-                       style="max-width: 180px;">
-                <button type="submit" class="btn btn-primary rounded-pill px-4 font-weight-bold">Đăng ký</button>
-            </form>
-        </div>
-    </div>
-</section> *@
-
-
 @section Scripts {
     <script>
         $(document).ready(function () {
@@ -144,9 +138,7 @@
             // ✅ Hàm mở modal chọn màu/kích thước
             function openAddToCartModal(maSP) {
                 // Hiển thị modal loading
-                const modalElement = document.getElementById('addToCartModal');
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
+                $('#addToCartModal').modal('show');
                 $('#modalProductInfo').html('<div class="text-center py-3"><div class="spinner-border"></div></div>');
                 $('#modalMauSac, #modalKichThuoc').empty().append('<option value="">Đang tải...</option>');
 
@@ -156,16 +148,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                            <div class="row align-items-center">
-                                                <div class="col-3">
-                                                    <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
-                                                </div>
-                                                <div class="col-9">
-                                                    <h5>${escapeHtml(data.tenSP)}</h5>
-                                                    <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                                </div>
-                                            </div>
-                                        `);
+                                                        <div class="row align-items-center">
+                                                            <div class="col-3">
+                                                                <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                                            </div>
+                                                            <div class="col-9">
+                                                                <h5>${escapeHtml(data.tenSP)}</h5>
+                                                                <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                                            </div>
+                                                        </div>
+                                                    `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');
@@ -190,9 +182,7 @@
                     })
                     .fail(function () {
                         alert('Không thể tải thông tin sản phẩm!');
-                        const modalElement = document.getElementById('addToCartModal');
-                        const modal = bootstrap.Modal.getInstance(modalElement);
-                        if (modal) modal.hide();
+                        $('#addToCartModal').modal('hide');
                     });
             }
 
@@ -270,9 +260,7 @@
                                     }),
                                     success: function (result) {
                                         alert('Đã thêm vào giỏ hàng thành công!');
-                                        const modalElement = document.getElementById('addToCartModal');
-                                        const modal = bootstrap.Modal.getInstance(modalElement);
-                                        if (modal) modal.hide();
+                                        $('#addToCartModal').modal('hide');
                                     },
                                     error: function (xhr) {
                                         if (xhr.status === 401) {
@@ -310,8 +298,9 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Chọn màu sắc và kích thước</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form id="formAddToCart">
                 <div class="modal-body">
@@ -339,7 +328,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                     </button>
