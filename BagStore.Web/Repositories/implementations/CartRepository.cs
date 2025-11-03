@@ -86,5 +86,13 @@ namespace BagStore.Repositories
         {
             return await _context.SaveChangesAsync();
         }
-}
+
+        public async Task<bool> ClearCartAsync()
+        {
+            var allItems = _context.GioHangs;
+            _context.GioHangs.RemoveRange(allItems);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
 }

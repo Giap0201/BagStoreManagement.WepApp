@@ -74,6 +74,7 @@ namespace BagStore.Web.Repositories.implementations
                 .Include(d => d.ChiTietDonHangs)
                     .ThenInclude(ct => ct.ChiTietSanPham)
                         .ThenInclude(sp => sp.SanPham)
+                            .ThenInclude(s => s.AnhSanPhams)
                 .Include(d => d.ChiTietDonHangs)
                     .ThenInclude(ct => ct.ChiTietSanPham.MauSac)
                 .Include(d => d.ChiTietDonHangs)

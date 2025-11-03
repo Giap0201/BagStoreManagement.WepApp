@@ -12,5 +12,7 @@
         public int SoLuongTon { get; set; }
         public decimal GiaBan { get; set; }
         public DateTime NgayTao { get; set; }
+
+        public string duongDanAnh { get; set; } // Join
     }
 }

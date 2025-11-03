@@ -16,7 +16,7 @@ namespace BagStore.Services
         // Xóa sản phẩm khỏi giỏ
         Task<bool> RemoveCartItemAsync(string UserId, int MaChiTietSP);
 
-        // Xóa toàn bộ giỏ hàng (nếu cần)
-       // Task<bool> ClearCartAsync(int userId);
+        //Xóa toàn bộ giỏ hàng(nếu cần)
+        Task<bool> ClearCartAsync(string userId);
     }
 }

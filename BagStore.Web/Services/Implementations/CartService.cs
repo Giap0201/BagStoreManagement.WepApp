@@ -66,22 +66,13 @@ namespace BagStore.Services
             return true;
         }
 
-        //  Xóa toàn bộ giỏ hàng
-        //public async Task<bool> ClearCartAsync(int userId)
-        //{
-        //    var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-        //    if (cart == null || !cart.Items.Any())
-        //        return false;
-
-        //    foreach (var item in cart.Items)
-        //    {
-        //        var entity = await _cartRepository.GetCartItemAsync(userId, item.MaSP_GH);
-        //        if (entity != null)
-        //            await _cartRepository.RemoveCartItemAsync(entity);
-        //    }
-
-        //    await _cartRepository.SaveChangesAsync();
-        //    return true;
-        //}
+        //Xóa toàn bộ giỏ hàng
+        public async Task<bool> ClearCartAsync(string userId)
+        {
+            var KH = await _cartRepository.GetCustomerByUserIdAsync(userId);
+            if (KH == null) return false;
+            var result = await _cartRepository.ClearCartAsync();
+            return result;
+        }
     }
 }
