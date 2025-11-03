@@ -25,7 +25,7 @@ namespace BagStore.Web.Controllers
         {
             var cart = await _cartService.GetCartByUserIdAsync(userId);
             if (cart == null || !cart.Items.Any())
-                return NotFound(new { message = "Giỏ hàng trống." });
+                return NotFound(new { message = "Bạn không có sản phẩm nào trong giỏ hàng !" });
 
             return Ok(cart);
         }
