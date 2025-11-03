@@ -35,18 +35,32 @@
                         }
                     </div>
                     <div class="col-md-9">
-                        <table class="table table-borderless table-sm">
-                            <tbody>
-                                <tr><th style="width: 150px;">Mã SP:</th><td>@sanPham.MaSP</td></tr>
-                                <tr><th>Tên sản phẩm:</th><td>@sanPham.TenSP</td></tr>
-                                <tr><th>Loại túi:</th><td>@sanPham.TenLoaiTui</td></tr>
-                                <tr><th>Thương hiệu:</th><td>@sanPham.TenThuongHieu</td></tr>
-                                <tr><th>Chất liệu:</th><td>@sanPham.TenChatLieu</td></tr>
-                                <tr><th>Mô tả chi tiết:</th><td>@sanPham.MoTaChiTiet</td></tr>
-                                <tr><th>Meta Title:</th><td>@sanPham.MetaTitle</td></tr>
-                                <tr><th>Meta Description:</th><td>@sanPham.MetaDescription</td></tr>
-                            </tbody>
-                        </table>
+
+                        <div class="row g-2">
+                            <div class="col-md-3 fw-bold">Mã SP:</div>
+                            <div class="col-md-9">@sanPham.MaSP</div>
+
+                            <div class="col-md-3 fw-bold">Tên sản phẩm:</div>
+                            <div class="col-md-9">@sanPham.TenSP</div>
+
+                            <div class="col-md-3 fw-bold">Loại túi:</div>
+                            <div class="col-md-9">@sanPham.TenLoaiTui</div>
+
+                            <div class="col-md-3 fw-bold">Thương hiệu:</div>
+                            <div class="col-md-9">@sanPham.TenThuongHieu</div>
+
+                            <div class="col-md-3 fw-bold">Chất liệu:</div>
+                            <div class="col-md-9">@sanPham.TenChatLieu</div>
+
+                            <div class="col-md-3 fw-bold">Mô tả chi tiết:</div>
+                            <div class="col-md-9 text-break">@sanPham.MoTaChiTiet</div>
+
+                            <div class="col-md-3 fw-bold">Meta Title:</div>
+                            <div class="col-md-9 text-break">@sanPham.MetaTitle</div>
+
+                            <div class="col-md-3 fw-bold">Meta Description:</div>
+                            <div class="col-md-9 text-break">@sanPham.MetaDescription</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -56,7 +70,6 @@
             <div class="card-body py-2"><p class="text-danger mb-0 small">Không tải được thông tin sản phẩm.</p></div>
         }
     </div>
-
 
     @* Phần Quản lý Biến thể *@
     <div class="card mb-4 shadow-sm">
@@ -232,7 +245,6 @@
                         <tr>
                             <th>Mã Ảnh</th>
                             <th style="width: 100px;">Ảnh</th>
-                            <th>Đường dẫn</th>
                             <th>Thứ tự</th>
                             <th>Ảnh chính?</th>
                             <th>Thao tác</th>
@@ -249,7 +261,7 @@
                                     <td>
                                         <img src="@img.DuongDan" alt="Ảnh SP @img.DuongDan" style="max-width: 80px; max-height: 80px; object-fit: contain; cursor: pointer; border: 1px solid #eee;" onclick="window.open('@img.DuongDan', '_blank')">
                                     </td>
-                                    <td><small>@img.DuongDan</small></td>
+                                    @* <td><small>@img.DuongDan</small></td> *@
                                     <td>@img.ThuTuHienThi</td>
                                     <td>@(img.LaHinhChinh? Html.Raw("<i class='bi bi-check-circle-fill text-success' title='Ảnh chính'>Ảnh chính</i>") : Html.Raw("<i class='bi bi-x-circle text-muted' title='Ảnh phụ'>Ảnh phụ</i>"))</td>
                                     <td>
@@ -462,7 +474,6 @@
                     <tr data-id="${maAnh}">
                         <td>${maAnh}</td>
                         <td><img src="${imageUrl}" alt="Ảnh SP ${maAnh}" style="max-width: 80px; max-height: 80px; object-fit: contain; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')"></td>
-                        <td><small>${imageUrl}</small></td>
                         <td>${thuTu}</td> <td>${isPrimaryIcon}</td>
                         <td> ${setPrimaryButton} <button class="btn btn-danger btn-sm btnDeleteImage" data-id="${maAnh}" title="Xóa ảnh"><i class="bi bi-trash">Xóa</i></button> </td>
                     </tr>`);
