@@ -5,81 +5,121 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BagStore.Web.Repositories.implementations
 {
-    public class DonHangImpl : GenericImpl<DonHang>, IDonHangRepository
+    public class DonHangImpl : IDonHangRepository
     {
-        public DonHangImpl(BagStoreDbContext context) : base(context) { }
+        private readonly BagStoreDbContext _context;
 
-        // Lấy đơn hàng theo mã khách hàng
-        public async Task<IEnumerable<DonHang>> LayDonHangTheoKhachHangAsync(int maKH)
+        public DonHangImpl(BagStoreDbContext context)
         {
-            return await _dbSet
-                .Include(d => d.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.ChiTietSanPham)
-                        .ThenInclude(sp => sp.SanPham)
-                .Include(d => d.KhachHang)
-                .Where(d => d.MaKH == maKH)
-                .ToListAsync();
+            _context = context;
         }
 
-        // 👇 Thêm mới — lấy đơn hàng theo UserId
-        public async Task<IEnumerable<DonHang>> LayDonHangTheoUserAsync(string userId)
-        {
-            return await _dbSet
-                .Include(d => d.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.ChiTietSanPham)
-                        .ThenInclude(sp => sp.SanPham)
-                .Include(d => d.KhachHang)
-                .Where(d => d.KhachHang.ApplicationUserId == userId)
-                .ToListAsync();
-        }
-
-        // Lấy đơn hàng theo trạng thái
-        public async Task<IEnumerable<DonHang>> LayDonHangTheoTrangThaiAsync(string trangThai)
-        {
-            return await _dbSet
-                .Include(d => d.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.ChiTietSanPham)
-                        .ThenInclude(sp => sp.SanPham)
-                .Include(d => d.KhachHang)
-                .Where(d => d.TrangThai == trangThai)
-                .ToListAsync();
-        }
-
-        // Lấy toàn bộ đơn hàng
         public async Task<IEnumerable<DonHang>> LayTatCaDonHangAsync()
-        {
-            return await _dbSet
-                .Include(d => d.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.ChiTietSanPham)
-                        .ThenInclude(sp => sp.SanPham)
-                .Include(d => d.KhachHang)
-                .ToListAsync();
-        }
-
-        // Lấy đơn hàng theo ID (bao gồm chi tiết và sản phẩm)
-        public async Task<DonHang?> LayTheoIdAsync(int maDonHang)
-        {
-            return await _dbSet
-                .Include(d => d.KhachHang)
-                .Include(d => d.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.ChiTietSanPham)
-                        .ThenInclude(sp => sp.SanPham)
-                .FirstOrDefaultAsync(d => d.MaDonHang == maDonHang);
-        }
-
-        public async Task<DonHang?> GetByIdWithDetailsAsync(int maDH)
         {
             return await _context.DonHangs
                 .Include(d => d.KhachHang)
                 .Include(d => d.ChiTietDonHangs)
                     .ThenInclude(ct => ct.ChiTietSanPham)
-                        .ThenInclude(sp => sp.SanPham)
-                            .ThenInclude(s => s.AnhSanPhams)
+                        .ThenInclude(ctsp => ctsp.SanPham)
+                            .ThenInclude(sp => sp.AnhSanPhams)
                 .Include(d => d.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.ChiTietSanPham.MauSac)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.MauSac)
                 .Include(d => d.ChiTietDonHangs)
-                    .ThenInclude(ct => ct.ChiTietSanPham.KichThuoc)
-                .FirstOrDefaultAsync(d => d.MaDonHang == maDH);
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.KichThuoc)
+                .OrderByDescending(d => d.NgayDatHang)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<DonHang>> LayDonHangTheoUserAsync(string userId)
+        {
+            return await _context.DonHangs
+                .Include(d => d.KhachHang)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.SanPham)
+                            .ThenInclude(sp => sp.AnhSanPhams)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.MauSac)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.KichThuoc)
+                .Where(d => d.KhachHang.ApplicationUserId == userId)
+                .OrderByDescending(d => d.NgayDatHang)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<DonHang>> LayDonHangTheoKhachHangAsync(int maKhachHang)
+        {
+            return await _context.DonHangs
+                .Include(d => d.KhachHang)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.SanPham)
+                            .ThenInclude(sp => sp.AnhSanPhams)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.MauSac)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.KichThuoc)
+                .Where(d => d.MaKH == maKhachHang)
+                .OrderByDescending(d => d.NgayDatHang)
+                .ToListAsync();
+        }
+
+        public async Task<DonHang?> LayTheoIdAsync(int maDonHang)
+        {
+            return await _context.DonHangs
+                .FirstOrDefaultAsync(d => d.MaDonHang == maDonHang);
+        }
+
+        public async Task<DonHang?> GetByIdWithDetailsAsync(int maDonHang)
+        {
+            return await _context.DonHangs
+                .Include(d => d.KhachHang)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.SanPham)
+                            .ThenInclude(sp => sp.AnhSanPhams)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.MauSac)
+                .Include(d => d.ChiTietDonHangs)
+                    .ThenInclude(ct => ct.ChiTietSanPham)
+                        .ThenInclude(ctsp => ctsp.KichThuoc)
+                .FirstOrDefaultAsync(d => d.MaDonHang == maDonHang);
+        }
+
+        public async Task AddAsync(DonHang entity)
+        {
+            await _context.DonHangs.AddAsync(entity);
+        }
+
+        public async Task UpdateAsync(DonHang entity)
+        {
+            _context.DonHangs.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        // Cùng chức năng với UpdateAsync – tùy bạn muốn dùng tên nào
+        public async Task CapNhatAsync(DonHang entity)
+        {
+            _context.DonHangs.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SaveAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        // Duplicate SaveAsync để tương thích với LuuAsync trong interface
+        public async Task LuuAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace BagStore.Web.Models.DTOs.SanPhams
+﻿namespace BagStore.Web.Models.DTOs.Response
 {
     public class SanPhamResponseDto
     {
