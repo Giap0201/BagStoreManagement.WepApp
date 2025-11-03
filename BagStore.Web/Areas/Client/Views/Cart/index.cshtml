@@ -8,7 +8,9 @@
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
         <h1 class="font-weight-semi-bold text-uppercase mb-3">Shopping Cart</h1>
         <div class="d-inline-flex">
-            <p class="m-0"><a href="">Home</a></p>
+            <p class="m-0">
+                <a asp-area="Client" asp-controller="Home" asp-action="Index">Home</a>
+            </p>
             <p class="m-0 px-2">-</p>
             <p class="m-0">Shopping Cart</p>
         </div>
@@ -41,7 +43,10 @@
                     Tổng cộng (<span class="count">0</span> sản phẩm):
                     <span class="total-price">0₫</span>
                 </p>
-                <button class="checkout-btn">Mua Hàng</button>
+                <form id="checkoutForm" method="post" asp-area="Client" asp-controller="DonHang" asp-action="Checkout">
+                    <input type="hidden" name="SelectedItems" id="SelectedItems" />
+                    <button type="submit" class="checkout-btn btn btn-primary">Mua Hàng</button>
+                </form>
             </div>
         </div>
     </div>
@@ -51,6 +56,36 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+              $(document).on('click', '.checkout-btn', function(e) {
+            e.preventDefault();
+
+            const selected = $('.check-item:checked');
+            if (selected.length === 0) {
+                alert("⚠️ Vui lòng chọn ít nhất 1 sản phẩm để mua!");
+                console.log("⛔ Không có sản phẩm nào được chọn!");
+                return;
+            }
+
+            // Thu thập danh sách sản phẩm
+            const items = selected.map(function() {
+                const maChiTietSP = $(this).val();
+                const soLuong = $(this).closest('.cart-item').find('.qty-input').val();
+                return { maChiTietSP, soLuong };
+            }).get();
+
+            // Log chi tiết ra console
+            console.log("🛒 Danh sách sản phẩm được chọn:", items);
+
+            // Gán JSON vào input ẩn để gửi qua POST
+            $('#SelectedItems').val(JSON.stringify(items));
+
+            // Log nội dung input ẩn để kiểm tra
+            console.log("📦 Dữ liệu gửi đi:", $('#SelectedItems').val());
+
+            // Submit form
+            console.log("🚀 Gửi form đến DonHang/Checkout...");
+            $('#checkoutForm').submit();
+        });
         $(document).ready(function() {
             const userId = '@(ViewBag.UserId)';
             console.log("🔹 User ID từ ViewBag:", userId);

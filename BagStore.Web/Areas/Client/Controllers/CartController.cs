@@ -9,7 +9,7 @@ namespace BagStore.Web.Areas.Client.Controllers
     [Authorize] // ✅ Yêu cầu đăng nhập để xem giỏ hàng
     public class CartController : Controller
     {
-        public IActionResult Index (int id)
+        public IActionResult Index ()
         {
             ViewBag.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             return View();
