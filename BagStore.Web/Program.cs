@@ -114,7 +114,6 @@ builder.Services.AddScoped<IDonHangService, DonHangService>();
 builder.Services.AddScoped<IAnhSanPhamRepository, AnhSanPhamImpl>();
 builder.Services.AddScoped<IAnhSanPhamService, AnhSanPhamService>();
 
-
 // Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
 builder.Services.AddScoped<FileUploadService>();
 builder.Services.AddScoped<IEnumMapper, EnumMapper>();
@@ -220,6 +219,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "default",
+    //pattern: "{controller=Home}/{action=Index}/{id?}");
     pattern: "{area=Client}/{controller=Home}/{action=Index}/{id?}");
 
 // ✅ Optional: Debug route viewer (fix lỗi Body inferred)
