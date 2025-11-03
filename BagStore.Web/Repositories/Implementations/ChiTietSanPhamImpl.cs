@@ -47,6 +47,7 @@ public class ChiTietSanPhamImpl : IChiTietSanPhamRepository
         {
             return await _context.ChiTietSanPhams
                 .Include(ct => ct.SanPham)
+                    .ThenInclude(sp => sp.AnhSanPhams)
                 .Include(ct => ct.KichThuoc)
                 .Include(ct => ct.MauSac)
                 .FirstOrDefaultAsync(ct => ct.MaChiTietSP == maChiTietSanPham);

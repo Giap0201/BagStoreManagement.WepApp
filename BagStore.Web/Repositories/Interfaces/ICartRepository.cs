@@ -27,6 +27,8 @@ namespace BagStore.Repositories
         // Lưu thay đổi
         Task<int> SaveChangesAsync();
 
+        Task<bool> ClearCartAsync();
+
        Task<KhachHang?> GetCustomerByUserIdAsync(string userId);
     }
 }

@@ -145,6 +145,7 @@ namespace BagStore.Web.Services.Implementations
             var kichThuoc = await _repoKichThuoc.GetByIdAsync(entity.MaKichThuoc);
             var mauSac = await _repoMauSac.GetByIdAsync(entity.MaMauSac);
             var sanPham = await _repoSanPham.GetByIdAsync(entity.MaSP);
+            var anhSanPham = sanPham?.AnhSanPhams?.FirstOrDefault(a => a.LaHinhChinh);
 
             return new ChiTietSanPhamResponseDto
             {
@@ -157,7 +158,8 @@ namespace BagStore.Web.Services.Implementations
                 TenMauSac = mauSac?.TenMauSac ?? "N/A",
                 SoLuongTon = entity.SoLuongTon,
                 GiaBan = entity.GiaBan,
-                NgayTao = entity.NgayTao
+                NgayTao = entity.NgayTao,
+                duongDanAnh = anhSanPham?.DuongDan ?? string.Empty
             };
         }
     }

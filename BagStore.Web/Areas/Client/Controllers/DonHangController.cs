@@ -32,31 +32,18 @@ namespace BagStore.Web.Areas.Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Checkout(int? maChiTietSP = null, int? soLuong = null, int? maSanPham = null)
+        public IActionResult Checkout(string? selectedItems = null)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ViewBag.UserId = userId;
 
-            var khachHang = _context.KhachHangs.FirstOrDefault(kh => kh.ApplicationUserId == userId);
-            int maKH = khachHang.MaKH;
-            ViewBag.UserId = maKH;
-
-
-            if (maChiTietSP.HasValue && soLuong.HasValue && maSanPham.HasValue)
-            {
-                // ✅ Trường hợp "Mua ngay"
-                ViewBag.IsBuyNow = true;
-                ViewBag.MaChiTietSP = maChiTietSP.Value;
-                ViewBag.SoLuong = soLuong.Value;
-                ViewBag.MaSanPham = maSanPham.Value;
-            }
-            else
-            {
-                // ✅ Trường hợp "Mua từ giỏ hàng"
-                ViewBag.IsBuyNow = false;
-            }
+            // Nếu có selectedItems => thanh toán các sản phẩm được chọn từ giỏ hàng
+            ViewBag.SelectedItems = selectedItems;
 
             return View();
         }
+
+
 
         [HttpGet("{maDH:int}")]
         public IActionResult Details(int maDH)

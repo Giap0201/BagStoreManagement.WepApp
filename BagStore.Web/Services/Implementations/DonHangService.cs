@@ -84,16 +84,16 @@ namespace BagStore.Web.Services.Implementations
             // 2️⃣ Lấy danh sách sản phẩm cần thanh toán
             List<(int MaChiTietSP, int SoLuong)> sanPhamThanhToan = new();
 
+            // 🟢 Nếu request có danh sách chi tiết (tức là người dùng chọn từng sản phẩm cụ thể)
             if (request.ChiTietDonHang != null && request.ChiTietDonHang.Any())
             {
-                // 🟢 Trường hợp BUY NOW
                 sanPhamThanhToan = request.ChiTietDonHang
                     .Select(x => (x.MaChiTietSanPham, x.SoLuong))
                     .ToList();
             }
             else
             {
-                // 🟢 Trường hợp lấy từ GIỎ HÀNG
+                // 🟢 Nếu không có → lấy toàn bộ giỏ hàng
                 var cart = await _cartService.GetCartByUserIdAsync(userId);
                 if (cart == null || !cart.Items.Any())
                     throw new InvalidOperationException("Giỏ hàng của bạn đang trống.");
@@ -148,15 +148,32 @@ namespace BagStore.Web.Services.Implementations
             donHang.TongTien = tongTien;
             await _dbContext.SaveChangesAsync();
 
-            // 6️⃣ Nếu đơn hàng được lấy từ giỏ → xoá giỏ hàng
-            //if (request.ChiTietDonHang == null || !request.ChiTietDonHang.Any())
-            //{
-            //    await _cartService.ClearCartAsync(userId);
-            //}
+            // 6️⃣ Xoá giỏ hàng tương ứng
+            var userCart = await _cartService.GetCartByUserIdAsync(userId);
+            if (userCart != null && userCart.Items.Any())
+            {
+                if (request.ChiTietDonHang != null && request.ChiTietDonHang.Any())
+                {
+                    // 🔹 Xoá những sản phẩm người dùng đã chọn mua
+                    var idsMua = sanPhamThanhToan.Select(x => x.MaChiTietSP).ToHashSet();
+                    var itemsToRemove = userCart.Items
+                        .Where(i => idsMua.Contains(i.MaChiTietSP))
+                        .ToList();
+
+                    foreach (var item in itemsToRemove)
+                    {
+                        await _cartService.RemoveCartItemAsync(userId, item.MaChiTietSP);
+                    }
+                }
+                else
+                {
+                    // 🔹 Nếu mua toàn bộ, xoá cả giỏ
+                    await _cartService.ClearCartAsync(userId);
+                }
+            }
 
             return MapToDonHangResponse(donHang);
         }
-
 
 
 
@@ -275,7 +292,8 @@ namespace BagStore.Web.Services.Implementations
                 SoLuong = ct.SoLuong,
                 GiaBan = ct.GiaBan,
                 ThanhTien = ct.GiaBan * ct.SoLuong,
-                AnhSanPham = ""
+                AnhSanPham = ct.ChiTietSanPham?.SanPham?.AnhSanPhams?
+                    .FirstOrDefault(a => a.LaHinhChinh)?.DuongDan ?? ""
             }).ToList() ?? new List<DonHangChiTietResponse>();
 
             return response;

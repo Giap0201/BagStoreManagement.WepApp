@@ -56,41 +56,31 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-              $(document).on('click', '.checkout-btn', function(e) {
+            $(document).on('click', '.checkout-btn', function (e) {
             e.preventDefault();
 
             const selected = $('.check-item:checked');
             if (selected.length === 0) {
                 alert("⚠️ Vui lòng chọn ít nhất 1 sản phẩm để mua!");
-                console.log("⛔ Không có sản phẩm nào được chọn!");
                 return;
             }
 
-            // Thu thập danh sách sản phẩm
-            const items = selected.map(function() {
+            const params = selected.map(function () {
                 const maChiTietSP = $(this).val();
                 const soLuong = $(this).closest('.cart-item').find('.qty-input').val();
-                return { maChiTietSP, soLuong };
-            }).get();
+                return `${maChiTietSP}:${soLuong}`;
+            }).get().join(',');
 
-            // Log chi tiết ra console
-            console.log("🛒 Danh sách sản phẩm được chọn:", items);
+            console.log("📦 Dữ liệu gửi đi:", params);
 
-            // Gán JSON vào input ẩn để gửi qua POST
-            $('#SelectedItems').val(JSON.stringify(items));
-
-            // Log nội dung input ẩn để kiểm tra
-            console.log("📦 Dữ liệu gửi đi:", $('#SelectedItems').val());
-
-            // Submit form
-            console.log("🚀 Gửi form đến DonHang/Checkout...");
-            $('#checkoutForm').submit();
+            // 👉 Chuyển hướng sang Checkout, truyền list mã qua query
+            window.location.href = `/Client/DonHang/Checkout?selectedItems=${encodeURIComponent(params)}`;
         });
         $(document).ready(function() {
             const userId = '@(ViewBag.UserId)';
             console.log("🔹 User ID từ ViewBag:", userId);
 
-            const apiBaseUrl = `https://localhost:7013/api/cart`;
+            const apiBaseUrl = `/api/cart`;
 
             // ===== Hàm Load Giỏ Hàng =====
             function loadCart() {

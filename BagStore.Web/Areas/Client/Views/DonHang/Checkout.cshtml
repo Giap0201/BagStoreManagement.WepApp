@@ -3,10 +3,7 @@
     ViewData["Title"] = "Thanh toán";
 
     var userId = ViewBag.UserId;
-    bool isBuyNow = ViewBag.IsBuyNow ?? false;
-    int maChiTietSP = ViewBag.MaChiTietSP ?? 0;
-    int soLuong = ViewBag.SoLuong ?? 1;
-    int maSanPham = ViewBag.MaSanPham ?? 0;
+    string selectedItems = ViewBag.SelectedItems ?? "";
 }
     
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -67,7 +64,7 @@
     </form>
 </div>
 
-<!-- ✅ Responsive CSS -->
+<!-- CSS: sửa media queries -->
 <style>
     @@media (max-width: 992px) {
         h1 .font-weight-semi-bold
@@ -148,65 +145,104 @@
 </style>
 
 <script>
-    const userId = '@userId';
-    const isBuyNow = @isBuyNow.ToString().ToLower();
-    const maChiTietSP = @maChiTietSP;
-    const soLuong = @soLuong;
-    const maSanPham = @maSanPham;
+    // An toàn: serialize Razor values (nếu userId là số/string)
+    const userId = @Html.Raw(Json.Serialize(userId));
 
     $(document).ready(async function () {
         let items = [];
 
-        if (isBuyNow) {
-            // ✅ Gọi đúng route API mới
-            const res = await fetch(`/api/sanpham/${maSanPham}/ChiTietSanPhamApi/${maChiTietSP}`);
-            if (!res.ok) {
-                Swal.fire('Lỗi', 'Không tìm thấy sản phẩm.', 'error');
-                return;
-            }
-            const spRes = await res.json();
-            const sp = spRes.data; // ✅ Lấy phần data thực tế
+        // Lấy selectedItems từ query string nếu có (format: "101:2,203:1")
+        const queryParams = new URLSearchParams(window.location.search);
+        const selectedItems = queryParams.get('selectedItems');
 
-            items.push({
-                maChiTietSP: sp.maChiTietSP,
-                hinhAnh: sp.hinhAnh || '/uploads/4673ab3c-8784-4e8f-b0b8-595db0954afa_Screenshot 2025-10-20 220051.png',
-                tenSP: sp.tenSanPham,
-                mauSac: sp.tenMauSac || 'Không xác định',
-                kichCo: sp.tenKichThuoc || 'Không xác định',
-                soLuong: soLuong,
-                giaBan: sp.giaBan || 0,
-                thanhTien: (sp.giaBan || 0) * soLuong
-    });
-        } else {
-            // ✅ Lấy giỏ hàng của user
-            const res = await fetch(`/api/Cart/${userId}`);
-            if (!res.ok) {
-                Swal.fire('Lỗi', 'Giỏ hàng trống hoặc không tồn tại.', 'warning');
-                return;
+        // Helper: fetch chi tiết sp an toàn, xử lý cả trường hợp API trả { data : {...} }
+        async function fetchProductDetail(maChiTietSP, maSanPham) {
+            try {
+                const res = await fetch(`/api/ChiTietSanPhamApi/${maChiTietSP}`);
+                if (!res.ok) {
+                    console.error(`Không lấy được chi tiết SP ${maChiTietSP}. Status:`, res.status);
+                    return null;
+                }
+                const payload = await res.json();
+                return payload.data || payload;
+            } catch (err) {
+                console.error("Lỗi fetch product detail:", err);
+                return null;
             }
-            const cart = await res.json();
-            items = cart.items.map(x => ({
-                maChiTietSP: x.maChiTietSP,
-                hinhAnh: x.duongDanAnh ? `/uploads/${x.duongDanAnh}` : '/uploads/default.png',
-                tenSP: x.tenSP,
-                mauSac: x.mauSac,
-                kichCo: x.kichThuoc,
-                soLuong: x.soLuong,
-                giaBan: x.giaBan,
-                thanhTien: x.thanhTien
-            }));
         }
 
+        if (selectedItems) {
+            // Trường hợp: chuyển từ Cart với query param "selectedItems=101:2,203:1"
+            const pairs = selectedItems.split(',').map(p => p.trim()).filter(Boolean);
+            for (const p of pairs) {
+                const parts = p.split(':');
+                const id = parseInt(parts[0]);
+                const qty = parts.length > 1 ? parseInt(parts[1]) : 1;
+                if (isNaN(id)) continue;
+
+                const sp = await fetchProductDetail(id);
+                if (!sp) {
+                    // Nếu không lấy được 1 sp thì bỏ qua (không abort toàn bộ)
+                    console.warn('Bỏ qua sản phẩm không tìm thấy:', id);
+                    continue;
+                }
+                items.push({
+                    maChiTietSP: id,
+                    tenSP: sp.tenSanPham || sp.tenSP || 'Sản phẩm',
+                    mauSac: sp.tenMauSac || sp.mauSac || '',
+                    kichCo: sp.tenKichThuoc || sp.kichThuoc || '',
+                    soLuong: qty,
+                    giaBan: sp.giaBan || 0,
+                    thanhTien: (sp.giaBan || 0) * qty,
+                    hinhAnh: sp.duongDanAnh
+                });
+            }
+        } else {
+            // Lấy toàn bộ giỏ hàng user từ API
+            try {
+                const res = await fetch(`/api/Cart/${userId}`);
+                if (!res.ok) {
+                    Swal.fire('Lỗi', 'Giỏ hàng trống hoặc không tồn tại.', 'warning');
+                    return;
+                }
+                const cart = await res.json();
+                if (!cart || !cart.items) {
+                    Swal.fire('Lỗi', 'Giỏ hàng rỗng.', 'warning');
+                    return;
+                }
+                items = cart.items.map(x => ({
+                    maChiTietSP: x.maChiTietSP,
+                    hinhAnh: x.duongDanAnh,
+                    tenSP: x.tenSP,
+                    mauSac: x.mauSac,
+                    kichCo: x.kichThuoc,
+                    soLuong: x.soLuong,
+                    giaBan: x.giaBan,
+                    thanhTien: x.thanhTien || (x.giaBan * x.soLuong)
+                }));
+            } catch (err) {
+                console.error('Lỗi khi lấy giỏ hàng:', err);
+                Swal.fire('Lỗi', 'Không thể kết nối đến server để lấy giỏ hàng.', 'error');
+                return;
+            }
+        }
+
+        // Render table
         renderTable(items);
 
-        $('#btnOrder').click(async function () {
+        // Xử lý click nút Thanh toán
+        $('#btnOrder').off('click').on('click', async function () {
             if ($('#diaChi').val().trim() === "") {
                 Swal.fire('Thiếu thông tin', 'Vui lòng nhập địa chỉ giao hàng', 'warning');
                 return;
             }
+            if (!items || items.length === 0) {
+                Swal.fire('Lỗi', 'Không có sản phẩm để đặt hàng.', 'warning');
+                return;
+            }
 
             const dto = {
-                DiaChiGiaoHang: $('#diaChi').val(),
+                DiaChiGiaoHang: $('#diaChi').val().trim(),
                 PhuongThucThanhToan: $('#pttt').val(),
                 ChiTietDonHang: items.map(x => ({
                     MaChiTietSanPham: x.maChiTietSP,
@@ -214,7 +250,7 @@
                 }))
             };
 
-            const confirm = await Swal.fire({
+            const conf = await Swal.fire({
                 title: 'Xác nhận đặt hàng?',
                 text: 'Bạn chắc chắn muốn đặt đơn hàng này?',
                 icon: 'question',
@@ -223,7 +259,7 @@
                 cancelButtonText: 'Hủy'
             });
 
-            if (!confirm.isConfirmed) return;
+            if (!conf.isConfirmed) return;
 
             try {
                 const res = await fetch('/api/DonHangApi', {
@@ -240,21 +276,23 @@
                         confirmButtonText: 'Xem đơn hàng'
                     }).then(() => window.location.href = '/Client/DonHang/Index');
                 } else {
-                    const err = await res.text();
-                    Swal.fire('Lỗi', err, 'error');
+                    const errText = await res.text();
+                    Swal.fire('Lỗi', errText || 'Tạo đơn hàng thất bại', 'error');
                 }
-            } catch (error) {
-                Swal.fire('Lỗi', error.message || 'Không thể kết nối máy chủ', 'error');
+            } catch (err) {
+                console.error('Lỗi khi tạo đơn:', err);
+                Swal.fire('Lỗi', err.message || 'Không thể kết nối máy chủ', 'error');
             }
         });
     });
 
+    // Hàm render table (giữ nguyên)
     function renderTable(items) {
         const tbody = $('#checkoutTable tbody');
         tbody.empty();
         let tongTien = 0;
         items.forEach(item => {
-            tongTien += item.thanhTien;
+            tongTien += item.thanhTien || (item.giaBan * item.soLuong);
             tbody.append(`
                 <tr>
                     <td><img src="${item.hinhAnh}" style="width:70px;height:70px;object-fit:cover;border-radius:5px"></td>
@@ -262,12 +300,15 @@
                     <td>${item.mauSac}</td>
                     <td>${item.kichCo}</td>
                     <td>${item.soLuong}</td>
-                    <td>${item.giaBan.toLocaleString('vi-VN')} ₫</td>
-                    <td>${item.thanhTien.toLocaleString('vi-VN')} ₫</td>
+                    <td>${(item.giaBan || 0).toLocaleString('vi-VN')} ₫</td>
+                    <td>${((item.thanhTien || (item.giaBan * item.soLuong)) || 0).toLocaleString('vi-VN')} ₫</td>
                 </tr>
             `);
         });
-        $('#tongTien').text(tongTien.toLocaleString('vi-VN') + ' ₫');
+        $('#tongTien').text((tongTien || 0).toLocaleString('vi-VN') + ' ₫');
     }
 </script>
+
+
+
   
