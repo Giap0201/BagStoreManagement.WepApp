@@ -71,6 +71,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         (function () {
             const apiUrl = '/api/SanPhamApi'; // ✅ Sử dụng action GetAll với query parameters
@@ -146,12 +147,12 @@
                             // ✅ Format đúng: PageResult có Data, Total, Page, PageSize
                             const items = pagedResult.data || pagedResult.Data || [];
                             renderSanPhams(items);
-                            
+
                             // ✅ Render phân trang nếu có dữ liệu
                             const total = pagedResult.total || pagedResult.Total || 0;
                             const page = pagedResult.page || pagedResult.Page || 1;
                             const pageSize = pagedResult.pageSize || pagedResult.PageSize || 9;
-                            
+
                             if (total > 0) {
                                 renderPagination(total, page, pageSize);
                             } else {
@@ -165,6 +166,7 @@
                     error: function (xhr) {
                         console.error('AJAX Error:', xhr);
                         $('#product-list').html('<div class="col-12 text-center py-5 text-danger">Không thể tải sản phẩm.</div>');
+                        Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể tải danh sách sản phẩm!' });
                     }
                 });
             }
@@ -183,26 +185,26 @@
                         : '/uploads/no-image.png';
 
                     html += `
-                                                                            <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-                                                                                <div class="card product-item border-0 mb-4 shadow-sm">
-                                                                                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                                                                                        <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
-                                                                                    </div>
-                                                                                    <div class="card-body text-center p-3 border-left border-right">
-                                                                                        <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
-                                                                                        <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
-                                                                                        <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
-                                                                                    </div>
-                                                                                    <div class="card-footer d-flex justify-content-between bg-light border">
-                                                                                     <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
-                                                                                         <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
-                                                                                     </a>
-                                                                                     <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
-                                                                                         <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
-                                                                                     </a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>`;
+                                                                                    <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+                                                                                        <div class="card product-item border-0 mb-4 shadow-sm">
+                                                                                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                                                                                <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                                                                            </div>
+                                                                                            <div class="card-body text-center p-3 border-left border-right">
+                                                                                                <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
+                                                                                                <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
+                                                                                                <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
+                                                                                            </div>
+                                                                                            <div class="card-footer d-flex justify-content-between bg-light border">
+                                                                                             <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
+                                                                                                 <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
+                                                                                             </a>
+                                                                                             <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
+                                                                                                 <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
+                                                                                             </a>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>`;
                 });
 
                 $('#product-list').html(html);
@@ -217,11 +219,11 @@
                 }
 
                 let html = '';
-                
+
                 // Nút Previous
                 html += `<li class="page-item ${currentPageNum === 1 ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${currentPageNum - 1}" ${currentPageNum === 1 ? 'onclick="return false;"' : ''}>&laquo;</a>
-                         </li>`;
+                                    <a class="page-link" href="#" data-page="${currentPageNum - 1}" ${currentPageNum === 1 ? 'onclick="return false;"' : ''}>&laquo;</a>
+                                 </li>`;
 
                 // Hiển thị số trang (tối đa 5 trang xung quanh trang hiện tại)
                 let startPage = Math.max(1, currentPageNum - 2);
@@ -247,8 +249,8 @@
                 // Các trang giữa
                 for (let i = startPage; i <= endPage; i++) {
                     html += `<li class="page-item ${i === currentPageNum ? 'active' : ''}">
-                                <a class="page-link" href="#" data-page="${i}">${i}</a>
-                             </li>`;
+                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                     </li>`;
                 }
 
                 // Trang cuối
@@ -261,8 +263,8 @@
 
                 // Nút Next
                 html += `<li class="page-item ${currentPageNum === totalPages ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${currentPageNum + 1}" ${currentPageNum === totalPages ? 'onclick="return false;"' : ''}>&raquo;</a>
-                         </li>`;
+                                    <a class="page-link" href="#" data-page="${currentPageNum + 1}" ${currentPageNum === totalPages ? 'onclick="return false;"' : ''}>&raquo;</a>
+                                 </li>`;
 
                 $('#pagination').html(html);
             }
@@ -346,16 +348,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                            <div class="row align-items-center">
-                                                <div class="col-3">
-                                                    <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
-                                                </div>
-                                                <div class="col-9">
-                                                    <h5>${escapeHtml(data.tenSP)}</h5>
-                                                    <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                                </div>
-                                            </div>
-                                        `);
+                                                    <div class="row align-items-center">
+                                                        <div class="col-3">
+                                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                                        </div>
+                                                        <div class="col-9">
+                                                            <h5>${escapeHtml(data.tenSP)}</h5>
+                                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                                        </div>
+                                                    </div>
+                                                `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');
@@ -379,7 +381,7 @@
                         $('#modalMaSP').val(maSP);
                     })
                     .fail(function () {
-                        alert('Không thể tải thông tin sản phẩm!');
+                        Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể tải thông tin sản phẩm!' });
                         $('#addToCartModal').modal('hide');
                     });
             }
@@ -420,7 +422,7 @@
                 const soLuong = parseInt($('#modalSoLuong').val()) || 1;
 
                 if (!maMauSac || !maKichThuoc) {
-                    alert('Vui lòng chọn màu sắc và kích thước!');
+                    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng chọn màu sắc và kích thước!' });
                     return;
                 }
 
@@ -441,8 +443,9 @@
                         $.get('/Client/Shop/GetMaKH')
                             .done(function (response) {
                                 if (!response || !response.maKH) {
-                                    alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
-                                    window.location.href = '/Client/Account/Login';
+                                    Swal.fire({ icon: 'warning', title: 'Yêu cầu đăng nhập', text: 'Vui lòng đăng nhập để thêm vào giỏ hàng!' }).then(() => {
+                                        window.location.href = '/Client/Account/Login';
+                                    });
                                     return;
                                 }
 
@@ -457,26 +460,28 @@
                                         soLuong: soLuong
                                     }),
                                     success: function (result) {
-                                        alert('Đã thêm vào giỏ hàng thành công!');
+                                        Swal.fire({ icon: 'success', title: 'Thành công', text: 'Đã thêm vào giỏ hàng thành công!', timer: 1500, showConfirmButton: false });
                                         $('#addToCartModal').modal('hide');
                                     },
                                     error: function (xhr) {
                                         if (xhr.status === 401) {
-                                            alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
-                                            window.location.href = '/Client/Account/Login';
+                                            Swal.fire({ icon: 'warning', title: 'Yêu cầu đăng nhập', text: 'Vui lòng đăng nhập để thêm vào giỏ hàng!' }).then(() => {
+                                                window.location.href = '/Client/Account/Login';
+                                            });
                                         } else {
-                                            alert(xhr.responseJSON?.message || 'Không thể thêm vào giỏ hàng!');
+                                            Swal.fire({ icon: 'error', title: 'Lỗi', text: (xhr.responseJSON && xhr.responseJSON.message) || 'Không thể thêm vào giỏ hàng!' });
                                         }
                                     }
                                 });
                             })
                             .fail(function () {
-                                alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
-                                window.location.href = '/Client/Account/Login';
+                                Swal.fire({ icon: 'warning', title: 'Yêu cầu đăng nhập', text: 'Vui lòng đăng nhập để thêm vào giỏ hàng!' }).then(() => {
+                                    window.location.href = '/Client/Account/Login';
+                                });
                             });
                     })
                     .fail(function () {
-                        alert('Không thể lấy thông tin sản phẩm!');
+                        Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể lấy thông tin sản phẩm!' });
                     });
             });
         })();
