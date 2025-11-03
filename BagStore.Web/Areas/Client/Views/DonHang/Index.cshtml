@@ -7,81 +7,135 @@
 
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-        <h1 class="font-weight-semi-bold text-uppercase mb-3">Danh sách đơn hàng</h1>
+        <h1 class="font-weight-semi-bold text-uppercase mb-3 text-center">Đơn hàng của tôi</h1>
         <div class="d-inline-flex">
             <p class="m-0"><a href="/">Home</a></p>
-        </div>  
+            <p class="m-0 px-2">/</p>
+            <p class="m-0">Đơn hàng</p>
+        </div>
     </div>
 </div>
 
-<table id="ordersTable" class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Mã</th>
-            <th>Ngày đặt</th>
-            <th>Tổng tiền</th>
-            <th>Trạng thái</th>
-            <th>Chi tiết</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+<!-- 🧩 Dùng container-fluid để bảng chiếm toàn màn hình -->
+<div class="container-fluid px-4 my-5">
+    <div id="ordersList" class="row gy-3"></div>
+</div>
+
+<style>
+    /* Bảng full-width */
+    .orders-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    table.table {
+        width: 100%;
+        min-width: 900px; /* đảm bảo không bị bó hẹp khi có nhiều cột */
+    }
+
+    th, td {
+        vertical-align: middle !important;
+    }
+
+    .card {
+        border-radius: 12px;
+        transition: all 0.25s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    @@media (max-width: 768px) {
+        h6 .fw-bold
+
+    {
+        font-size: 15px;
+    }
+
+    .card p {
+        font-size: 14px;
+    }
+
+    }
+</style>
 
 <script>
     $(async function () {
-        // ⚙️ Lấy userId từ ViewBag (controller đã set trong action Index)
         const userId = '@ViewBag.UserId';
 
         if (!userId) {
-            // Nếu chưa đăng nhập, điều hướng về trang login
             window.location.href = '/Client/Account/Login';
             return;
         }
 
         try {
-            // ⚙️ Gọi API theo userId mới
             const res = await fetch(`/api/DonHangApi/khachhang/${userId}`);
             if (!res.ok) {
                 const t = await res.text();
-                $('#ordersTable tbody').html(`<tr><td colspan="5">${t}</td></tr>`);
+                $('#ordersList').html(`<div class="col-12 text-center text-danger">${t}</div>`);
                 return;
-
             }
+
             const data = await res.json();
 
-                const rows = data.map(o => `
-        <tr>
-            <td>${o.maDonHang}</td>
-            <td>${new Date(o.ngayDatHang).toLocaleString('vi-VN')}</td>
-            <td>${o.tongTien.toLocaleString('vi-VN')}</td>
-            <td>${o.trangThai}</td>
-            <td>
-                <button class="btn btn-sm btn-primary btn-view-details" data-id="${o.maDonHang}">
-                    <i class="bi bi-eye"></i> Xem
-                </button>
-            </td>
-        </tr>
-    `).join('');
+            // 🧩 View Desktop (Bảng full width)
+            const tableView = `
+                <div class="orders-table-wrapper d-none d-md-block">
+                    <table class="table table-bordered table-striped text-center align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Mã</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(o => `
+                                <tr>
+                                    <td>${o.maDonHang}</td>
+                                    <td>${new Date(o.ngayDatHang).toLocaleString('vi-VN')}</td>
+                                    <td>${o.tongTien.toLocaleString('vi-VN')}₫</td>
+                                    <td>${o.trangThai}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-view-details" data-id="${o.maDonHang}">
+                                            <i class="bi bi-eye"></i> Xem
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
 
+            // 🧩 View Mobile (Card view)
+            const cardView = data.map(o => `
+                <div class="col-12 d-md-none">
+                    <div class="card shadow-sm p-3">
+                        <h6 class="fw-bold text-primary mb-2">Đơn hàng #${o.maDonHang}</h6>
+                        <p class="mb-1"><b>Ngày đặt:</b> ${new Date(o.ngayDatHang).toLocaleString('vi-VN')}</p>
+                        <p class="mb-1"><b>Tổng tiền:</b> ${o.tongTien.toLocaleString('vi-VN')}₫</p>
+                        <p class="mb-2"><b>Trạng thái:</b> ${o.trangThai}</p>
+                        <button class="btn btn-sm btn-primary btn-view-details w-100" data-id="${o.maDonHang}">
+                            <i class="bi bi-eye"></i> Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+            `).join('');
 
-            $('#ordersTable tbody').html(rows);
+            $('#ordersList').html(tableView + cardView);
 
-                    // 🧩 Sự kiện xem chi tiết (chuyển trang)
-            $('#ordersTable').on('click', '.btn-view-details', function () {
-        const maDonHang = $(this).data('id'); // Lấy mã đơn hàng
-
-        if (!maDonHang) {
-            Swal.fire('Lỗi', 'Không tìm thấy mã đơn hàng.', 'error');
-            return;
-        }
-
-        // Chuyển đến trang chi tiết
-        window.location.href = `/Client/DonHang/Details/${maDonHang}`;
-    });
-
+            // 🧩 Sự kiện xem chi tiết
+            $('#ordersList').on('click', '.btn-view-details', function () {
+                const id = $(this).data('id');
+                window.location.href = `/Client/DonHang/Details/${id}`;
+            });
 
         } catch (err) {
-            $('#ordersTable tbody').html(`<tr><td colspan="5">${err.message}</td></tr>`);
+            $('#ordersList').html(`<div class="col-12 text-center text-danger">${err.message}</div>`);
         }
     });
 </script>
