@@ -103,6 +103,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IMauSacRepository, MauSacImpl>();
 builder.Services.AddScoped<IMauSacService, MauSacService>();
 builder.Services.AddScoped<IKichThuocRepository, KichThuocImpl>();
+builder.Services.AddScoped<IKhachHangRepository, KhachHangImpl>();
 builder.Services.AddScoped<IKichThuocService, KichThuocService>();
 builder.Services.AddScoped<ISanPhamRepository, SanPhamImpl>();
 builder.Services.AddScoped<ISanPhamService, SanPhamService>();
@@ -113,6 +114,7 @@ builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
 builder.Services.AddScoped<IDonHangService, DonHangService>();
 builder.Services.AddScoped<IAnhSanPhamRepository, AnhSanPhamImpl>();
 builder.Services.AddScoped<IAnhSanPhamService, AnhSanPhamService>();
+
 
 // Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
 builder.Services.AddScoped<FileUploadService>();

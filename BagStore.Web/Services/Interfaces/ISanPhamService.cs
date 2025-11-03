@@ -1,8 +1,7 @@
-﻿using BagStore.Domain.Entities;
-using BagStore.Models.Common;
-using BagStore.Web.Models.DTOs;
+﻿using BagStore.Models.Common;
+using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.ViewModels;
-using BagStore.Web.Utilities;
+
 
 namespace BagStore.Web.Services.Interfaces
 {

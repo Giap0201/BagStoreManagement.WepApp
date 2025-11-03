@@ -1,5 +1,4 @@
-﻿using BagStore.Models.Common;
-using BagStore.Web.Models.DTOs;
+﻿using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

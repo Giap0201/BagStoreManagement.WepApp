@@ -2,8 +2,9 @@
 
 namespace BagStore.Web.Repositories.Interfaces
 {
-    public interface IChiTietDonHangRepository : IGenericRepository<ChiTietDonHang>
+    public interface IChiTietDonHangRepository
     {
+        Task AddAsync(ChiTietDonHang entity);
         Task<IEnumerable<ChiTietDonHang>> LayTheoDonHangAsync(int maDonHang);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using BagStore.Domain.Entities;
 using BagStore.Models.Common;
-using BagStore.Web.Models.DTOs;
+using BagStore.Web.Models.DTOs.Requests;
 using BagStore.Web.Models.ViewModels.SanPhams;
 
 namespace BagStore.Web.Services.Interfaces
