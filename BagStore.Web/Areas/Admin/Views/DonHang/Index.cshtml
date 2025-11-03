@@ -19,6 +19,25 @@
     .modal-lg {
         max-width: 900px;
     }
+
+    /* ✅ SỬA LỖI MỚI - MẠNH HƠN */
+    /* Chúng ta dùng ID #adminOrders_wrapper để tăng độ ưu tiên (specificity)
+          nhằm thắng được file CSS của theme "Purple Admin" đang gây xung đột.
+        */
+    #adminOrders_wrapper .dataTables_length select.form-select {
+        /* Vô hiệu hóa giao diện gốc của trình duyệt */
+        appearance: none !important;
+        /* Ép nó dùng hình ảnh mũi tên của Bootstrap 5 */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        /* Căn chỉnh vị trí mũi tên */
+        background-position: right 0.75rem center !important;
+        /* Đặt kích thước cho mũi tên */
+        background-size: 16px 12px !important;
+        /* Đảm bảo nó không lặp lại */
+        background-repeat: no-repeat !important;
+        /* TẠO KHOẢNG TRỐNG cho mũi tên, đây là mấu chốt! */
+        padding-right: 2.25rem !important;
+    }
 </style>
 
 <h2 class="mb-4">
