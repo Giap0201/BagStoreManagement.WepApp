@@ -92,6 +92,7 @@ namespace BagStore.Web.Controllers.Api
         /// Cập nhật trạng thái đơn hàng (Admin)
         /// </summary>
         [HttpPut("capnhat-trangthai")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<DonHangResponse>> CapNhatTrangThai([FromBody] UpdateDonHangStatusRequest dto)
         {
             try
@@ -134,6 +135,35 @@ namespace BagStore.Web.Controllers.Api
                 return NotFound(new { message = "Không tìm thấy đơn hàng." });
 
             return Ok(donHang);
+        }
+
+        /// <summary>
+        /// Xóa đơn hàng theo mã (chỉ Admin)
+        /// </summary>
+        [HttpDelete("{maDonHang:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> XoaDonHang(int maDonHang)
+        {
+            try
+            {
+                var ketQua = await _donHangService.XoaDonHangAsync(maDonHang);
+                if (!ketQua)
+                {
+                    return NotFound(new { success = false, message = "Không tìm thấy đơn hàng cần xóa." });
+                }
+
+                return Ok(new { success = true, message = "Xóa đơn hàng thành công." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // trường hợp nghiệp vụ không cho phép xóa (VD: đơn đã giao)
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa đơn hàng {maDonHang}", maDonHang);
+                return StatusCode(500, new { success = false, message = "Đã xảy ra lỗi phía máy chủ." });
+            }
         }
     }
 }

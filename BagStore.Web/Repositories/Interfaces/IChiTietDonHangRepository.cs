@@ -6,5 +6,6 @@ namespace BagStore.Web.Repositories.Interfaces
     {
         Task AddAsync(ChiTietDonHang entity);
         Task<IEnumerable<ChiTietDonHang>> LayTheoDonHangAsync(int maDonHang);
+        Task XoaAsync(ChiTietDonHang entity);
     }
 }
