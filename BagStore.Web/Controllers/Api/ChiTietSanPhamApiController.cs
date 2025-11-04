@@ -39,10 +39,6 @@ namespace BagStore.Web.Controllers.Api
             return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
 
-        /// Tạo mới biến thể cho sản phẩm
-        /// POST: /api/sanpham/{maSanPham}/ChiTietSanPhamApi
-        /// 
-
         [HttpGet("/api/ChiTietSanPhamApi/{maChiTietSP}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetByIdGlobal(int maChiTietSP)
@@ -50,6 +46,10 @@ namespace BagStore.Web.Controllers.Api
             var response = await _service.GetByIdAsync(maChiTietSP);
             return response.Status == "error" ? BadRequest(response) : Ok(response);
         }
+
+        /// Tạo mới biến thể cho sản phẩm
+        /// POST: /api/sanpham/{maSanPham}/ChiTietSanPhamApi
+        /// 
 
         [HttpPost]
         public async Task<IActionResult> Create(int maSanPham, [FromBody] ChiTietSanPhamRequestDto dto)

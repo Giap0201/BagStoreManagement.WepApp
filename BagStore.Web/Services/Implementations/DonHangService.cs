@@ -100,7 +100,7 @@ namespace BagStore.Web.Services.Implementations
             };
 
             await _donHangRepo.AddAsync(donHang);
-            await _donHangRepo.SaveAsync(); // để có MaDonHang nếu DB tạo identity
+            await _donHangRepo.LuuAsync(); // để có MaDonHang nếu DB tạo identity
 
             decimal tongTien = 0;
 
@@ -136,7 +136,7 @@ namespace BagStore.Web.Services.Implementations
             // 5️⃣ Cập nhật tổng tiền
             donHang.TongTien = tongTien;
             await _donHangRepo.UpdateAsync(donHang);
-            await _donHangRepo.SaveAsync();
+            await _donHangRepo.LuuAsync();
 
             // 6️⃣ Xóa giỏ hàng tương ứng
             var userCart = await _cartService.GetCartByUserIdAsync(userId);
@@ -227,7 +227,7 @@ namespace BagStore.Web.Services.Implementations
                 }
             }
 
-            await _donHangRepo.CapNhatAsync(donHang);
+            await _donHangRepo.UpdateAsync(donHang);
             await _donHangRepo.LuuAsync();
 
             var donHangWithDetails = await _donHangRepo.GetByIdWithDetailsAsync(donHang.MaDonHang);
@@ -241,6 +241,45 @@ namespace BagStore.Web.Services.Implementations
                 return null;
 
             return MapToDonHangResponse(donHang);
+        }
+
+        public async Task<bool> XoaDonHangAsync(int maDonHang)
+        {
+            // 1️⃣ Tìm đơn hàng theo ID (kèm chi tiết)
+            var donHang = await _donHangRepo.GetByIdWithDetailsAsync(maDonHang);
+            if (donHang == null)
+                return false; // không tìm thấy
+
+            // 2️⃣ Hoàn trả tồn kho (nếu có chi tiết)
+            if (donHang.ChiTietDonHangs != null && donHang.ChiTietDonHangs.Any())
+            {
+                foreach (var ct in donHang.ChiTietDonHangs)
+                {
+                    var chiTietSP = await _chiTietSanPhamRepo.GetByIdAsync(ct.MaChiTietSP);
+                    if (chiTietSP != null)
+                    {
+                        chiTietSP.SoLuongTon += ct.SoLuong;
+                        await _chiTietSanPhamRepo.UpdateAsync(chiTietSP);
+                    }
+                }
+            }
+
+            // 3️⃣ Xóa toàn bộ chi tiết đơn hàng trước (tránh lỗi FK)
+            if (donHang.ChiTietDonHangs != null && donHang.ChiTietDonHangs.Any())
+            {
+                foreach (var ct in donHang.ChiTietDonHangs)
+                {
+                    await _chiTietDonHangRepo.XoaAsync(ct);
+                }
+            }
+
+            // 4️⃣ Xóa đơn hàng chính
+            await _donHangRepo.XoaAsync(donHang.MaDonHang);
+
+            // 5️⃣ Lưu thay đổi
+            await _donHangRepo.LuuAsync();
+
+            return true;
         }
 
         private static DonHangResponse MapToDonHangResponse(DonHang d)

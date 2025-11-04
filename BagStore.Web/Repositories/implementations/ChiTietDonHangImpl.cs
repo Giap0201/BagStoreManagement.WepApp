@@ -29,5 +29,11 @@ namespace BagStore.Web.Repositories.implementations
                 .Where(ct => ct.MaDonHang == maDonHang)
                 .ToListAsync();
         }
+
+        public async Task XoaAsync(ChiTietDonHang entity)
+        {
+            _context.ChiTietDonHangs.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
     }
 }

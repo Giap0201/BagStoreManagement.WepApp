@@ -20,22 +20,12 @@
         max-width: 900px;
     }
 
-    /* ✅ SỬA LỖI MỚI - MẠNH HƠN */
-    /* Chúng ta dùng ID #adminOrders_wrapper để tăng độ ưu tiên (specificity)
-          nhằm thắng được file CSS của theme "Purple Admin" đang gây xung đột.
-        */
     #adminOrders_wrapper .dataTables_length select.form-select {
-        /* Vô hiệu hóa giao diện gốc của trình duyệt */
         appearance: none !important;
-        /* Ép nó dùng hình ảnh mũi tên của Bootstrap 5 */
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
-        /* Căn chỉnh vị trí mũi tên */
         background-position: right 0.75rem center !important;
-        /* Đặt kích thước cho mũi tên */
         background-size: 16px 12px !important;
-        /* Đảm bảo nó không lặp lại */
         background-repeat: no-repeat !important;
-        /* TẠO KHOẢNG TRỐNG cho mũi tên, đây là mấu chốt! */
         padding-right: 2.25rem !important;
     }
 </style>
@@ -109,6 +99,9 @@
                                 <button class="btn btn-sm btn-outline-primary" onclick="showOrderDetails(${row.maDonHang})">
                                     <i class="mdi mdi-eye"></i> Xem
                                 </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${row.maDonHang})">
+                                    <i class="mdi mdi-delete"></i> Xóa
+                                </button>
                                 <select class="form-select form-select-sm w-auto"
                                     onchange="updateStatus(${row.maDonHang}, this.value)">
                                     ${['Chờ xử lý', 'Đang giao hàng', 'Hoàn thành', 'Đã huỷ']
@@ -119,7 +112,17 @@
                 ],
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.13.5/i18n/vi.json",
+                    search: "", // bỏ chữ "Tìm kiếm:"
+                    searchPlaceholder: "Nhập tên khách hàng",
                     info: "Đang hiển thị _START_–_END_ trên tổng số _TOTAL_ đơn hàng"
+                },
+                initComplete: function () {
+                    // Gán lại behavior của ô tìm kiếm để chỉ lọc theo cột "Khách hàng"
+                    const api = this.api();
+                    const searchInput = $('#adminOrders_filter input');
+                    searchInput.off().on('keyup', function () {
+                        api.column(1).search(this.value).draw(); // chỉ lọc theo cột khách hàng (index = 1)
+                    });
                 }
             });
 
@@ -128,12 +131,15 @@
             };
         });
 
+        // ✅ Cập nhật trạng thái đơn hàng
         async function updateStatus(maDonHang, trangThai) {
             const confirmRes = await Swal.fire({
                 title: 'Xác nhận',
                 text: `Bạn muốn đổi trạng thái sang "${trangThai}"?`,
                 icon: 'question',
-                showCancelButton: true
+                showCancelButton: true,
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
             });
             if (!confirmRes.isConfirmed) {
                 window.reloadOrders();
@@ -151,11 +157,43 @@
                     await Swal.fire('Thành công', 'Cập nhật trạng thái thành công', 'success');
                     window.reloadOrders();
                 } else {
-                    await Swal.fire('Lỗi', await res.text(), 'error');
+                    const text = await res.text();
+                    await Swal.fire('Lỗi', text || 'Không thể cập nhật trạng thái', 'error');
                     window.reloadOrders();
                 }
             } catch (err) {
                 await Swal.fire('Lỗi', err.message || 'Lỗi mạng', 'error');
+                window.reloadOrders();
+            }
+        }
+
+        // ✅ Xoá đơn hàng
+        async function deleteOrder(maDonHang) {
+            const confirmRes = await Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: 'Đơn hàng sẽ bị xóa vĩnh viễn!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy',
+                confirmButtonColor: '#d33'
+            });
+
+            if (!confirmRes.isConfirmed) return;
+
+            try {
+                const res = await fetch(`/api/DonHangApi/${maDonHang}`, { method: 'DELETE' });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    await Swal.fire('Thành công', data.message || 'Đã xóa đơn hàng.', 'success');
+                } else {
+                    await Swal.fire('Lỗi', data.message || 'Không thể xóa đơn hàng.', 'error');
+                }
+
+                window.reloadOrders();
+            } catch (err) {
+                await Swal.fire('Lỗi', err.message || 'Lỗi mạng.', 'error');
                 window.reloadOrders();
             }
         }

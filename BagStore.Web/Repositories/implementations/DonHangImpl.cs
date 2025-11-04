@@ -111,14 +111,28 @@ namespace BagStore.Web.Repositories.implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task SaveAsync()
+        // Duplicate SaveAsync để tương thích với LuuAsync trong interface
+        public async Task LuuAsync()
         {
             await _context.SaveChangesAsync();
         }
 
-        // Duplicate SaveAsync để tương thích với LuuAsync trong interface
-        public async Task LuuAsync()
+        public async Task XoaAsync(int maDonHang)
         {
+            var donHang = await _context.DonHangs
+                .Include(d => d.ChiTietDonHangs)
+                .FirstOrDefaultAsync(d => d.MaDonHang == maDonHang);
+
+            if (donHang == null)
+                return;
+
+            // Nếu chưa bật cascade delete, ta cần xóa chi tiết trước
+            if (donHang.ChiTietDonHangs != null && donHang.ChiTietDonHangs.Any())
+            {
+                _context.ChiTietDonHangs.RemoveRange(donHang.ChiTietDonHangs);
+            }
+
+            _context.DonHangs.Remove(donHang);
             await _context.SaveChangesAsync();
         }
     }
