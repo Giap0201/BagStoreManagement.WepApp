@@ -42,6 +42,15 @@
                 <a href="#" class="btn btn-primary btn-lg btn-add-to-cart" data-ma-sp="@Model.Product?.MaSP">
                     <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                 </a>
+                <a href="#"
+                   class="btn btn-primary btn-lg btn-buy-now"
+                   data-ma-sp="@Model.Product?.MaSP"
+                   style="color:#C1847C; border:1px solid #C1847C; background-color:white;"
+                   onmouseover="this.style.backgroundColor='#C1847C'; this.style.color='white';"
+                   onmouseout="this.style.backgroundColor='white'; this.style.color='#C1847C';">
+                    Mua Ngay
+                </a>
+
             </div>
         </div>
     </div>
@@ -78,6 +87,82 @@
 
                 openAddToCartModal(maSP);
             });
+
+               // ✅ Xử lý button "Mua Ngay"
+        $('.btn-buy-now').on('click', function (e) {
+            e.preventDefault();
+            const maSP = $(this).data('ma-sp');
+            if (!maSP) return;
+
+            openBuyNowModal(maSP);
+        });
+                function openBuyNowModal(maSP) {
+            // Hiển thị modal "Mua ngay"
+            $('#buyNowModal').modal('show');
+
+            // Hiển thị trạng thái loading trong modal
+            $('#buyNowProductInfo').html('<div class="text-center py-3"><div class="spinner-border"></div></div>');
+            $('#buyNowMauSac, #buyNowKichThuoc').empty().append('<option value="">Đang tải...</option>');
+
+            // Gọi API lấy thông tin sản phẩm
+            $.get('/Client/Shop/GetProductOptions', { maSP: maSP })
+                .done(function (data) {
+                    const imgUrl = data.anhChinh
+                        ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/')
+                        : '/uploads/no-image.png';
+
+                    // Hiển thị thông tin sản phẩm trong modal
+                    $('#buyNowProductInfo').html(`
+                        <div class="row align-items-center">
+                            <div class="col-3">
+                                <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                            </div>
+                            <div class="col-9">
+                                <h5>${escapeHtml(data.tenSP)}</h5>
+                                <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                            </div>
+                        </div>
+                    `);
+
+                    // Đổ danh sách màu sắc
+                    const $mauSac = $('#buyNowMauSac');
+                    $mauSac.empty().append('<option value="">-- Chọn màu sắc --</option>');
+                    if (data.mauSacs && data.mauSacs.length > 0) {
+                        data.mauSacs.forEach(function (mau) {
+                            $mauSac.append(`<option value="${mau.maMauSac || mau.MaMauSac}">
+                                ${mau.tenMauSac || mau.TenMauSac}
+                            </option>`);
+                        });
+                    }
+
+                    // Đổ danh sách kích thước
+                    const $kichThuoc = $('#buyNowKichThuoc');
+                    $kichThuoc.empty().append('<option value="">-- Chọn kích thước --</option>');
+                    if (data.kichThuocs && data.kichThuocs.length > 0) {
+                        data.kichThuocs.forEach(function (kt) {
+                            $kichThuoc.append(`<option value="${kt.maKichThuoc || kt.MaKichThuoc}">
+                                ${kt.tenKichThuoc || kt.TenKichThuoc}
+                            </option>`);
+                        });
+                    }
+
+                    // Lưu mã sản phẩm và đánh dấu chế độ
+                    $('#buyNowMaSP').data('mode', 'buy-now');
+                    $('#buyNowMaSP').val(maSP);
+                })
+                .fail(function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Không thể tải thông tin sản phẩm!'
+                    });
+                    $('#buyNowModal').modal('hide');
+                });
+        }
+
+       
+
+
 
             // ✅ Hàm mở modal chọn màu/kích thước
             function openAddToCartModal(maSP) {
@@ -155,6 +240,60 @@
                         $('#modalSoLuongTon').text('-');
                     });
             });
+            //xu li nut mua ngay
+                    $('#formBuyNow').on('submit', function (e) {
+            e.preventDefault();
+
+            const maSP = $('#buyNowMaSP').val();
+            const maMauSac = $('#buyNowMauSac').val();
+            const maKichThuoc = $('#buyNowKichThuoc').val();
+            const soLuong = parseInt($('#buyNowSoLuong').val()) || 1;
+
+            if (!maMauSac || !maKichThuoc) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Thiếu thông tin',
+                    text: 'Vui lòng chọn màu sắc và kích thước!'
+                });
+                return;
+            }
+
+            // Lấy mã chi tiết sản phẩm
+            $.get('/Client/Shop/GetVariant', {
+                maSp: maSP,
+                colorId: maMauSac,
+                sizeId: maKichThuoc
+            })
+                .done(function (variant) {
+                    const maChiTietSP = variant.maChiTietSP || variant.MaChiTietSP;
+                    if (!maChiTietSP) {
+                        Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không tìm thấy biến thể sản phẩm này!' });
+                        return;
+                    }
+
+                    // Tạo chuỗi params giống như đoạn trong hình
+                    const params = `${maChiTietSP}:${soLuong}`;
+                    console.log("🛒 Dữ liệu gửi đi:", params);
+
+                    // Hiển thị hiệu ứng loading trước khi chuyển trang
+                    Swal.fire({
+                        title: 'Đang chuyển sang trang thanh toán...',
+                        icon: 'info',
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // Chuyển sang trang Checkout
+                    setTimeout(() => {
+                        window.location.href = `/Client/DonHang/Checkout?selectedItems=${encodeURIComponent(params)}`;
+                    }, 1000);
+                })
+                .fail(function () {
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể lấy thông tin sản phẩm!' });
+                });
+        });
+
 
             // ✅ Xử lý submit form thêm vào giỏ
             $('#formAddToCart').on('submit', function (e) {
@@ -284,3 +423,52 @@
         </div>
     </div>
 </div>
+@* them nut mua ngay *@
+<!-- ✅ Modal chọn màu sắc và kích thước -->
+<!-- ✅ Modal Mua Ngay -->
+<div class="modal fade" id="buyNowModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Chọn màu sắc và kích thước</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formBuyNow">
+                <div class="modal-body">
+                    <div id="buyNowProductInfo" class="mb-3"></div>
+                    <input type="hidden" id="buyNowMaSP" />
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Màu sắc: <span class="text-danger">*</span></label>
+                        <select id="buyNowMauSac" class="form-control" required>
+                            <option value="">-- Chọn màu sắc --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Kích thước: <span class="text-danger">*</span></label>
+                        <select id="buyNowKichThuoc" class="form-control" required>
+                            <option value="">-- Chọn kích thước --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Số lượng:</label>
+                        <input type="number" id="buyNowSoLuong" class="form-control" value="1" min="1" required />
+                        <small class="text-muted">Còn lại: <span id="buyNowSoLuongTon">-</span></small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                         Mua Ngay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+

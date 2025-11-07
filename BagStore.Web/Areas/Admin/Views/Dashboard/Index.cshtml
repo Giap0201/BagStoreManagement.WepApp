@@ -1,0 +1,266 @@
+﻿@model BagStore.Web.Areas.Admin.Models.DashBoardPhanHoiDTO
+
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    /* CSS Tùy Chỉnh để cố định chiều cao của dòng chữ nhỏ (h6) ở 4 card đầu */
+    .card-footer-text-fixed-height {
+        /* Đảm bảo chỉ hiển thị tối đa 2 dòng, chiều cao sẽ đồng nhất */
+        min-height: 30px; /* Chiều cao tương đương 2 dòng chữ */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Thiết lập màu cho các tiêu đề chính trên nền trắng */
+    .card-title-blue {
+        color: #4B49AC !important; /* Màu xanh Primary của theme Purple */
+    }
+
+    /* Đảm bảo 4 card đầu không bị lệch khi nội dung H4 bị dài */
+    .card-header-fixed-height {
+        min-height: 48px; /* Đủ chỗ cho 1-2 dòng tiêu đề */
+        color: white !important; /* Giữ màu chữ trắng để tương phản với nền gradient */
+    }
+</style>
+
+<div class="page-header">
+    <h3 class="page-title card-title-blue">
+        <span class="page-title-icon bg-gradient-primary text-white me-2">
+            <i class="mdi mdi-home"></i>
+        </span> Dashboard
+    </h3>
+    <nav aria-label="breadcrumb">
+        <ul class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page">
+                Tổng quan hệ thống <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div class="row">
+    <div class="col-md-3 stretch-card grid-margin">
+        <div class="card bg-gradient-primary card-img-holder text-white">
+            <div class="card-body">
+                <img src="~/LayoutAdmin/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />
+                <h4 class="font-weight-normal mb-3 card-header-fixed-height">
+                    Tổng sản phẩm <i class="mdi mdi-bag-personal mdi-24px float-right"></i>
+                </h4>
+                <h2 class="mb-5">@Model.ThongKeTongQuan.TongSanPham.ToString("N0")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 stretch-card grid-margin">
+        <div class="card bg-gradient-info card-img-holder text-white">
+            <div class="card-body">
+                <img src="~/LayoutAdmin/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />
+                <h4 class="font-weight-normal mb-3 card-header-fixed-height">
+                    Tổng khách hàng <i class="mdi mdi-account-multiple mdi-24px float-right"></i>
+                </h4>
+                <h2 class="mb-5">@Model.ThongKeTongQuan.TongKhachHang.ToString("N0")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 stretch-card grid-margin">
+        <div class="card bg-gradient-success card-img-holder text-white">
+            <div class="card-body">
+                <img src="~/LayoutAdmin/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />
+                <h4 class="font-weight-normal mb-3 card-header-fixed-height">
+                    Tổng đơn hàng <i class="mdi mdi-cart-outline mdi-24px float-right"></i>
+                </h4>
+                <h2 class="mb-5">@Model.ThongKeTongQuan.TongDonHang.ToString("N0")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 stretch-card grid-margin">
+        <div class="card bg-gradient-danger card-img-holder text-white">
+            <div class="card-body">
+                <img src="~/LayoutAdmin/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />
+                <h4 class="font-weight-normal mb-3 card-header-fixed-height">
+                    Doanh thu tháng <i class="mdi mdi-cash-multiple mdi-24px float-right"></i>
+                </h4>
+                <h2 class="mb-5">@Model.ThongKeTongQuan.TongDoanhThuThang.ToString("N0") ₫</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <div class="clearfix mb-3">
+                    <h4 class="card-title float-left card-title-blue">Doanh thu theo tháng</h4>
+                    <div id="visit-sale-chart-legend" class="rounded-legend legend-horizontal legend-top-right float-right"></div>
+                </div>
+                <canvas id="revenueChart" class="mt-3"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title card-title-blue">Trạng thái đơn hàng</h4>
+                <canvas id="orderStatusChart"></canvas>
+                <div id="traffic-chart-legend" class="rounded-legend legend-vertical legend-bottom-left pt-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title card-title-blue">Đơn hàng gần đây</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var dh in Model.DanhSachDonHangGanDay)
+                            {
+                                <tr>
+                                    <td>@dh.MaDonHang</td>
+                                    <td>@dh.TenKhachHang</td>
+                                    <td>@dh.NgayDatHang.ToString("dd/MM/yyyy")</td>
+                                    <td>@dh.TongTien.ToString("N0") ₫</td>
+                                    <td>
+                                        @{
+                                            var css = dh.TrangThai switch
+                                            {
+                                                "Hoàn thành" => "badge badge-gradient-success",
+                                                "Đang giao" => "badge badge-gradient-info",
+                                                "Chờ xử lý" => "badge badge-gradient-warning",
+                                                "Đã hủy" => "badge badge-gradient-danger",
+                                                _ => "badge badge-secondary"
+                                            };
+                                        }
+                                        <label class="@css">@dh.TrangThai</label>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.DanhSachDonHangGanDay.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Không có đơn hàng nào gần đây</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title card-title-blue">Sản phẩm bán chạy</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tên sản phẩm</th>
+                                <th>Số lượng bán</th>
+                                <th>Doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sp in Model.DanhSachSanPhamBanChay)
+                            {
+                                <tr>
+                                    <td>@sp.TenSanPham</td>
+                                    <td>@sp.SoLuongBan.ToString("N0")</td>
+                                    <td>@sp.DoanhThu.ToString("N0") ₫</td>
+                                </tr>
+                            }
+                            @if (!Model.DanhSachSanPhamBanChay.Any())
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Chưa có dữ liệu sản phẩm bán chạy</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Biểu đồ doanh thu theo tháng
+        const doanhThuCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(doanhThuCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.NhanThang)),
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.GiaTriDoanhThu)),
+                    borderColor: '#4B49AC',
+                    backgroundColor: 'rgba(75,73,172,0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (val) => val.toLocaleString('vi-VN') + ' ₫'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Biểu đồ trạng thái đơn hàng
+        const trangThaiCtx = document.getElementById('orderStatusChart').getContext('2d');
+        new Chart(trangThaiCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ xử lý', 'Đang giao', 'Hoàn thành', 'Đã hủy'],
+                datasets: [{
+                    data: [
+                        @Model.BieuDoTrangThaiDonHang.SoChoXuLy,
+                        @Model.BieuDoTrangThaiDonHang.SoDangGiao,
+                        @Model.BieuDoTrangThaiDonHang.SoHoanThanh,
+                        @Model.BieuDoTrangThaiDonHang.SoDaHuy
+                    ],
+                    backgroundColor: ['#FFB800', '#0090E7', '#00D25B', '#FF4747'],
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
+}
