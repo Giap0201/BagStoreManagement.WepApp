@@ -10,16 +10,27 @@
         <div class="col-md-6">
             <div class="border mb-3"
                 style="min-height: 600px; height: 600px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; padding: 20px; position: relative; overflow: hidden;">
+                <!-- Thêm nút PREV, NEXT và index hidden -->
+                <button type="button" id="img-prev" class="btn btn-light"
+                    style="position:absolute; left:10px; top:50%; transform:translateY(-50%); z-index:2; border-radius:50%; box-shadow:0 0 6px #ccc;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
                 <img src="@(Model.Images.FirstOrDefault()?.DuongDan ?? "/uploads/no-image.png")"
                     class="rounded main-product-image" alt="@Model.Product?.TenSP"
                     style="height: 550px; width: auto; max-width: 100%; object-fit: contain; transition: transform 0.3s ease; cursor: zoom-in;" />
+                <button type="button" id="img-next" class="btn btn-light"
+                    style="position:absolute; right:10px; top:50%; transform:translateY(-50%); z-index:2; border-radius:50%; box-shadow:0 0 6px #ccc;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <input type="hidden" id="main-image-index" value="0" />
             </div>
-            <div class="d-flex flex-wrap gap-2 mt-3">
-                @foreach (var img in Model.Images)
+            <div class="d-flex flex-wrap gap-2 mt-3" id="product-thumbnails-wrap">
+                @for (int i = 0; i < Model.Images.Count; i++)
                 {
+                    var img = Model.Images[i];
                     <div style="width: 90px; height: 90px; overflow: hidden; border: 2px solid #dee2e6; border-radius: 6px; padding: 5px; cursor: pointer; transition: border-color 0.2s ease;"
-                        onclick="changeMainImage('@img.DuongDan')" onmouseover="this.style.borderColor='#007bff'"
-                        onmouseout="this.style.borderColor='#dee2e6'">
+                        data-index="@i" onclick="changeMainImage('@img.DuongDan', @i)"
+                        onmouseover="this.style.borderColor='#007bff'" onmouseout="this.style.borderColor='#dee2e6'">
                         <img src="@img.DuongDan" style="width: 100%; height: 100%; object-fit: contain;" alt="Thumbnail" />
                     </div>
                 }
@@ -64,9 +75,67 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function changeMainImage(imageUrl) {
-            $('.main-product-image').attr('src', imageUrl);
+        // Giữ danh sách ảnh và index hiện tại dạng JS array
+        var productImages = [];
+        @* truyền vào javascript array *@
+            @if (Model.Images != null && Model.Images.Count > 0)
+            {
+                <text>productImages = [@Html.Raw(string.Join(",", Model.Images.Select(i => $"'{i.DuongDan.Replace("\\", "\\\\").Replace("'", "\\'")}'")))];</text>
         }
+            else
+            {
+                <text>productImages = ['/uploads/no-image.png'];</text>
+        }
+
+            // current index
+            var mainImageIndex = 0;
+
+        function setMainImageByIndex(idx) {
+            if (!productImages.length) return;
+            if (idx < 0) idx = 0;
+            if (idx >= productImages.length) idx = productImages.length - 1;
+            $('.main-product-image').attr('src', productImages[idx]);
+            $('#main-image-index').val(idx);
+            mainImageIndex = idx;
+
+            // Highlight thumb (optional: nếu bạn muốn)
+            $('#product-thumbnails-wrap > div').css('border-color', '#dee2e6');
+            $('#product-thumbnails-wrap > div[data-index="' + idx + '"]').css('border-color', '#007bff');
+        }
+
+        function changeMainImage(imageUrl, idx) {
+            var indexToUse = (typeof idx === "number") ? idx : productImages.indexOf(imageUrl);
+            setMainImageByIndex(indexToUse >= 0 ? indexToUse : 0);
+        }
+
+        // ban đầu load nếu có highlight thumb đầu tiên
+        $(function () {
+            setMainImageByIndex(0);
+        });
+
+        // Sự kiện prev/next
+        $('#img-prev').on('click', function () {
+            var current = parseInt($('#main-image-index').val()) || 0;
+            var nextIdx = current - 1;
+            if (nextIdx < 0) {
+                nextIdx = productImages.length - 1; // Vòng tròn
+            }
+            setMainImageByIndex(nextIdx);
+        });
+        $('#img-next').on('click', function () {
+            var current = parseInt($('#main-image-index').val()) || 0;
+            var nextIdx = current + 1;
+            if (nextIdx >= productImages.length) {
+                nextIdx = 0; // Vòng tròn
+            }
+            setMainImageByIndex(nextIdx);
+        });
+
+        // Thumbnail click cũng sẽ thay đổi index
+        $('#product-thumbnails-wrap').on('click', 'div[data-index]', function () {
+            var idx = parseInt($(this).attr('data-index'));
+            setMainImageByIndex(idx);
+        });
 
         // Zoom effect khi hover vào ảnh chính
         $(document).on('mouseenter', '.main-product-image', function () {
@@ -111,16 +180,16 @@
 
                         // Hiển thị thông tin sản phẩm trong modal
                         $('#buyNowProductInfo').html(`
-                                <div class="row align-items-center">
-                                    <div class="col-3">
-                                        <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                    <div class="row align-items-center">
+                                        <div class="col-3">
+                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                        </div>
+                                        <div class="col-9">
+                                            <h5>${escapeHtml(data.tenSP)}</h5>
+                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                        </div>
                                     </div>
-                                    <div class="col-9">
-                                        <h5>${escapeHtml(data.tenSP)}</h5>
-                                        <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                    </div>
-                                </div>
-                            `);
+                                `);
 
                         // Đổ danh sách màu sắc
                         const $mauSac = $('#buyNowMauSac');
@@ -128,8 +197,8 @@
                         if (data.mauSacs && data.mauSacs.length > 0) {
                             data.mauSacs.forEach(function (mau) {
                                 $mauSac.append(`<option value="${mau.maMauSac || mau.MaMauSac}">
-                                        ${mau.tenMauSac || mau.TenMauSac}
-                                    </option>`);
+                                            ${mau.tenMauSac || mau.TenMauSac}
+                                        </option>`);
                             });
                         }
 
@@ -139,8 +208,8 @@
                         if (data.kichThuocs && data.kichThuocs.length > 0) {
                             data.kichThuocs.forEach(function (kt) {
                                 $kichThuoc.append(`<option value="${kt.maKichThuoc || kt.MaKichThuoc}">
-                                        ${kt.tenKichThuoc || kt.TenKichThuoc}
-                                    </option>`);
+                                            ${kt.tenKichThuoc || kt.TenKichThuoc}
+                                        </option>`);
                             });
                         }
 
@@ -181,16 +250,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                    <div class="row align-items-center">
-                                        <div class="col-3">
-                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                        <div class="row align-items-center">
+                                            <div class="col-3">
+                                                <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                            </div>
+                                            <div class="col-9">
+                                                <h5>${escapeHtml(data.tenSP)}</h5>
+                                                <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                            </div>
                                         </div>
-                                        <div class="col-9">
-                                            <h5>${escapeHtml(data.tenSP)}</h5>
-                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                        </div>
-                                    </div>
-                            `);
+                                `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');
