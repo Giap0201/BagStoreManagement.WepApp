@@ -3,6 +3,59 @@
     ViewData["Title"] = "Thanh toán";
 }
 
+<!-- 🔷 Custom filter sidebar styles -->
+<style>
+    .shop-filter-card {
+        background: #fff;
+        border-radius: .7rem;
+        box-shadow: 0 4px 16px rgba(38, 50, 56, 0.05), 0 1.5px 7px rgba(38, 50, 56, 0.08);
+        padding: 2rem 1.2rem 1rem 1.2rem;
+        margin-bottom: 30px;
+        border: none;
+        min-height: 330px;
+        transition: box-shadow 0.2s;
+    }
+
+    .shop-filter-card:hover {
+        box-shadow: 0 8px 32px rgba(38, 50, 56, 0.12), 0 2px 8px rgba(38, 50, 56, 0.09);
+    }
+
+    .shop-filter-title {
+        font-weight: 700;
+        color: #31404b;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 2.2rem !important;
+        font-size: 1.15rem;
+    }
+
+    .shop-filter-label {
+        color: #31404b;
+        font-weight: 600;
+        font-size: .98rem;
+        margin-bottom: .4rem;
+    }
+
+    .shop-filter-select {
+        border-radius: 20px;
+        border: 1px solid #dfe3e6;
+        font-size: .98rem;
+        padding: .5rem 1.2rem;
+        transition: border 0.2s;
+        background: #f8fafb;
+    }
+
+    .shop-filter-select:focus {
+        border-color: #007bff;
+        background: #fff;
+        box-shadow: 0 0 0 2px #cae3ff;
+    }
+
+    .shop-filter-row:not(:last-child) {
+        margin-bottom: 1.3rem;
+    }
+</style>
+
 <!-- 🔷 Page Header -->
 <div class="container-fluid bg-secondary mb-5">
     <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
@@ -20,26 +73,26 @@
     <div class="row px-xl-5">
         <!-- 🧱 Sidebar Filters -->
         <div class="col-lg-3 col-md-12">
-            <div class="border-bottom mb-4 pb-4">
-                <h5 class="font-weight-semi-bold mb-4">Bộ lọc sản phẩm</h5>
+            <div class="shop-filter-card">
+                <div class="shop-filter-title">Bộ lọc sản phẩm</div>
 
-                <div class="form-group mb-3">
-                    <label for="filterLoaiTui" class="font-weight-bold small">Loại túi</label>
-                    <select id="filterLoaiTui" class="form-control">
+                <div class="shop-filter-row">
+                    <label for="filterLoaiTui" class="shop-filter-label">Loại túi</label>
+                    <select id="filterLoaiTui" class="shop-filter-select form-control">
                         <option value="">Tất cả</option>
                     </select>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label for="filterThuongHieu" class="font-weight-bold small">Thương hiệu</label>
-                    <select id="filterThuongHieu" class="form-control">
+                <div class="shop-filter-row">
+                    <label for="filterThuongHieu" class="shop-filter-label">Thương hiệu</label>
+                    <select id="filterThuongHieu" class="shop-filter-select form-control">
                         <option value="">Tất cả</option>
                     </select>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label for="filterChatLieu" class="font-weight-bold small">Chất liệu</label>
-                    <select id="filterChatLieu" class="form-control">
+                <div class="shop-filter-row">
+                    <label for="filterChatLieu" class="shop-filter-label">Chất liệu</label>
+                    <select id="filterChatLieu" class="shop-filter-select form-control">
                         <option value="">Tất cả</option>
                     </select>
                 </div>
@@ -185,26 +238,26 @@
                         : '/uploads/no-image.png';
 
                     html += `
-                                                                                    <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
-                                                                                        <div class="card product-item border-0 mb-4 shadow-sm">
-                                                                                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                                                                                                <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                                                                        <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
+                                                                                            <div class="card product-item border-0 mb-4 shadow-sm">
+                                                                                                <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                                                                                    <img class="img-fluid w-100" src="${imgUrl}" alt="${escapeHtml(sp.tenSP)}">
+                                                                                                </div>
+                                                                                                <div class="card-body text-center p-3 border-left border-right">
+                                                                                                    <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
+                                                                                                    <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
+                                                                                                    <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
+                                                                                                </div>
+                                                                                                <div class="card-footer d-flex justify-content-between bg-light border">
+                                                                                                 <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
+                                                                                                     <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
+                                                                                                 </a>
+                                                                                                 <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
+                                                                                                     <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
+                                                                                                 </a>
+                                                                                                </div>
                                                                                             </div>
-                                                                                            <div class="card-body text-center p-3 border-left border-right">
-                                                                                                <h6 class="text-truncate mb-2">${escapeHtml(sp.tenSP)}</h6>
-                                                                                                <small class="text-muted d-block mb-1">${escapeHtml(sp.tenLoaiTui || '')}</small>
-                                                                                                <small class="text-muted">${escapeHtml(sp.tenThuongHieu || '')}</small>
-                                                                                            </div>
-                                                                                            <div class="card-footer d-flex justify-content-between bg-light border">
-                                                                                             <a href="/Client/Shop/Detail/${sp.maSP}" class="btn btn-sm text-dark p-0">
-                                                                                                 <i class="fas fa-eye text-primary mr-1"></i>Chi tiết
-                                                                                             </a>
-                                                                                             <a href="#" class="btn btn-sm text-dark p-0 btn-add-to-cart" data-ma-sp="${sp.maSP}">
-                                                                                                 <i class="fas fa-shopping-cart text-primary mr-1"></i>Thêm
-                                                                                             </a>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>`;
+                                                                                        </div>`;
                 });
 
                 $('#product-list').html(html);
@@ -222,8 +275,8 @@
 
                 // Nút Previous
                 html += `<li class="page-item ${currentPageNum === 1 ? 'disabled' : ''}">
-                                    <a class="page-link" href="#" data-page="${currentPageNum - 1}" ${currentPageNum === 1 ? 'onclick="return false;"' : ''}>&laquo;</a>
-                                 </li>`;
+                                        <a class="page-link" href="#" data-page="${currentPageNum - 1}" ${currentPageNum === 1 ? 'onclick="return false;"' : ''}>&laquo;</a>
+                                     </li>`;
 
                 // Hiển thị số trang (tối đa 5 trang xung quanh trang hiện tại)
                 let startPage = Math.max(1, currentPageNum - 2);
@@ -249,8 +302,8 @@
                 // Các trang giữa
                 for (let i = startPage; i <= endPage; i++) {
                     html += `<li class="page-item ${i === currentPageNum ? 'active' : ''}">
-                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                     </li>`;
+                                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                         </li>`;
                 }
 
                 // Trang cuối
@@ -263,8 +316,8 @@
 
                 // Nút Next
                 html += `<li class="page-item ${currentPageNum === totalPages ? 'disabled' : ''}">
-                                    <a class="page-link" href="#" data-page="${currentPageNum + 1}" ${currentPageNum === totalPages ? 'onclick="return false;"' : ''}>&raquo;</a>
-                                 </li>`;
+                                        <a class="page-link" href="#" data-page="${currentPageNum + 1}" ${currentPageNum === totalPages ? 'onclick="return false;"' : ''}>&raquo;</a>
+                                     </li>`;
 
                 $('#pagination').html(html);
             }
@@ -348,16 +401,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                                    <div class="row align-items-center">
-                                                        <div class="col-3">
-                                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                                        <div class="row align-items-center">
+                                                            <div class="col-3">
+                                                                <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                                            </div>
+                                                            <div class="col-9">
+                                                                <h5>${escapeHtml(data.tenSP)}</h5>
+                                                                <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                                            </div>
                                                         </div>
-                                                        <div class="col-9">
-                                                            <h5>${escapeHtml(data.tenSP)}</h5>
-                                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                                        </div>
-                                                    </div>
-                                                `);
+                                                    `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');
