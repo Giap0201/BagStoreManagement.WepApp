@@ -313,11 +313,11 @@ namespace BagStore.Web.Migrations
 
                     b.ToTable("DonHang", null, t =>
                         {
-                            t.HasCheckConstraint("CK_DonHang_PTTT", "[PhuongThucThanhToan] IN ('COD','Chuyển khoản')");
+                            t.HasCheckConstraint("CK_DonHang_PTTT", "[PhuongThucThanhToan] IN (N'COD', N'Chuyển khoản', N'Ví điện tử')");
 
-                            t.HasCheckConstraint("CK_DonHang_ThanhToan", "[TrangThaiThanhToan] IN ('Chưa thanh toán','Thành công','Thất bại')");
+                            t.HasCheckConstraint("CK_DonHang_ThanhToan", "[TrangThaiThanhToan] IN (N'Thành công', N'Thất bại', N'Chờ xác nhận', N'Đã hoàn tiền')");
 
-                            t.HasCheckConstraint("CK_DonHang_TrangThai", "[TrangThai] IN ('Chờ xử lý','Hoàn thành','Hủy')");
+                            t.HasCheckConstraint("CK_DonHang_TrangThai", "[TrangThai] IN (N'Chờ xử lý', N'Đang giao hàng', N'Hoàn thành', N'Đã huỷ')");
                         });
                 });
 
