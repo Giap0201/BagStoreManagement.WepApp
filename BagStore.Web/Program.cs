@@ -114,7 +114,8 @@ builder.Services.AddScoped<IChiTietDonHangRepository, ChiTietDonHangImpl>();
 builder.Services.AddScoped<IDonHangService, DonHangService>();
 builder.Services.AddScoped<IAnhSanPhamRepository, AnhSanPhamImpl>();
 builder.Services.AddScoped<IAnhSanPhamService, AnhSanPhamService>();
-
+builder.Services.AddScoped<IDashboardRepository, DashboardImpl>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Đăng ký EnumMapper để chuyển đổi giữa chuỗi và enum
 builder.Services.AddScoped<FileUploadService>();
