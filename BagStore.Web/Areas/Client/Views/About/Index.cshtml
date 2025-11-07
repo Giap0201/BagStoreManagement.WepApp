@@ -1,0 +1,84 @@
+﻿@{
+    Layout = "~/Areas/Client/Views/LayoutShop/_LayoutShopNew.cshtml";
+    ViewData["Title"] = "Về Chúng Tôi";
+}
+
+<div class="container-fluid bg-secondary mb-5">
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+        <h1 class="font-weight-semi-bold text-uppercase mb-3">Về Chúng Tôi</h1>
+        <div class="d-inline-flex">
+            <p class="m-0">
+                <a asp-area="Client" asp-controller="Home" asp-action="Index">Home</a>
+            </p>
+            <p class="m-0 px-2">-</p>
+            <p class="m-0">Về Chúng Tôi</p>
+        </div>
+    </div>
+</div>
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5">
+        <div class="col-lg-6 mb-5">
+
+            <img class="img-fluid w-100" src="img/about-main.jpg" alt="Cô gái với túi xách thời trang E-Shopper"
+                 style="object-fit: cover; height: 100%; min-height: 400px;">
+        </div>
+
+        <div class="col-lg-6 mb-5">
+            <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4">
+                <span class="bg-secondary pr-3">Câu Chuyện Của E-Shopper</span>
+            </h2>
+            <h5 class="font-weight-semi-bold mb-3">Nơi Phong Cách Bắt Nguồn Từ Đam Mê</h5>
+            <p>
+                Chào mừng bạn đến với <strong>E-Shopper</strong>, điểm đến không chỉ dành cho những chiếc túi xách, mà còn dành cho những câu chuyện và cá tính mà chúng mang lại. Chúng tôi tin rằng một chiếc túi xách không đơn thuần là một phụ kiện—đó là người bạn đồng hành, là tuyên ngôn về phong cách và là một phần không thể thiếu trong cuộc sống hàng ngày của bạn.
+            </p>
+            <p>
+                Sứ mệnh của chúng tôi là mang đến những bộ sưu tập được tuyển chọn kỹ lưỡng, từ những thiết kế thanh lịch, sang trọng cho những buổi tiệc tối, đến những chiếc balo, túi tote năng động cho nhịp sống hiện đại.
+            </p>
+
+            <h5 class="font-weight-semi-bold mt-4 mb-3">Cam Kết Của Chúng Tôi</h5>
+            <p class="mb-2"><i class="fa fa-check text-primary mr-3"></i><strong>Chất Lượng Vượt Trội:</strong> Từng đường may, chất liệu da đều được kiểm tra gắt gao.</p>
+            <p class="mb-2"><i class="fa fa-check text-primary mr-3"></i><strong>Thiết Kế Dẫn Đầu:</strong> Luôn cập nhật những xu hướng thời trang mới nhất từ khắp nơi trên thế giới.</p>
+            <p class="mb-2"><i class="fa fa-check text-primary mr-3"></i><strong>Trải Nghiệm Tận Tâm:</strong> Đội ngũ của chúng tôi luôn sẵn sàng tư vấn để bạn tìm được chiếc túi hoàn hảo nhất.</p>
+        </div>
+    </div>
+
+    <div class="row px-xl-5 pt-5">
+        <div class="col-lg-12 text-center mb-4">
+            <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4">
+                <span class="bg-secondary pr-3">Bộ Sưu Tập Nổi Bật</span>
+            </h2>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-5">
+            <div class="card border-0 shadow-sm">
+
+                <img class="card-img-top img-fluid" src="img/gallery-1.jpg" alt="Túi Tote da thanh lịch" style="height: 400px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="font-weight-semi-bold">Túi Tote Công Sở</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-5">
+            <div class="card border-0 shadow-sm">
+
+                <img class="card-img-top img-fluid" src="img/gallery-2.jpg" alt="Túi đeo chéo dạo phố" style="height: 400px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="font-weight-semi-bold">Túi Đeo Chéo Năng Động</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-5">
+            <div class="card border-0 shadow-sm">
+
+                <img class="card-img-top img-fluid" src="img/gallery-3.jpg" alt="Clutch dự tiệc sang trọng" style="height: 400px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="font-weight-semi-bold">Clutch Dự Tiệc</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+}
