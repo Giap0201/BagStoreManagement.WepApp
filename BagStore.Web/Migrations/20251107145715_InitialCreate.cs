@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BagStore.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class InitIdentity : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -369,9 +369,9 @@ namespace BagStore.Web.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DonHang", x => x.MaDonHang);
-                    table.CheckConstraint("CK_DonHang_PTTT", "[PhuongThucThanhToan] IN ('COD','Chuyển khoản')");
-                    table.CheckConstraint("CK_DonHang_ThanhToan", "[TrangThaiThanhToan] IN ('Chưa thanh toán','Thành công','Thất bại')");
-                    table.CheckConstraint("CK_DonHang_TrangThai", "[TrangThai] IN ('Chờ xử lý','Hoàn thành','Hủy')");
+                    table.CheckConstraint("CK_DonHang_PTTT", "[PhuongThucThanhToan] IN (N'COD', N'Chuyển khoản', N'Ví điện tử')");
+                    table.CheckConstraint("CK_DonHang_ThanhToan", "[TrangThaiThanhToan] IN (N'Thành công', N'Thất bại', N'Chờ xác nhận', N'Đã hoàn tiền')");
+                    table.CheckConstraint("CK_DonHang_TrangThai", "[TrangThai] IN (N'Chờ xử lý', N'Đang giao hàng', N'Hoàn thành', N'Đã huỷ')");
                     table.ForeignKey(
                         name: "FK_DonHang_KhachHang_MaKH",
                         column: x => x.MaKH,
