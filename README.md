@@ -1,56 +1,63 @@
-﻿🛍️ BagStoreManagement.WebApp — Hệ thống Quản lý Cửa hàng Túi Xách
+﻿# 🛍️ BagStoreManagement.WebApp — Hệ thống Quản lý Cửa hàng Túi Xách
 
-Dự án website thương mại điện tử (E-commerce) được xây dựng bằng ASP.NET Core MVC với kiến trúc Repository Pattern và Service Layer.
+Dự án **website thương mại điện tử (E-commerce)** được xây dựng bằng **ASP.NET Core MVC** với **kiến trúc Repository Pattern và Service Layer**.  
 Hệ thống được thiết kế cho hai đối tượng người dùng chính:
 
-👩‍💼 Admin: Quản trị, quản lý sản phẩm, đơn hàng, khách hàng
+- 👩‍💼 **Admin:** Quản trị, quản lý sản phẩm, đơn hàng, khách hàng  
+- 👗 **Client:** Khách hàng mua sắm trực tuyến
 
-👗 Client: Khách hàng mua sắm trực tuyến
+---
 
-💻 Công nghệ Sử dụng
-Thành phần	Công nghệ
-Backend	ASP.NET Core (MVC & Web API)
-Database	Entity Framework Core (Code-First)
-Database Server	SQL Server
-Kiến trúc	Repository Pattern, Service Layer, Areas
-Frontend (Client)	Razor Pages, JavaScript, jQuery, AJAX, Bootstrap
-Frontend (Admin)	Razor Pages, Bootstrap, Chart.js (thống kê biểu đồ)
-📁 Cấu trúc Dự án
+## 💻 Công nghệ Sử dụng
+
+| Thành phần | Công nghệ |
+|-------------|------------|
+| **Backend** | ASP.NET Core (MVC & Web API) |
+| **Database** | Entity Framework Core (Code-First) |
+| **Database Server** | SQL Server |
+| **Kiến trúc** | Repository Pattern, Service Layer, Areas |
+| **Frontend (Client)** | Razor Pages, JavaScript, jQuery, AJAX, Bootstrap |
+| **Frontend (Admin)** | Razor Pages, Bootstrap, Chart.js (thống kê biểu đồ) |
+
+---
+
+## 📁 Cấu trúc Dự án
 
 Cấu trúc project được tổ chức theo mô hình phân lớp rõ ràng để dễ bảo trì và mở rộng:
 
+```plaintext
 BagStoreManagement.WebApp/
 │
 ├── Areas/
-│   ├── Admin/         # Khu vực quản trị (Controllers, Views, Models)
-│   └── Client/        # Khu vực khách hàng (Controllers, Views, Models)
+│   ├── Admin/          # Khu vực quản trị (Controllers, Views, Models)
+│   └── Client/         # Khu vực khách hàng (Controllers, Views, Models)
 │
 ├── Controllers/
-│   └── Api/           # Các API endpoint (JSON) cho AJAX (giỏ hàng, lọc, v.v.)
+│   └── Api/            # Các API endpoint (JSON) cho AJAX (giỏ hàng, lọc, v.v.)
 │
 ├── Data/
 │   ├── BagStoreDbContext.cs
 │   └── Configurations/ # File cấu hình cho EF Core
 │
-├── Migrations/         # Các file migration (EF Core)
+├── Migrations/          # Các file migration (EF Core)
 │
 ├── Models/
-│   ├── Entities/       # Lớp ánh xạ bảng DB
-│   ├── DTOs/           # Data Transfer Objects (truyền dữ liệu API)
-│   └── ViewModels/     # Truyền dữ liệu từ Controller → View
+│   ├── Entities/        # Lớp ánh xạ bảng DB
+│   ├── DTOs/            # Data Transfer Objects (truyền dữ liệu API)
+│   └── ViewModels/      # Truyền dữ liệu từ Controller → View
 │
 ├── Repositories/
-│   ├── Interfaces/     # Interface định nghĩa repository
-│   └── Implementations/# Lớp triển khai repository
+│   ├── Interfaces/      # Interface định nghĩa repository
+│   └── Implementations/ # Lớp triển khai repository
 │
 ├── Services/
-│   ├── Interfaces/     # Interface của service
-│   └── Implementations/# Triển khai logic nghiệp vụ
+│   ├── Interfaces/      # Interface của service
+│   └── Implementations/ # Triển khai logic nghiệp vụ
 │
 ├── wwwroot/
-│   ├── LayoutAdmin/    # CSS, JS, hình ảnh cho theme Admin
-│   ├── LayoutClient/   # CSS, JS, hình ảnh cho theme Client
-│   └── uploads/        # Hình ảnh sản phẩm người dùng tải lên
+│   ├── LayoutAdmin/     # CSS, JS, hình ảnh cho theme Admin
+│   ├── LayoutClient/    # CSS, JS, hình ảnh cho theme Client
+│   └── uploads/         # Hình ảnh sản phẩm người dùng tải lên
 │
 └── appsettings.json
 
@@ -75,7 +82,7 @@ Trang chủ: Hiển thị sản phẩm mới, nổi bật
 
 Cửa hàng (Shop):
 
-Xem tất cả sản phẩm (có phân trang)
+Xem tất cả sản phẩm (phân trang)
 
 Bộ lọc (theo giá, thương hiệu, loại túi, màu sắc, kích thước)
 
@@ -114,7 +121,7 @@ Mở Package Manager Console trong Visual Studio và chạy lệnh sau:
 Update-Database
 
 
-→ Lệnh này sẽ tạo toàn bộ cơ sở dữ liệu theo các Migration có sẵn.
+➡️ Lệnh này sẽ tạo toàn bộ cơ sở dữ liệu theo các Migration có sẵn.
 
 3️⃣ Khởi chạy Ứng dụng
 
@@ -127,10 +134,10 @@ Nhấn F5 hoặc nút ▶ Run để chạy ứng dụng.
 🔗 Truy cập Ứng dụng
 
 Trang Khách hàng (Client):
-👉 https://localhost:<PORT>/
+👉 https://localhost:PORT/
 
 Trang Quản trị (Admin):
-👉 https://localhost:<PORT>/Admin
+👉 https://localhost:PORT/Admin
 
 📜 Giấy phép & Bản quyền
 
@@ -140,7 +147,7 @@ Vui lòng ghi nguồn khi sử dụng hoặc chỉnh sửa.
 
 🧠 Tác giả & Liên hệ
 
-Tác giả: Nguyễn Hữu Giáp, Nguyễn Khánh Sơn, Nguyễn Đăng Trung, Lê Xuân Thành, Phạm Duy Nghĩa
+Tác giả: Nguyễn Hữu Giáp, Nguyễn Khánh Sơn, Lê Xuân Thành, Phạm Duy Nghĩa, Nguyễn Đăng Trung
 
 Liên hệ: (cập nhật nếu cần)
 
