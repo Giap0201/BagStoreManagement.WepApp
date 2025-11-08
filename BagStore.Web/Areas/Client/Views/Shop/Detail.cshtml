@@ -10,16 +10,27 @@
         <div class="col-md-6">
             <div class="border mb-3"
                 style="min-height: 600px; height: 600px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; padding: 20px; position: relative; overflow: hidden;">
+                <!-- Thêm nút PREV, NEXT và index hidden -->
+                <button type="button" id="img-prev" class="btn btn-light"
+                    style="position:absolute; left:10px; top:50%; transform:translateY(-50%); z-index:2; border-radius:50%; box-shadow:0 0 6px #ccc;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
                 <img src="@(Model.Images.FirstOrDefault()?.DuongDan ?? "/uploads/no-image.png")"
                     class="rounded main-product-image" alt="@Model.Product?.TenSP"
                     style="height: 550px; width: auto; max-width: 100%; object-fit: contain; transition: transform 0.3s ease; cursor: zoom-in;" />
+                <button type="button" id="img-next" class="btn btn-light"
+                    style="position:absolute; right:10px; top:50%; transform:translateY(-50%); z-index:2; border-radius:50%; box-shadow:0 0 6px #ccc;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <input type="hidden" id="main-image-index" value="0" />
             </div>
-            <div class="d-flex flex-wrap gap-2 mt-3">
-                @foreach (var img in Model.Images)
+            <div class="d-flex flex-wrap gap-2 mt-3" id="product-thumbnails-wrap">
+                @for (int i = 0; i < Model.Images.Count; i++)
                 {
+                    var img = Model.Images[i];
                     <div style="width: 90px; height: 90px; overflow: hidden; border: 2px solid #dee2e6; border-radius: 6px; padding: 5px; cursor: pointer; transition: border-color 0.2s ease;"
-                        onclick="changeMainImage('@img.DuongDan')" onmouseover="this.style.borderColor='#007bff'"
-                        onmouseout="this.style.borderColor='#dee2e6'">
+                        data-index="@i" onclick="changeMainImage('@img.DuongDan', @i)"
+                        onmouseover="this.style.borderColor='#007bff'" onmouseout="this.style.borderColor='#dee2e6'">
                         <img src="@img.DuongDan" style="width: 100%; height: 100%; object-fit: contain;" alt="Thumbnail" />
                     </div>
                 }
@@ -42,6 +53,12 @@
                 <a href="#" class="btn btn-primary btn-lg btn-add-to-cart" data-ma-sp="@Model.Product?.MaSP">
                     <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                 </a>
+                <a href="#" class="btn btn-primary btn-lg btn-buy-now" data-ma-sp="@Model.Product?.MaSP"
+                    style="color:#C1847C; border:1px solid #C1847C; background-color:white;"
+                    onmouseover="this.style.backgroundColor='#C1847C'; this.style.color='white';"
+                    onmouseout="this.style.backgroundColor='white'; this.style.color='#C1847C';">
+                    Mua Ngay
+                </a>
             </div>
         </div>
     </div>
@@ -58,9 +75,67 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function changeMainImage(imageUrl) {
-            $('.main-product-image').attr('src', imageUrl);
+        // Giữ danh sách ảnh và index hiện tại dạng JS array
+        var productImages = [];
+        @* truyền vào javascript array *@
+            @if (Model.Images != null && Model.Images.Count > 0)
+            {
+                <text>productImages = [@Html.Raw(string.Join(",", Model.Images.Select(i => $"'{i.DuongDan.Replace("\\", "\\\\").Replace("'", "\\'")}'")))];</text>
         }
+            else
+            {
+                <text>productImages = ['/uploads/no-image.png'];</text>
+        }
+
+            // current index
+            var mainImageIndex = 0;
+
+        function setMainImageByIndex(idx) {
+            if (!productImages.length) return;
+            if (idx < 0) idx = 0;
+            if (idx >= productImages.length) idx = productImages.length - 1;
+            $('.main-product-image').attr('src', productImages[idx]);
+            $('#main-image-index').val(idx);
+            mainImageIndex = idx;
+
+            // Highlight thumb (optional: nếu bạn muốn)
+            $('#product-thumbnails-wrap > div').css('border-color', '#dee2e6');
+            $('#product-thumbnails-wrap > div[data-index="' + idx + '"]').css('border-color', '#007bff');
+        }
+
+        function changeMainImage(imageUrl, idx) {
+            var indexToUse = (typeof idx === "number") ? idx : productImages.indexOf(imageUrl);
+            setMainImageByIndex(indexToUse >= 0 ? indexToUse : 0);
+        }
+
+        // ban đầu load nếu có highlight thumb đầu tiên
+        $(function () {
+            setMainImageByIndex(0);
+        });
+
+        // Sự kiện prev/next
+        $('#img-prev').on('click', function () {
+            var current = parseInt($('#main-image-index').val()) || 0;
+            var nextIdx = current - 1;
+            if (nextIdx < 0) {
+                nextIdx = productImages.length - 1; // Vòng tròn
+            }
+            setMainImageByIndex(nextIdx);
+        });
+        $('#img-next').on('click', function () {
+            var current = parseInt($('#main-image-index').val()) || 0;
+            var nextIdx = current + 1;
+            if (nextIdx >= productImages.length) {
+                nextIdx = 0; // Vòng tròn
+            }
+            setMainImageByIndex(nextIdx);
+        });
+
+        // Thumbnail click cũng sẽ thay đổi index
+        $('#product-thumbnails-wrap').on('click', 'div[data-index]', function () {
+            var idx = parseInt($(this).attr('data-index'));
+            setMainImageByIndex(idx);
+        });
 
         // Zoom effect khi hover vào ảnh chính
         $(document).on('mouseenter', '.main-product-image', function () {
@@ -79,6 +154,89 @@
                 openAddToCartModal(maSP);
             });
 
+            // ✅ Xử lý button "Mua Ngay"
+            $('.btn-buy-now').on('click', function (e) {
+                e.preventDefault();
+                const maSP = $(this).data('ma-sp');
+                if (!maSP) return;
+
+                openBuyNowModal(maSP);
+            });
+
+            function openBuyNowModal(maSP) {
+                // Hiển thị modal "Mua ngay"
+                $('#buyNowModal').modal('show');
+
+                // Hiển thị trạng thái loading trong modal
+                $('#buyNowProductInfo').html('<div class="text-center py-3"><div class="spinner-border"></div></div>');
+                $('#buyNowMauSac, #buyNowKichThuoc').empty().append('<option value="">Đang tải...</option>');
+
+                // Gọi API lấy thông tin sản phẩm
+                $.get('/Client/Shop/GetProductOptions', { maSP: maSP })
+                    .done(function (data) {
+                        const imgUrl = data.anhChinh
+                            ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/')
+                            : '/uploads/no-image.png';
+
+                        // Hiển thị thông tin sản phẩm trong modal
+                        $('#buyNowProductInfo').html(`
+                                    <div class="row align-items-center">
+                                        <div class="col-3">
+                                            <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                        </div>
+                                        <div class="col-9">
+                                            <h5>${escapeHtml(data.tenSP)}</h5>
+                                            <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                        </div>
+                                    </div>
+                                `);
+
+                        // Đổ danh sách màu sắc
+                        const $mauSac = $('#buyNowMauSac');
+                        $mauSac.empty().append('<option value="">-- Chọn màu sắc --</option>');
+                        if (data.mauSacs && data.mauSacs.length > 0) {
+                            data.mauSacs.forEach(function (mau) {
+                                $mauSac.append(`<option value="${mau.maMauSac || mau.MaMauSac}">
+                                            ${mau.tenMauSac || mau.TenMauSac}
+                                        </option>`);
+                            });
+                        }
+
+                        // Đổ danh sách kích thước
+                        const $kichThuoc = $('#buyNowKichThuoc');
+                        $kichThuoc.empty().append('<option value="">-- Chọn kích thước --</option>');
+                        if (data.kichThuocs && data.kichThuocs.length > 0) {
+                            data.kichThuocs.forEach(function (kt) {
+                                $kichThuoc.append(`<option value="${kt.maKichThuoc || kt.MaKichThuoc}">
+                                            ${kt.tenKichThuoc || kt.TenKichThuoc}
+                                        </option>`);
+                            });
+                        }
+
+                        // Lưu mã sản phẩm và đánh dấu chế độ
+                        $('#buyNowMaSP').data('mode', 'buy-now');
+                        $('#buyNowMaSP').val(maSP);
+
+                        // Reset số lượng
+                        $('#buyNowSoLuong').val(1);
+
+                        // Xóa tạm mã chi tiết lưu ở data
+                        $('#formBuyNow').removeData('maChiTietSP');
+
+                        // Xóa tồn kho hiển thị cũ
+                        $('#buyNowSoLuongTon').text('-');
+                        $('#buyNowSoLuong').attr('max', null);
+                    })
+                    .fail(function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Không thể tải thông tin sản phẩm!'
+                        });
+                        $('#buyNowModal').modal('hide');
+                    });
+            }
+
             // ✅ Hàm mở modal chọn màu/kích thước
             function openAddToCartModal(maSP) {
                 // Hiển thị modal loading
@@ -92,16 +250,16 @@
                         // Hiển thị thông tin sản phẩm
                         const imgUrl = data.anhChinh ? data.anhChinh.replace(/^wwwroot/, '').replace(/\\/g, '/') : '/uploads/no-image.png';
                         $('#modalProductInfo').html(`
-                                                                                <div class="row align-items-center">
-                                                                                    <div class="col-3">
-                                                                                        <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
-                                                                                    </div>
-                                                                                    <div class="col-9">
-                                                                                        <h5>${escapeHtml(data.tenSP)}</h5>
-                                                                                        <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            `);
+                                        <div class="row align-items-center">
+                                            <div class="col-3">
+                                                <img src="${imgUrl}" class="img-fluid rounded" alt="${data.tenSP}" />
+                                            </div>
+                                            <div class="col-9">
+                                                <h5>${escapeHtml(data.tenSP)}</h5>
+                                                <p class="text-muted mb-0">Mã SP: ${data.maSP}</p>
+                                            </div>
+                                        </div>
+                                `);
 
                         // Load màu sắc
                         const $mauSac = $('#modalMauSac');
@@ -123,6 +281,12 @@
 
                         // Lưu maSP vào modal
                         $('#modalMaSP').val(maSP);
+
+                        // Reset số lượng
+                        $('#modalSoLuong').val(1);
+
+                        $('#modalSoLuongTon').text('-');
+                        $('#modalSoLuong').attr('max', null);
                     })
                     .fail(function () {
                         Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể tải thông tin sản phẩm!' });
@@ -130,7 +294,7 @@
                     });
             }
 
-            // ✅ Cập nhật số lượng tồn khi chọn màu/kích thước
+            // ✅ Cập nhật số lượng tồn khi chọn màu/kích thước cho thêm vào giỏ
             $('#modalMauSac, #modalKichThuoc').on('change', function () {
                 const maSP = $('#modalMaSP').val();
                 const maMauSac = $('#modalMauSac').val();
@@ -138,6 +302,7 @@
 
                 if (!maSP || !maMauSac || !maKichThuoc) {
                     $('#modalSoLuongTon').text('-');
+                    $('#modalSoLuong').attr('max', null);
                     return;
                 }
 
@@ -150,11 +315,74 @@
                         const soLuongTon = variant.soLuongTon || variant.SoLuongTon || 0;
                         $('#modalSoLuongTon').text(soLuongTon);
                         $('#modalSoLuong').attr('max', soLuongTon);
+                        // Nếu người dùng đang nhập lớn hơn tồn → ép về tồn
+                        const current = parseInt($('#modalSoLuong').val()) || 1;
+                        if (soLuongTon > 0 && current > soLuongTon) {
+                            $('#modalSoLuong').val(soLuongTon);
+                        }
+                        if (soLuongTon <= 0) {
+                            $('#modalSoLuong').val(1);
+                        }
                     })
                     .fail(function () {
                         $('#modalSoLuongTon').text('-');
+                        $('#modalSoLuong').attr('max', null);
                     });
             });
+
+            // ✅ Cập nhật số lượng tồn khi chọn màu/kích thước cho buyNow
+            function updateBuyNowStock() {
+                const maSP = $('#buyNowMaSP').val();
+                const colorId = $('#buyNowMauSac').val();
+                const sizeId = $('#buyNowKichThuoc').val();
+
+                // Reset khi chưa chọn đủ
+                if (!maSP || !colorId || !sizeId) {
+                    $('#buyNowSoLuongTon').text('-');
+                    $('#buyNowSoLuong').attr('max', null);
+                    // Xóa tạm mã biến thể lưu ở data
+                    $('#formBuyNow').removeData('maChiTietSP');
+                    return;
+                }
+
+                $.get('/Client/Shop/GetVariant', { maSp: maSP, colorId, sizeId })
+                    .done(function (variant) {
+                        const maChiTietSP = variant.maChiTietSP || variant.MaChiTietSP;
+                        const ton = variant.soLuongTon ?? variant.SoLuongTon ?? variant.soLuong ?? variant.SoLuong ?? 0;
+
+                        if (!maChiTietSP) {
+                            $('#buyNowSoLuongTon').text('0');
+                            $('#buyNowSoLuong').attr('max', 0);
+                            // Xóa tạm mã biến thể lưu ở data
+                            $('#formBuyNow').removeData('maChiTietSP');
+                            return;
+                        }
+
+                        $('#buyNowSoLuongTon').text(ton);
+                        $('#buyNowSoLuong').attr('max', ton);
+
+                        // Nếu người dùng đang nhập lớn hơn tồn → ép về tồn
+                        const current = parseInt($('#buyNowSoLuong').val()) || 1;
+                        if (ton > 0 && current > ton) {
+                            $('#buyNowSoLuong').val(ton);
+                        }
+                        if (ton <= 0) {
+                            $('#buyNowSoLuong').val(1);
+                        }
+
+                        // Lưu tạm mã biến thể vào data để submit dùng ngay
+                        $('#formBuyNow').data('maChiTietSP', maChiTietSP);
+                    })
+                    .fail(function () {
+                        $('#buyNowSoLuongTon').text('-');
+                        $('#buyNowSoLuong').attr('max', null);
+                        // Xóa tạm mã biến thể lưu ở data
+                        $('#formBuyNow').removeData('maChiTietSP');
+                    });
+            }
+
+            // 🔁 Khi người dùng đổi màu/size thì cập nhật tồn kho cho buyNow
+            $(document).on('change', '#buyNowMauSac, #buyNowKichThuoc', updateBuyNowStock);
 
             // ✅ Xử lý submit form thêm vào giỏ
             $('#formAddToCart').on('submit', function (e) {
@@ -229,15 +457,110 @@
                     });
             });
 
+            // ✅ Util nhỏ để tránh XSS khi hiển thị text
             function escapeHtml(text) {
                 if (!text && text !== 0) return '';
                 return String(text).replace(/[&"'<>]/g, s => ({
                     '&': '&amp;', '"': '&quot;', "'": '&#39;', '<': '&lt;', '>': '&gt;'
                 }[s]));
             }
+
+            // ✅ Submit Mua ngay
+            $('#formBuyNow').on('submit', function (e) {
+                e.preventDefault();
+
+                const maSP = $('#buyNowMaSP').val();
+                const maMauSac = $('#buyNowMauSac').val();
+                const maKichThuoc = $('#buyNowKichThuoc').val();
+                const soLuong = parseInt($('#buyNowSoLuong').val()) || 1;
+
+                if (!maMauSac || !maKichThuoc) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Thiếu thông tin',
+                        text: 'Vui lòng chọn màu sắc và kích thước!'
+                    });
+                    return;
+                }
+
+                // Lấy sẵn từ data nếu đã gọi updateBuyNowStock trước đó
+                let maChiTietSP = $('#formBuyNow').data('maChiTietSP');
+
+                const proceedToCheckout = function (variantId) {
+                    // Kiểm tra đăng nhập
+                    $.get('/Client/Shop/GetMaKH')
+                        .done(function (res) {
+                            if (!res || !res.maKH) {
+                                Swal.fire({ icon: 'warning', title: 'Yêu cầu đăng nhập', text: 'Vui lòng đăng nhập để mua ngay!' })
+                                    .then(() => window.location.href = '/Client/Account/Login');
+                                return;
+                            }
+
+                            // Thêm vào giỏ, sau đó chuyển qua đúng trang checkout với selectedItems đúng format
+                            $.ajax({
+                                url: '/api/Cart/add',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    maKH: res.maKH,
+                                    maChiTietSP: variantId,
+                                    soLuong: soLuong
+                                }),
+                                success: function () {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Thành công',
+                                        text: 'Đã thêm vào giỏ. Chuyển đến thanh toán...',
+                                        timer: 800,
+                                        showConfirmButton: false
+                                    });
+                                    $('#buyNowModal').modal('hide');
+
+                                    // ĐÚNG ĐƯỜNG DẪN MÀ BẠN MUỐN CHUYỂN (sửa lại thành đúng page checkout của bạn kèm đúng query)
+                                    // Dựa trên code từng dùng ở trên:
+                                    var selectedItems = encodeURIComponent(`${variantId}:${soLuong}`);
+                                    setTimeout(function () {
+                                        window.location.href = `/Client/DonHang/Checkout?selectedItems=${selectedItems}`;
+                                    }, 800);
+                                },
+                                error: function (xhr) {
+                                    if (xhr.status === 401) {
+                                        Swal.fire({ icon: 'warning', title: 'Yêu cầu đăng nhập', text: 'Vui lòng đăng nhập để mua ngay!' })
+                                            .then(() => window.location.href = '/Client/Account/Login');
+                                    } else {
+                                        Swal.fire({ icon: 'error', title: 'Lỗi', text: (xhr.responseJSON && xhr.responseJSON.message) || 'Không thể mua ngay!' });
+                                    }
+                                }
+                            });
+                        })
+                        .fail(function () {
+                            Swal.fire({ icon: 'warning', title: 'Yêu cầu đăng nhập', text: 'Vui lòng đăng nhập để mua ngay!' })
+                                .then(() => window.location.href = '/Client/Account/Login');
+                        });
+                };
+
+                // Nếu chưa có maChiTietSP, gọi GetVariant 1 lần
+                if (!maChiTietSP) {
+                    $.get('/Client/Shop/GetVariant', { maSp: maSP, colorId: maMauSac, sizeId: maKichThuoc })
+                        .done(function (variant) {
+                            maChiTietSP = variant.maChiTietSP || variant.MaChiTietSP;
+                            if (!maChiTietSP) {
+                                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không tìm thấy biến thể sản phẩm!' });
+                                return;
+                            }
+                            proceedToCheckout(maChiTietSP);
+                        })
+                        .fail(function () {
+                            Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể lấy thông tin biến thể!' });
+                        });
+                } else {
+                    proceedToCheckout(maChiTietSP);
+                }
+            });
         });
     </script>
 }
+
 
 <!-- ✅ Modal chọn màu sắc và kích thước -->
 <div class="modal fade" id="addToCartModal" tabindex="-1" role="dialog">
@@ -279,6 +602,53 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Modal Mua Ngay -->
+<div class="modal fade" id="buyNowModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Chọn màu sắc và kích thước</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="formBuyNow">
+                <div class="modal-body">
+                    <div id="buyNowProductInfo" class="mb-3"></div>
+                    <input type="hidden" id="buyNowMaSP" />
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Màu sắc: <span class="text-danger">*</span></label>
+                        <select id="buyNowMauSac" class="form-control" required>
+                            <option value="">-- Chọn màu sắc --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Kích thước: <span class="text-danger">*</span></label>
+                        <select id="buyNowKichThuoc" class="form-control" required>
+                            <option value="">-- Chọn kích thước --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Số lượng:</label>
+                        <!-- 🔁 dùng id RIÊNG cho Buy Now -->
+                        <input type="number" id="buyNowSoLuong" class="form-control" value="1" min="1" required />
+                        <small class="text-muted">Còn lại: <span id="buyNowSoLuongTon">-</span></small>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Mua Ngay</button>
                 </div>
             </form>
         </div>

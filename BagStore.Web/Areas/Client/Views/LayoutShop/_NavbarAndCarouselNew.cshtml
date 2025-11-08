@@ -19,16 +19,17 @@
         <div class="navbar-nav mr-auto py-0">
 
             <a asp-area="Client" asp-action="Index" asp-controller="Home"
-               class="nav-item nav-link @(currentController == "home" && currentAction == "index" ? "active" : "")">Trang chủ</a>
+                class="nav-item nav-link @(currentController == "home" && currentAction == "index" ? "active" : "")">Trang
+                chủ</a>
 
             <a asp-controller="Shop" asp-action="Index" asp-area="Client"
-               class="nav-item nav-link @(currentController == "shop" ? "active" : "")">Sản phẩm</a>
+                class="nav-item nav-link @(currentController == "shop" ? "active" : "")">Sản phẩm</a>
 
             <a asp-area="Client" asp-action="Index" asp-controller="DonHang"
-               class="nav-item nav-link @(currentController == "donhang" ? "active" : "")">Đơn hàng</a>
+                class="nav-item nav-link @(currentController == "donhang" ? "active" : "")">Đơn hàng</a>
 
             <a asp-area="Client" asp-controller="Cart" asp-action="Index"
-               class="nav-item nav-link @(currentController == "cart" ? "active" : "")">Giỏ hàng</a>
+                class="nav-item nav-link @(currentController == "cart" ? "active" : "")">Giỏ hàng</a>
 
             @* <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
