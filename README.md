@@ -1,6 +1,5 @@
 ﻿🛍️ BagStoreManagement.WebApp: Hệ thống Quản lý Cửa hàng Túi Xách
 Đây là dự án website thương mại điện tử (E-commerce) được xây dựng bằng ASP.NET Core MVC với kiến trúc Repository Pattern và Service Layer. Hệ thống được thiết kế để phục vụ hai đối tượng người dùng chính: Khách hàng (Client) mua sắm và Người quản trị (Admin) vận hành hệ thống.
-
 💻 Công nghệ Sử dụng
 Backend: ASP.NET Core (MVC & Web API)
 Database: Entity Framework Core (Code-First)
@@ -8,7 +7,6 @@ Database Server: SQL Server
 Kiến trúc: Repository Pattern, Service Layer, Areas
 Frontend (Client): Razor Pages, JavaScript, jQuery, AJAX, Bootstrap
 Frontend (Admin): Razor Pages, Bootstrap, Chart.js (cho biểu đồ thống kê)
-
 📁 Cấu trúc Project
 Dự án được tổ chức theo kiến trúc phân lớp rõ ràng để dễ dàng bảo trì và mở rộng:
 /Areas: Phân vùng chức năng chính.
@@ -31,7 +29,6 @@ Dự án được tổ chức theo kiến trúc phân lớp rõ ràng để dễ
 /LayoutAdmin: CSS, JS, hình ảnh cho theme Admin.
 /LayoutClient: CSS, JS, hình ảnh cho theme Client (Shop).
 /uploads: Thư mục lưu trữ hình ảnh sản phẩm do người dùng tải lên.
-
 🌟 Danh mục Chức năng
 1. Phân vùng Quản trị (Admin)
 Dashboard: Thống kê tổng quan doanh thu, đơn hàng, khách hàng và sản phẩm (sử dụng Chart.js).
@@ -67,7 +64,7 @@ Mở Package Manager Console trong Visual Studio.
 Chạy lệnh sau để áp dụng các Migrations và tạo cơ sở dữ liệu:
 PowerShell
 Update-Database
-3. Khởi chạy Ứng dụng
+4. Khởi chạy Ứng dụng
 Mở file BagStoreManagement.WepApp.sln bằng Visual Studio 2022.
 Đảm bảo BagStore.Web được chọn làm dự án khởi động (Startup Project).
 Nhấn F5 hoặc nút Run (▶) để bắt đầu chạy dự án.
